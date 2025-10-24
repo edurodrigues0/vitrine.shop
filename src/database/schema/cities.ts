@@ -6,3 +6,6 @@ export const cities = pgTable("cities", {
 	state: varchar("state", { length: 2 }).notNull(), // ex: MG, SP
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export type City = typeof cities.$inferSelect;
+export type NewCity = typeof cities.$inferInsert;

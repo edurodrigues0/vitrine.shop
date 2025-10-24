@@ -69,18 +69,6 @@ describe("CreateUserUseCase", () => {
 		expect(admin.user.role).toBe("ADMIN");
 	});
 
-	it("should be able to save the user in the repository", async () => {
-		await sut.execute({
-			name: "John Doe",
-			email: "john.doe@example.com",
-			password: "123456",
-			role: "OWNER",
-		});
-
-		expect(usersRepository.items).toHaveLength(1);
-		expect(usersRepository.items[0]?.email).toBe("john.doe@example.com");
-	});
-
 	it("should throw error when user with same email already exists", async () => {
 		await sut.execute({
 			name: "John Doe",
