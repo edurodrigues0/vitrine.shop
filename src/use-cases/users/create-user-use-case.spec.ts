@@ -17,13 +17,13 @@ describe("CreateUserUseCase", () => {
 			name: "John Doe",
 			email: "john.doe@example.com",
 			password: "123456",
-			role: "PASSENGER",
+			role: "OWNER",
 		});
 
 		expect(user.id).toEqual(expect.any(String));
 		expect(user.name).toBe("John Doe");
 		expect(user.email).toBe("john.doe@example.com");
-		expect(user.role).toBe("PASSENGER");
+		expect(user.role).toBe("OWNER");
 	});
 
 	it("should be able to hash the user's password", async () => {
@@ -31,27 +31,30 @@ describe("CreateUserUseCase", () => {
 			name: "John Doe",
 			email: "john.doe@example.com",
 			password: "123456",
-			role: "PASSENGER",
+			role: "OWNER",
 		});
 
-		const isPasswordCorrectlyHashed = await compare("123456", user.password);
+		const isPasswordCorrectlyHashed = await compare(
+			"123456",
+			user.passwordHash,
+		);
 
 		expect(isPasswordCorrectlyHashed).toBe(true);
 	});
 
 	it("should be able to create users with different roles", async () => {
-		const passenger = await sut.execute({
-			name: "John Passenger",
-			email: "passenger@example.com",
+		const owner = await sut.execute({
+			name: "John OWNER",
+			email: "owner@example.com",
 			password: "123456",
-			role: "PASSENGER",
+			role: "OWNER",
 		});
 
-		const driver = await sut.execute({
-			name: "John Driver",
-			email: "driver@example.com",
+		const employee = await sut.execute({
+			name: "John EMPLOYEE",
+			email: "employee@example.com",
 			password: "123456",
-			role: "DRIVER",
+			role: "EMPLOYEE",
 		});
 
 		const admin = await sut.execute({
@@ -61,8 +64,8 @@ describe("CreateUserUseCase", () => {
 			role: "ADMIN",
 		});
 
-		expect(passenger.user.role).toBe("PASSENGER");
-		expect(driver.user.role).toBe("DRIVER");
+		expect(owner.user.role).toBe("OWNER");
+		expect(employee.user.role).toBe("EMPLOYEE");
 		expect(admin.user.role).toBe("ADMIN");
 	});
 
@@ -71,7 +74,7 @@ describe("CreateUserUseCase", () => {
 			name: "John Doe",
 			email: "john.doe@example.com",
 			password: "123456",
-			role: "PASSENGER",
+			role: "OWNER",
 		});
 
 		expect(usersRepository.items).toHaveLength(1);
@@ -83,7 +86,7 @@ describe("CreateUserUseCase", () => {
 			name: "John Doe",
 			email: "john.doe@example.com",
 			password: "123456",
-			role: "PASSENGER",
+			role: "OWNER",
 		});
 
 		await expect(
@@ -91,7 +94,7 @@ describe("CreateUserUseCase", () => {
 				name: "John Doe",
 				email: "john.doe@example.com",
 				password: "123456",
-				role: "PASSENGER",
+				role: "OWNER",
 			}),
 		).rejects.toThrow("User with same email already exists");
 	});

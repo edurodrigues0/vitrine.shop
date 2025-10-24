@@ -4,7 +4,7 @@ export interface CreateUserParams {
 	name: string;
 	email: string;
 	password: string;
-	role: schema.UserRole;
+	role?: schema.UserRole | null;
 }
 
 export interface FindAllUsersParams {
@@ -33,17 +33,9 @@ export interface UsersRepository {
 		role,
 	}: CreateUserParams): Promise<typeof schema.users.$inferSelect>;
 
-	findByEmail({
-		email,
-	}: {
-		email: string;
-	}): Promise<typeof schema.users.$inferSelect | null>;
+	findByEmail({ email }: { email: string }): Promise<schema.User | null>;
 
-	findById({
-		id,
-	}: {
-		id: string;
-	}): Promise<typeof schema.users.$inferSelect | null>;
+	findById({ id }: { id: string }): Promise<schema.User | null>;
 
 	findAll({ page, limit, filters }: FindAllUsersParams): Promise<{
 		users: schema.User[];
@@ -60,8 +52,7 @@ export interface UsersRepository {
 		name,
 		email,
 		password,
-		role,
-	}: UpdateUserParams): Promise<typeof schema.users.$inferSelect | null>;
+	}: UpdateUserParams): Promise<schema.User | null>;
 
 	delete({ id }: { id: string }): Promise<void>;
 }

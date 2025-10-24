@@ -10,6 +10,7 @@ import {
 import { stores } from "./store";
 
 export const userRoleEnum = pgEnum("user_role", ["ADMIN", "OWNER", "EMPLOYEE"]);
+export type UserRole = (typeof userRoleEnum.enumValues)[number];
 
 export const users = pgTable("users", {
 	id: uuid("id").defaultRandom().primaryKey(),
@@ -20,6 +21,9 @@ export const users = pgTable("users", {
 	storeId: uuid("store_id").references(() => stores.id),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
 
 export const usersRelations = relations(users, ({ one }) => ({
 	store: one(stores, {

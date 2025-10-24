@@ -15,14 +15,17 @@ export class InMemoryUsersRepository implements UsersRepository {
 		password,
 		role,
 	}: CreateUserParams): Promise<User> {
+		const id = crypto.randomUUID();
+		const createdAt = new Date();
+
 		const user: User = {
-			id: crypto.randomUUID(),
+			id,
 			name,
 			email,
-			password,
-			role,
-			createdAt: new Date(),
-			updatedAt: new Date(),
+			passwordHash: password,
+			role: role ?? "OWNER",
+			storeId: null,
+			createdAt,
 		};
 
 		this.items.push(user);
@@ -30,15 +33,11 @@ export class InMemoryUsersRepository implements UsersRepository {
 	}
 
 	async findByEmail({ email }: { email: string }): Promise<User | null> {
-		const user = this.items.find((item) => item.email === email);
-
-		return user || null;
+		return this.items.find((item) => item.email === email) ?? null;
 	}
 
 	async findById({ id }: { id: string }): Promise<User | null> {
-		const user = this.items.find((item) => item.id === id);
-
-		return user || null;
+		return this.items.find((item) => item.id === id) ?? null;
 	}
 
 	async findAll({ page, limit, filters }: FindAllUsersParams): Promise<{
@@ -50,19 +49,19 @@ export class InMemoryUsersRepository implements UsersRepository {
 			perPage: number;
 		};
 	}> {
-		const { email, name, role } = filters || {};
+		const { email, name, role } = filters;
 
 		let users = this.items;
 
 		if (email) {
 			users = users.filter((item) =>
-				item.email.toLowerCase().includes(email.toLowerCase()),
+				item.email.toLocaleLowerCase().includes(email.toLocaleLowerCase()),
 			);
 		}
 
 		if (name) {
 			users = users.filter((item) =>
-				item.name.toLowerCase().includes(name.toLowerCase()),
+				item.name.toLocaleLowerCase().includes(name.toLocaleLowerCase()),
 			);
 		}
 
@@ -100,28 +99,20 @@ export class InMemoryUsersRepository implements UsersRepository {
 
 		const currentUser = this.items[userIndex];
 
-		if (!currentUser) {
-			return null;
-		}
-
 		const updatedUser: User = {
-			id: currentUser.id,
-			name: name ?? currentUser.name,
-			email: email ?? currentUser.email,
-			password: password ?? currentUser.password,
-			role: role ?? currentUser.role,
-			createdAt: currentUser.createdAt,
-			updatedAt: new Date(),
-		};
+			...currentUser,
+			name: name ?? currentUser?.name,
+			email: email ?? currentUser?.email,
+			passwordHash: password ?? currentUser?.passwordHash,
+			role: role ?? currentUser?.role,
+		} as User;
 
 		this.items[userIndex] = updatedUser;
-
 		return updatedUser;
 	}
 
 	async delete({ id }: { id: string }): Promise<void> {
 		const userIndex = this.items.findIndex((item) => item.id === id);
-
 		if (userIndex > -1) {
 			this.items.splice(userIndex, 1);
 		}
