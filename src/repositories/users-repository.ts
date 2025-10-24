@@ -25,6 +25,17 @@ export interface UpdateUserParams {
 	role?: schema.UserRole;
 }
 
+export interface FindByStoreIdParams {
+	storeId: string;
+	page: number;
+	limit: number;
+	filters: {
+		email?: string;
+		name?: string;
+		role?: schema.UserRole;
+	};
+}
+
 export interface UsersRepository {
 	create({
 		name,
@@ -38,6 +49,21 @@ export interface UsersRepository {
 	findById({ id }: { id: string }): Promise<schema.User | null>;
 
 	findAll({ page, limit, filters }: FindAllUsersParams): Promise<{
+		users: schema.User[];
+		pagination: {
+			totalItems: number;
+			totalPages: number;
+			currentPage: number;
+			perPage: number;
+		};
+	}>;
+
+	findByStoreId({
+		storeId,
+		page,
+		limit,
+		filters,
+	}: FindByStoreIdParams): Promise<{
 		users: schema.User[];
 		pagination: {
 			totalItems: number;

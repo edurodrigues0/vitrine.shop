@@ -1,7 +1,8 @@
-import type { User } from "~/database/schema";
+import type { User, UserRole } from "~/database/schema";
 import type {
 	CreateUserParams,
 	FindAllUsersParams,
+	FindByStoreIdParams,
 	UpdateUserParams,
 	UsersRepository,
 } from "../users-repository";
@@ -52,6 +53,55 @@ export class InMemoryUsersRepository implements UsersRepository {
 		const { email, name, role } = filters;
 
 		let users = this.items;
+
+		if (email) {
+			users = users.filter((item) =>
+				item.email.toLocaleLowerCase().includes(email.toLocaleLowerCase()),
+			);
+		}
+
+		if (name) {
+			users = users.filter((item) =>
+				item.name.toLocaleLowerCase().includes(name.toLocaleLowerCase()),
+			);
+		}
+
+		if (role) {
+			users = users.filter((item) => item.role === role);
+		}
+
+		const totalItems = users.length;
+		const totalPages = Math.ceil(totalItems / limit);
+		const paginatedUsers = users.slice((page - 1) * limit, page * limit);
+
+		return {
+			users: paginatedUsers,
+			pagination: {
+				totalItems,
+				totalPages,
+				currentPage: page,
+				perPage: limit,
+			},
+		};
+	}
+
+	async findByStoreId({
+		storeId,
+		page,
+		limit,
+		filters,
+	}: FindByStoreIdParams): Promise<{
+		users: User[];
+		pagination: {
+			totalItems: number;
+			totalPages: number;
+			currentPage: number;
+			perPage: number;
+		};
+	}> {
+		const { email, name, role } = filters;
+
+		let users = this.items.filter((item) => item.storeId === storeId);
 
 		if (email) {
 			users = users.filter((item) =>
