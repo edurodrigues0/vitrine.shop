@@ -9,8 +9,10 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
+import { addresses } from "./addresses";
 import { cities } from "./cities";
 import { products } from "./products";
+import { storeBranches } from "./store-branches";
 import { subscriptions } from "./subscriptions";
 import { users } from "./users";
 
@@ -20,10 +22,10 @@ export const stores = pgTable("stores", {
 	id: uuid("id").defaultRandom().primaryKey(),
 	name: varchar("name", { length: 120 }).notNull(),
 	description: text("description"),
+	cnpjcpf: varchar("cnpj_cpf", { length: 14 }).notNull().unique(),
 	logoUrl: text("logo_url"),
-	whatsapp: varchar("whatsapp", { length: 20 }).notNull(),
+	whatsapp: varchar("whatsapp", { length: 20 }).notNull().unique(),
 	slug: varchar("slug", { length: 120 }).notNull().unique(),
-	whatsappNumber: varchar("whatsapp_number", { length: 20 }).notNull(),
 	instagramUrl: text("instagram_url"),
 	facebookUrl: text("facebook_url"),
 	bannerUrl: text("banner_url"),
@@ -49,6 +51,9 @@ export const stores = pgTable("stores", {
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export type Store = typeof stores.$inferSelect;
+export type NewStore = typeof stores.$inferInsert;
+
 export const storesRelations = relations(stores, ({ one, many }) => ({
 	city: one(cities, {
 		fields: [stores.cityId],
@@ -61,4 +66,6 @@ export const storesRelations = relations(stores, ({ one, many }) => ({
 	products: many(products),
 	subscriptions: many(subscriptions),
 	users: many(users),
+	addresses: many(addresses),
+	branches: many(storeBranches),
 }));

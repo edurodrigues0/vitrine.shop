@@ -1,0 +1,133 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import { InMemoryCitiesRepository } from "~/repositories/in-memory/in-memory-cities-repository";
+import { InMemoryStoresRepository } from "~/repositories/in-memory/in-memory-stores-repository";
+import { FindStoreByOwnerIdUseCase } from "./find-store-by-owner-id";
+
+describe("FindStoreByOwnerIdUseCase", () => {
+	let citiesRepository: InMemoryCitiesRepository;
+	let storesRepository: InMemoryStoresRepository;
+	let sut: FindStoreByOwnerIdUseCase;
+
+	beforeEach(() => {
+		citiesRepository = new InMemoryCitiesRepository();
+		storesRepository = new InMemoryStoresRepository(citiesRepository);
+		sut = new FindStoreByOwnerIdUseCase(storesRepository);
+	});
+
+	it("should be able to find a store by owner id", async () => {
+		const cityId = crypto.randomUUID();
+		const ownerId = crypto.randomUUID();
+
+		await storesRepository.create({
+			name: "Lojinha Doce Mel",
+			description: "Lojinha",
+			cnpjcpf: "11111111111111",
+			logoUrl: "https://example.com/logo.png",
+			whatsapp: "31999999999",
+			slug: "lojinha-doce-mel",
+			instagramUrl: "https://instagram.com/lojinha",
+			facebookUrl: "https://facebook.com/lojinha",
+			bannerUrl: "https://example.com/banner.png",
+			theme: {
+				primaryColor: "#FF0000",
+				secondaryColor: "#00FF00",
+				tertiaryColor: "#0000FF",
+			},
+			cityId,
+			ownerId,
+		});
+
+		const { store } = await sut.execute({ ownerId });
+
+		expect(store).toBeTruthy();
+		expect(store.ownerId).toBe(ownerId);
+		expect(store.name).toBe("Lojinha Doce Mel");
+	});
+
+	it("should throw error when store is not found", async () => {
+		await expect(
+			sut.execute({ ownerId: "non-existent-owner-id" }),
+		).rejects.toThrow("Store not found");
+	});
+
+	it("should find the correct store when multiple stores exist", async () => {
+		const cityId = crypto.randomUUID();
+		const ownerId1 = crypto.randomUUID();
+		const ownerId2 = crypto.randomUUID();
+
+		await storesRepository.create({
+			name: "Store 1",
+			description: "Description 1",
+			cnpjcpf: "11111111111111",
+			logoUrl: "https://example.com/logo1.png",
+			whatsapp: "31999999999",
+			slug: "store-1",
+			instagramUrl: "https://instagram.com/store1",
+			facebookUrl: "https://facebook.com/store1",
+			bannerUrl: "https://example.com/banner1.png",
+			theme: {
+				primaryColor: "#FF0000",
+				secondaryColor: "#00FF00",
+				tertiaryColor: "#0000FF",
+			},
+			cityId,
+			ownerId: ownerId1,
+		});
+
+		await storesRepository.create({
+			name: "Store 2",
+			description: "Description 2",
+			cnpjcpf: "22222222222222",
+			logoUrl: "https://example.com/logo2.png",
+			whatsapp: "31988888888",
+			slug: "store-2",
+			instagramUrl: "https://instagram.com/store2",
+			facebookUrl: "https://facebook.com/store2",
+			bannerUrl: "https://example.com/banner2.png",
+			theme: {
+				primaryColor: "#00FF00",
+				secondaryColor: "#0000FF",
+				tertiaryColor: "#FF0000",
+			},
+			cityId,
+			ownerId: ownerId2,
+		});
+
+		const { store } = await sut.execute({ ownerId: ownerId1 });
+
+		expect(store.ownerId).toBe(ownerId1);
+		expect(store.name).toBe("Store 1");
+	});
+
+	it("should return store with all properties", async () => {
+		const cityId = crypto.randomUUID();
+		const ownerId = crypto.randomUUID();
+
+		await storesRepository.create({
+			name: "Store",
+			description: "Description",
+			cnpjcpf: "11111111111111",
+			logoUrl: "https://example.com/logo.png",
+			whatsapp: "31999999999",
+			slug: "store",
+			instagramUrl: "https://instagram.com/store",
+			facebookUrl: "https://facebook.com/store",
+			bannerUrl: "https://example.com/banner.png",
+			theme: {
+				primaryColor: "#FF0000",
+				secondaryColor: "#00FF00",
+				tertiaryColor: "#0000FF",
+			},
+			cityId,
+			ownerId,
+		});
+
+		const { store } = await sut.execute({ ownerId });
+
+		expect(store).toHaveProperty("id");
+		expect(store).toHaveProperty("name");
+		expect(store).toHaveProperty("ownerId");
+		expect(store).toHaveProperty("cnpjcpf");
+		expect(store).toHaveProperty("slug");
+	});
+});
