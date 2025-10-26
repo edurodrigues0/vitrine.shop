@@ -13,12 +13,11 @@ export const addresses = pgTable("addresses", {
 	cityId: uuid("city_id")
 		.references(() => cities.id)
 		.notNull(),
-	address: varchar("address", { length: 255 }).notNull(),
+	street: varchar("street", { length: 255 }).notNull(),
 	number: varchar("number", { length: 10 }).notNull(),
 	complement: varchar("complement", { length: 255 }),
 	neighborhood: varchar("neighborhood", { length: 100 }).notNull(),
 	zipCode: varchar("zip_code", { length: 8 }).notNull(),
-	state: varchar("state", { length: 2 }).notNull(),
 	country: varchar("country", { length: 50 }).notNull(),
 	isMain: boolean("is_main").default(false).notNull(),
 });
