@@ -1,6 +1,9 @@
 import { relations } from "drizzle-orm";
 import {
 	decimal,
+	integer,
+	jsonb,
+	PgArray,
 	pgTable,
 	text,
 	timestamp,
@@ -16,6 +19,12 @@ export const products = pgTable("products", {
 	name: varchar("name", { length: 120 }).notNull(),
 	description: text("description"),
 	price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+	discountPrice: decimal("discount_price", { precision: 10, scale: 2 }),
+	stock: integer("stock").notNull().default(0),
+	colors: text("colors").array(),
+	size: varchar("size", { length: 100 }),
+	weight: decimal("weight", { precision: 10, scale: 2 }),
+	dimensions: jsonb("dimensions"),
 	categoryId: uuid("category_id")
 		.references(() => categories.id)
 		.notNull(),
@@ -24,6 +33,9 @@ export const products = pgTable("products", {
 		.notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export type Product = typeof products.$inferSelect;
+export type NewProduct = typeof products.$inferInsert;
 
 export const productsRelations = relations(products, ({ one, many }) => ({
 	store: one(stores, {
