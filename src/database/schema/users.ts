@@ -7,7 +7,7 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { stores } from "./store";
+import { stores } from "./stores";
 
 export const userRoleEnum = pgEnum("user_role", ["ADMIN", "OWNER", "EMPLOYEE"]);
 export type UserRole = (typeof userRoleEnum.enumValues)[number];

@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
 	boolean,
+	jsonb,
 	pgEnum,
 	pgTable,
 	text,
@@ -21,6 +22,23 @@ export const stores = pgTable("stores", {
 	description: text("description"),
 	logoUrl: text("logo_url"),
 	whatsapp: varchar("whatsapp", { length: 20 }).notNull(),
+	slug: varchar("slug", { length: 120 }).notNull().unique(),
+	whatsappNumber: varchar("whatsapp_number", { length: 20 }).notNull(),
+	instagramUrl: text("instagram_url"),
+	facebookUrl: text("facebook_url"),
+	bannerUrl: text("banner_url"),
+	theme: jsonb("theme")
+		.$type<{
+			primaryColor: string;
+			secondaryColor: string;
+			tertiaryColor: string;
+			quaternaryColor: string;
+			quinaryColor: string;
+			senaryColor: string;
+			septenaryColor: string;
+			octonaryColor: string;
+		}>()
+		.notNull(),
 	cityId: uuid("city_id")
 		.references(() => cities.id)
 		.notNull(),

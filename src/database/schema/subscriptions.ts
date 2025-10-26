@@ -7,7 +7,7 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { stores } from "./store";
+import { stores } from "./stores";
 
 export const planStatusEnum = pgEnum("plan_status", [
 	"PAID",
@@ -21,6 +21,10 @@ export const subscriptions = pgTable("subscriptions", {
 		.references(() => stores.id)
 		.notNull(),
 	planName: varchar("plan_name", { length: 100 }).notNull(),
+	planId: varchar("plan_id").notNull(),
+	provider: varchar("provider", { length: 100 }).notNull(),
+	currentPeriodStart: timestamp("current_period_start").notNull(),
+	currentPeriodEnd: timestamp("current_period_end").notNull(),
 	price: decimal("price", { precision: 10, scale: 2 }).notNull(),
 	status: planStatusEnum("status").default("PENDING").notNull(),
 	nextPayment: timestamp("next_payment"),
