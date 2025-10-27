@@ -1,5 +1,7 @@
 import type { Store } from "~/database/schema";
 import type { StoresRepository } from "~/repositories/stores-repository";
+import { FailedToUpdateStoreError } from "../@errors/stores/failed-to-update-store-error";
+import { StoreNotFoundError } from "../@errors/stores/store-not-found-error";
 
 interface UpdateStoreUseCaseRequest {
 	id: string;
@@ -34,7 +36,7 @@ export class UpdateStoreUseCase {
 		});
 
 		if (!store) {
-			throw new Error("Store not found");
+			throw new StoreNotFoundError();
 		}
 
 		const updatedStore = await this.storesRepository.update({
@@ -43,7 +45,7 @@ export class UpdateStoreUseCase {
 		});
 
 		if (!updatedStore) {
-			throw new Error("Failed to update store");
+			throw new FailedToUpdateStoreError();
 		}
 
 		return { store: updatedStore };

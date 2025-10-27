@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCitiesRepository } from "~/repositories/in-memory/in-memory-cities-repository";
 import { InMemoryStoresRepository } from "~/repositories/in-memory/in-memory-stores-repository";
+import { StoreNotFoundError } from "../@errors/stores/store-not-found-error";
 import { DeleteStoreUseCase } from "./delete-store";
 
 describe("DeleteStoreUseCase", () => {
@@ -45,8 +46,8 @@ describe("DeleteStoreUseCase", () => {
 	});
 
 	it("should throw error when store is not found", async () => {
-		await expect(sut.execute({ id: "non-existent-id" })).rejects.toThrow(
-			"Store not found",
+		await expect(sut.execute({ id: "non-existent-id" })).rejects.toBeInstanceOf(
+			StoreNotFoundError,
 		);
 	});
 

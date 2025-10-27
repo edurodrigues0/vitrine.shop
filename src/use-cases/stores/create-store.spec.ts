@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCitiesRepository } from "~/repositories/in-memory/in-memory-cities-repository";
 import { InMemoryStoresRepository } from "~/repositories/in-memory/in-memory-stores-repository";
+import { StoreWithSameCnpjCpfError } from "../@errors/stores/store-with-same-cpnjcpf-error";
+import { StoreWithSameSlugError } from "../@errors/stores/store-with-same-slug";
+import { StoreWithSameWhatsappError } from "../@errors/stores/store-with-same-whatsapp-error";
 import { CreateStoreUseCase } from "./create-store";
 
 describe("CreateStoreUseCase", () => {
@@ -85,7 +88,7 @@ describe("CreateStoreUseCase", () => {
 				cityId,
 				ownerId,
 			}),
-		).rejects.toThrow("Store with same CNPJ/CPF already exists");
+		).rejects.toBeInstanceOf(StoreWithSameCnpjCpfError);
 	});
 
 	it("should not create store with duplicate WhatsApp", async () => {
@@ -130,7 +133,7 @@ describe("CreateStoreUseCase", () => {
 				cityId,
 				ownerId,
 			}),
-		).rejects.toThrow("Store with same WhatsApp already exists");
+		).rejects.toBeInstanceOf(StoreWithSameWhatsappError);
 	});
 
 	it("should not create store with duplicate slug", async () => {
@@ -175,7 +178,7 @@ describe("CreateStoreUseCase", () => {
 				cityId,
 				ownerId,
 			}),
-		).rejects.toThrow("Store with same slug already exists");
+		).rejects.toBeInstanceOf(StoreWithSameSlugError);
 	});
 
 	it("should save store in repository", async () => {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCitiesRepository } from "~/repositories/in-memory/in-memory-cities-repository";
 import { InMemoryStoresRepository } from "~/repositories/in-memory/in-memory-stores-repository";
+import { StoreNotFoundError } from "../@errors/stores/store-not-found-error";
 import { UpdateStoreUseCase } from "./update-store";
 
 describe("UpdateStoreUseCase", () => {
@@ -113,7 +114,7 @@ describe("UpdateStoreUseCase", () => {
 				id: "non-existent-id",
 				data: { name: "Test" },
 			}),
-		).rejects.toThrow("Store not found");
+		).rejects.toBeInstanceOf(StoreNotFoundError);
 	});
 
 	it("should not update fields that are not provided", async () => {

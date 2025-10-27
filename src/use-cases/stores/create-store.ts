@@ -1,5 +1,8 @@
 import type { Store } from "~/database/schema";
 import type { StoresRepository } from "~/repositories/stores-repository";
+import { StoreWithSameCnpjCpfError } from "../@errors/stores/store-with-same-cpnjcpf-error";
+import { StoreWithSameSlugError } from "../@errors/stores/store-with-same-slug";
+import { StoreWithSameWhatsappError } from "../@errors/stores/store-with-same-whatsapp-error";
 
 interface CreateStoreUseCaseRequest {
 	name: string;
@@ -46,7 +49,7 @@ export class CreateStoreUseCase {
 		});
 
 		if (storeWithSameCnpjcpf) {
-			throw new Error("Store with same CNPJ/CPF already exists");
+			throw new StoreWithSameCnpjCpfError();
 		}
 
 		const storeWithSameWhatsapp = await this.storesRepository.findByWhatsapp({
@@ -54,13 +57,13 @@ export class CreateStoreUseCase {
 		});
 
 		if (storeWithSameWhatsapp) {
-			throw new Error("Store with same WhatsApp already exists");
+			throw new StoreWithSameWhatsappError();
 		}
 
 		const storeWithSameSlug = await this.storesRepository.findBySlug({ slug });
 
 		if (storeWithSameSlug) {
-			throw new Error("Store with same slug already exists");
+			throw new StoreWithSameSlugError();
 		}
 
 		const store = await this.storesRepository.create({

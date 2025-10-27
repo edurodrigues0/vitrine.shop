@@ -1,4 +1,5 @@
 import type { StoresRepository } from "~/repositories/stores-repository";
+import { StoreNotFoundError } from "../@errors/stores/store-not-found-error";
 
 interface DeleteStoreUseCaseRequest {
 	id: string;
@@ -13,7 +14,7 @@ export class DeleteStoreUseCase {
 		});
 
 		if (!store) {
-			throw new Error("Store not found");
+			throw new StoreNotFoundError();
 		}
 
 		await this.storesRepository.delete({

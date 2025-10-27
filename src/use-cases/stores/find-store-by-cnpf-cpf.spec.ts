@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCitiesRepository } from "~/repositories/in-memory/in-memory-cities-repository";
 import { InMemoryStoresRepository } from "~/repositories/in-memory/in-memory-stores-repository";
+import { StoreNotFoundError } from "../@errors/stores/store-not-found-error";
 import { FindStoreByCnpjCpfUseCase } from "./find-store-by-cnpf-cpf";
 
 describe("FindStoreByCnpjCpfUseCase", () => {
@@ -45,9 +46,9 @@ describe("FindStoreByCnpjCpfUseCase", () => {
 	});
 
 	it("should throw error when store is not found", async () => {
-		await expect(sut.execute({ cnpjcpf: "99999999999999" })).rejects.toThrow(
-			"Store not found",
-		);
+		await expect(
+			sut.execute({ cnpjcpf: "99999999999999" }),
+		).rejects.toBeInstanceOf(StoreNotFoundError);
 	});
 
 	it("should find the correct store when multiple stores exist", async () => {

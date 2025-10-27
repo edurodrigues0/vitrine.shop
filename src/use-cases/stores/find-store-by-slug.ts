@@ -1,5 +1,6 @@
 import type { Store } from "~/database/schema";
 import type { StoresRepository } from "~/repositories/stores-repository";
+import { StoreNotFoundError } from "../@errors/stores/store-not-found-error";
 
 interface FindStoreBySlugUseCaseRequest {
 	slug: string;
@@ -20,7 +21,7 @@ export class FindStoreBySlugUseCase {
 		});
 
 		if (!store) {
-			throw new Error("Store not found");
+			throw new StoreNotFoundError();
 		}
 
 		return { store };
