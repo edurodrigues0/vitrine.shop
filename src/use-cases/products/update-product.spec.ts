@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCategoriesRepository } from "~/repositories/in-memory/in-memory-categories-repository";
 import { InMemoryProductsRepository } from "~/repositories/in-memory/in-memory-products-repository";
+import { ProductNotFoundError } from "../@errors/products/product-not-found-error";
 import { UpdateProductUseCase } from "./update-product";
 
 describe("UpdateProductUseCase", () => {
@@ -122,7 +123,7 @@ describe("UpdateProductUseCase", () => {
 				id: "non-existent-id",
 				data: { name: "Novo Nome" },
 			}),
-		).rejects.toThrow("Product not found");
+		).rejects.toBeInstanceOf(ProductNotFoundError);
 	});
 
 	it("should not update fields that are not provided", async () => {

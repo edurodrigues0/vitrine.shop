@@ -1,5 +1,6 @@
 import type { Product } from "~/database/schema";
 import type { ProductsRespository } from "~/repositories/products-respository";
+import { ProductNotFoundError } from "../@errors/products/product-not-found-error";
 
 interface FindProductByIdUseCaseRequest {
 	id: string;
@@ -18,7 +19,7 @@ export class FindProductByIdUseCase {
 		const product = await this.productsRepository.findById({ id });
 
 		if (!product) {
-			throw new Error("Product not found");
+			throw new ProductNotFoundError();
 		}
 
 		return { product };

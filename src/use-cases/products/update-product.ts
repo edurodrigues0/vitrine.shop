@@ -1,5 +1,7 @@
 import type { Product } from "~/database/schema";
 import type { ProductsRespository } from "~/repositories/products-respository";
+import { FailedToUpdateProductError } from "../@errors/products/failed-to-update-product-error";
+import { ProductNotFoundError } from "../@errors/products/product-not-found-error";
 
 interface UpdateProductUseCaseRequest {
 	id: string;
@@ -24,7 +26,7 @@ export class UpdateProductUseCase {
 		const product = await this.productsRepository.findById({ id });
 
 		if (!product) {
-			throw new Error("Product not found");
+			throw new ProductNotFoundError();
 		}
 
 		const updatedProduct = await this.productsRepository.update({
@@ -33,7 +35,7 @@ export class UpdateProductUseCase {
 		});
 
 		if (!updatedProduct) {
-			throw new Error("Failed to update product");
+			throw new FailedToUpdateProductError();
 		}
 
 		return { product: updatedProduct };

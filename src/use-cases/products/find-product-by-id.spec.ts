@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCategoriesRepository } from "~/repositories/in-memory/in-memory-categories-repository";
 import { InMemoryProductsRepository } from "~/repositories/in-memory/in-memory-products-repository";
+import { ProductNotFoundError } from "../@errors/products/product-not-found-error";
 import { FindProductByIdUseCase } from "./find-product-by-id";
 
 describe("FindProductByIdUseCase", () => {
@@ -36,8 +37,8 @@ describe("FindProductByIdUseCase", () => {
 	});
 
 	it("should throw error when product is not found", async () => {
-		await expect(sut.execute({ id: "non-existent-id" })).rejects.toThrow(
-			"Product not found",
+		await expect(sut.execute({ id: "non-existent-id" })).rejects.toBeInstanceOf(
+			ProductNotFoundError,
 		);
 	});
 
