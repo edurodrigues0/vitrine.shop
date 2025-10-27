@@ -1,5 +1,6 @@
 import type { Address } from "~/database/schema";
 import type { AddressesRepository } from "~/repositories/addresses-repository";
+import { AddressNotFoundError } from "../@errors/addresses/address-not-found-error";
 
 interface FindAddressesByIdUseCaseRequest {
 	id: string;
@@ -18,7 +19,7 @@ export class FindAddressesByIdUseCase {
 		const address = await this.addressesRepository.findById({ id });
 
 		if (!address) {
-			throw new Error("Address not found");
+			throw new AddressNotFoundError();
 		}
 
 		return { address };

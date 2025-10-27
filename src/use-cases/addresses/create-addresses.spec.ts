@@ -3,6 +3,9 @@ import { InMemoryAddressesRepository } from "~/repositories/in-memory/in-memory-
 import { InMemoryCitiesRepository } from "~/repositories/in-memory/in-memory-cities-repository";
 import { InMemoryStoreBranchesRepository } from "~/repositories/in-memory/in-memory-store-branches-repository";
 import { InMemoryStoresRepository } from "~/repositories/in-memory/in-memory-stores-repository";
+import { BranchDoesNotBelongError } from "../@errors/store-branches/branch-does-not-belong-error";
+import { BranchNotFoundError } from "../@errors/store-branches/branch-not-found-error";
+import { StoreNotFoundError } from "../@errors/stores/store-not-found-error";
 import { CreateAddressesUseCase } from "./create-addresses";
 
 describe("CreateAddressesUseCase", () => {
@@ -262,7 +265,7 @@ describe("CreateAddressesUseCase", () => {
 				country: "Brasil",
 				storeId: nonExistentStoreId,
 			}),
-		).rejects.toThrow("Store not found");
+		).rejects.toBeInstanceOf(StoreNotFoundError);
 	});
 
 	it("should throw error when branch does not exist", async () => {
@@ -280,7 +283,7 @@ describe("CreateAddressesUseCase", () => {
 				country: "Brasil",
 				branchId: nonExistentBranchId,
 			}),
-		).rejects.toThrow("Branch not found");
+		).rejects.toBeInstanceOf(BranchNotFoundError);
 	});
 
 	it("should throw error when branch does not belong to specified store", async () => {
@@ -347,7 +350,7 @@ describe("CreateAddressesUseCase", () => {
 				storeId: store2.id, // Loja 2
 				branchId: branch.id, // Filial da Loja 1
 			}),
-		).rejects.toThrow("Branch does not belong to the specified store");
+		).rejects.toBeInstanceOf(BranchDoesNotBelongError);
 	});
 
 	it("should create address with both branchId and matching storeId", async () => {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryAddressesRepository } from "~/repositories/in-memory/in-memory-addresses-repository";
 import { InMemoryCitiesRepository } from "~/repositories/in-memory/in-memory-cities-repository";
+import { AddressNotFoundError } from "../@errors/addresses/address-not-found-error";
 import { UpdateAddressUseCase } from "./update-address";
 
 describe("UpdateAddressUseCase", () => {
@@ -237,7 +238,7 @@ describe("UpdateAddressUseCase", () => {
 					street: "Rua Nova",
 				},
 			}),
-		).rejects.toThrow("Address not found");
+		).rejects.toBeInstanceOf(AddressNotFoundError);
 	});
 
 	it("should not update fields that are not provided", async () => {

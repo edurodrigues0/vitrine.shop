@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryAddressesRepository } from "~/repositories/in-memory/in-memory-addresses-repository";
 import { InMemoryCitiesRepository } from "~/repositories/in-memory/in-memory-cities-repository";
+import { AddressNotFoundError } from "../@errors/addresses/address-not-found-error";
 import { DeleteAddressUseCase } from "./delete-address";
 
 describe("DeleteAddressUseCase", () => {
@@ -37,8 +38,8 @@ describe("DeleteAddressUseCase", () => {
 	});
 
 	it("should throw error when address is not found", async () => {
-		await expect(sut.execute({ id: "non-existent-id" })).rejects.toThrow(
-			"Address not found",
+		await expect(sut.execute({ id: "non-existent-id" })).rejects.toBeInstanceOf(
+			AddressNotFoundError,
 		);
 	});
 

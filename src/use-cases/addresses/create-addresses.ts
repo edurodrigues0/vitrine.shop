@@ -2,6 +2,9 @@ import type { Address } from "~/database/schema";
 import type { AddressesRepository } from "~/repositories/addresses-repository";
 import type { StoreBranchesRepository } from "~/repositories/store-branches-repository";
 import type { StoresRepository } from "~/repositories/stores-repository";
+import { BranchDoesNotBelongError } from "../@errors/store-branches/branch-does-not-belong-error";
+import { BranchNotFoundError } from "../@errors/store-branches/branch-not-found-error";
+import { StoreNotFoundError } from "../@errors/stores/store-not-found-error";
 
 interface CreateAddressesUseCaseRequest {
 	street: string;
@@ -42,31 +45,27 @@ export class CreateAddressesUseCase {
 		let finalStoreId = storeId;
 		const finalBranchId = branchId;
 
-		// Se branchId foi fornecido, validar e obter o storeId automaticamente
 		if (branchId) {
 			const branch = await this.storeBranchesRepository.findById({
 				id: branchId,
 			});
 
 			if (!branch) {
-				throw new Error("Branch not found");
+				throw new BranchNotFoundError();
 			}
 
-			// Se storeId foi fornecido, validar que a filial pertence à loja
 			if (storeId && branch.parentStoreId !== storeId) {
-				throw new Error("Branch does not belong to the specified store");
+				throw new BranchDoesNotBelongError();
 			}
 
-			// Auto-preencher storeId se não foi fornecido
 			finalStoreId = branch.parentStoreId;
 		}
 
-		// Se storeId foi fornecido (ou auto-preenchido), validar que a loja existe
 		if (finalStoreId) {
 			const store = await this.storesRepository.findById({ id: finalStoreId });
 
 			if (!store) {
-				throw new Error("Store not found");
+				throw new StoreNotFoundError();
 			}
 		}
 
