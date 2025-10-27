@@ -1,0 +1,17 @@
+@baseURL = http://localhost:3333/api
+
+# @name create_city
+POST {{baseURL}}/cities
+Content-Type: application/json
+
+{
+  "name": "Ribeirão Preto",
+  "state": "SP"
+}
+
+###
+
+# @name find_city_by_name_and_state
+GET {{baseURL}}/cities?name=Ribeirão%20Preto&state=SP
+
+###
