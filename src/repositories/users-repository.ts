@@ -5,6 +5,7 @@ export interface CreateUserParams {
 	email: string;
 	password: string;
 	role?: schema.UserRole | null;
+	storeId?: string | null;
 }
 
 export interface FindAllUsersParams {
@@ -42,6 +43,7 @@ export interface UsersRepository {
 		email,
 		password,
 		role,
+		storeId,
 	}: CreateUserParams): Promise<typeof schema.users.$inferSelect>;
 
 	findByEmail({ email }: { email: string }): Promise<schema.User | null>;

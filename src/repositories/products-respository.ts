@@ -22,14 +22,11 @@ export interface FindAllProductsParams {
 		name?: string;
 		description?: string;
 		price?: number;
-		discountPrice?: number;
 		stock?: number;
-		colors?: string[];
 		size?: string;
 		weight?: number;
 		dimensions?: Record<string, any>;
-		categoryId?: string;
-		storeId?: string;
+		categorySlug?: string;
 	};
 }
 
