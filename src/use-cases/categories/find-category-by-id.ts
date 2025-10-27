@@ -1,4 +1,6 @@
+import type { Category } from "~/database/schema";
 import type { CategoriesRespository } from "~/repositories/categories-repository";
+import { CategoryNotFoundError } from "../@errors/categories/category-not-found-error";
 
 interface FindCategoryByIdUseCaseRequest {
 	id: string;
@@ -17,7 +19,7 @@ export class FindCategoryByIdUseCase {
 		const category = await this.categoriesRepository.findById({ id });
 
 		if (!category) {
-			throw new Error("Category not found");
+			throw new CategoryNotFoundError();
 		}
 
 		return { category };

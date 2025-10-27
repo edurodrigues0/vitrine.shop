@@ -1,5 +1,7 @@
 import type { Category } from "~/database/schema";
 import type { CategoriesRespository } from "~/repositories/categories-repository";
+import { CategoryNotFoundError } from "../@errors/categories/category-not-found-error";
+import { FailedToUpdateCategoryError } from "../@errors/categories/failed-to-update-category-error";
 
 interface UpdateCategoryUseCaseRequest {
 	id: string;
@@ -23,7 +25,7 @@ export class UpdateCategoryUseCase {
 		const category = await this.categoriesRepository.findById({ id });
 
 		if (!category) {
-			throw new Error("Category not found");
+			throw new CategoryNotFoundError();
 		}
 
 		const updatedCategory = await this.categoriesRepository.update({
@@ -32,7 +34,7 @@ export class UpdateCategoryUseCase {
 		});
 
 		if (!updatedCategory) {
-			throw new Error("Failed to update category");
+			throw new FailedToUpdateCategoryError();
 		}
 
 		return { category: updatedCategory };

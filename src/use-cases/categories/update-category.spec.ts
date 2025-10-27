@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCategoriesRepository } from "~/repositories/in-memory/in-memory-categories-repository";
+import { CategoryNotFoundError } from "../@errors/categories/category-not-found-error";
 import { UpdateCategoryUseCase } from "./update-category";
 
 describe("UpdateCategoryUseCase", () => {
@@ -69,7 +70,7 @@ describe("UpdateCategoryUseCase", () => {
 				id: "non-existent-id",
 				data: { name: "Novo Nome" },
 			}),
-		).rejects.toThrow("Category not found");
+		).rejects.toBeInstanceOf(CategoryNotFoundError);
 	});
 
 	it("should not update fields that are not provided", async () => {
@@ -140,7 +141,6 @@ describe("UpdateCategoryUseCase", () => {
 			slug: "categoria",
 		});
 
-		// Aguardar um pouco para garantir que o timestamp será diferente
 		await new Promise((resolve) => setTimeout(resolve, 10));
 
 		const { category } = await sut.execute({

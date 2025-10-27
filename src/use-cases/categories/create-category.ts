@@ -1,5 +1,6 @@
 import type { Category } from "~/database/schema";
 import type { CategoriesRespository } from "~/repositories/categories-repository";
+import { CategoryAlreadyExistsError } from "../@errors/categories/category-already-exists-error";
 
 interface CreateCategoryUseCaseRequest {
 	name: string;
@@ -22,7 +23,7 @@ export class CreateCategoryUseCase {
 		});
 
 		if (categoryWithSameSlug) {
-			throw new Error("Category with same slug already exists");
+			throw new CategoryAlreadyExistsError();
 		}
 
 		const { category } = await this.categoriesRepository.create({ name, slug });

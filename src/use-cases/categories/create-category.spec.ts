@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCategoriesRepository } from "~/repositories/in-memory/in-memory-categories-repository";
+import { CategoryAlreadyExistsError } from "../@errors/categories/category-already-exists-error";
 import { CreateCategoryUseCase } from "./create-category";
 
 describe("CreateCategoryUseCase", () => {
@@ -36,7 +37,7 @@ describe("CreateCategoryUseCase", () => {
 				name: "Eletronicos 2",
 				slug: "eletronicos",
 			}),
-		).rejects.toThrow("Category with same slug already exists");
+		).rejects.toBeInstanceOf(CategoryAlreadyExistsError);
 	});
 
 	it("should save category in repository", async () => {

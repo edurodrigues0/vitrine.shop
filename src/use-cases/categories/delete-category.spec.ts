@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCategoriesRepository } from "~/repositories/in-memory/in-memory-categories-repository";
+import { CategoryNotFoundError } from "../@errors/categories/category-not-found-error";
 import { DeleteCategoryUseCase } from "./delete-category";
 
 describe("DeleteCategoryUseCase", () => {
@@ -28,7 +29,7 @@ describe("DeleteCategoryUseCase", () => {
 
 	it("should throw error when category is not found", async () => {
 		await expect(sut.execute({ id: "non-existent-id" })).rejects.toThrow(
-			"Category not found",
+			CategoryNotFoundError,
 		);
 	});
 
@@ -78,7 +79,6 @@ describe("DeleteCategoryUseCase", () => {
 
 		await sut.execute({ id: category.id });
 
-		// Deve ser possível criar uma nova categoria com o mesmo slug
 		const { category: newCategory } = await categoriesRepository.create({
 			name: "Categoria Nova",
 			slug: "categoria-slug",

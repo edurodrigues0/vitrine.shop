@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCategoriesRepository } from "~/repositories/in-memory/in-memory-categories-repository";
+import { CategoryNotFoundError } from "../@errors/categories/category-not-found-error";
 import { FindCategoryByIdUseCase } from "./find-category-by-id";
 
 describe("FindCategoryByIdUseCase", () => {
@@ -26,8 +27,8 @@ describe("FindCategoryByIdUseCase", () => {
 	});
 
 	it("should throw error when category is not found", async () => {
-		await expect(sut.execute({ id: "non-existent-id" })).rejects.toThrow(
-			"Category not found",
+		await expect(sut.execute({ id: "non-existent-id" })).rejects.toBeInstanceOf(
+			CategoryNotFoundError,
 		);
 	});
 
