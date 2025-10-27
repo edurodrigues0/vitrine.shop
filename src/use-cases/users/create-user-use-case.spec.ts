@@ -1,6 +1,7 @@
 import { compare } from "bcryptjs";
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryUsersRepository } from "~/repositories/in-memory/in-memory-users-repository";
+import { UserAlreadyExistsError } from "../@errors/users/user-already-exists-error";
 import { CreateUserUseCase } from "./create-user-use-case";
 
 describe("CreateUserUseCase", () => {
@@ -84,6 +85,6 @@ describe("CreateUserUseCase", () => {
 				password: "123456",
 				role: "OWNER",
 			}),
-		).rejects.toThrow("User with same email already exists");
+		).rejects.toBeInstanceOf(UserAlreadyExistsError);
 	});
 });

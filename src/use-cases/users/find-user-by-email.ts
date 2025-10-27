@@ -1,5 +1,6 @@
 import type * as schema from "~/database/schema";
 import type { UsersRepository } from "~/repositories/users-repository";
+import { UserNotFoundError } from "../@errors/users/user-not-found-error";
 
 interface FindUserByEmailUseCaseRequest {
 	email: string;
@@ -18,7 +19,7 @@ export class FindUserByEmailUseCase {
 		const user = await this.usersRepository.findByEmail({ email });
 
 		if (!user) {
-			throw new Error("User not found");
+			throw new UserNotFoundError();
 		}
 
 		return { user };

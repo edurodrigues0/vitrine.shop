@@ -2,6 +2,7 @@ import { hash } from "bcryptjs";
 import { BCRYPT_SALT_ROUNDS } from "~/config/constants";
 import type * as schema from "~/database/schema";
 import type { UsersRepository } from "~/repositories/users-repository";
+import { UserAlreadyExistsError } from "../@errors/users/user-already-exists-error";
 
 interface CreateUserUseCaseRequest {
 	name: string;
@@ -26,7 +27,7 @@ export class CreateUserUseCase {
 		const userWithSameEmail = await this.usersRepository.findByEmail({ email });
 
 		if (userWithSameEmail) {
-			throw new Error("User with same email already exists");
+			throw new UserAlreadyExistsError();
 		}
 
 		const passwordHash = await hash(password, BCRYPT_SALT_ROUNDS);

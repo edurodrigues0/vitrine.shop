@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryUsersRepository } from "~/repositories/in-memory/in-memory-users-repository";
+import { UserNotFoundError } from "../@errors/users/user-not-found-error";
 import { FindUserByEmailUseCase } from "./find-user-by-email";
 
 describe("FindUserByEmailUseCase", () => {
@@ -35,7 +36,7 @@ describe("FindUserByEmailUseCase", () => {
 			sut.execute({
 				email: "nonexistent@example.com",
 			}),
-		).rejects.toThrow("User not found");
+		).rejects.toBeInstanceOf(UserNotFoundError);
 	});
 
 	it("should find the correct user when multiple users exist", async () => {
