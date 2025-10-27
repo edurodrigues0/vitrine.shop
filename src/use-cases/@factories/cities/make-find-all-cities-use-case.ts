@@ -1,10 +1,10 @@
 import { DrizzleORM } from "~/database/connection";
 import { DrizzleCitiesRepository } from "~/repositories/drizzle/cities/cities-repository";
-import { UpdateCityUseCase } from "~/use-cases/cities/update-city";
+import { FindAllCitiesUseCase } from "~/use-cases/cities/find-all-cities";
 
-export function makeUpdateCityUseCase() {
+export function makeFindAllCitiesUseCase() {
 	const citiesRepository = new DrizzleCitiesRepository(DrizzleORM);
-	const useCase = new UpdateCityUseCase(citiesRepository);
+	const useCase = new FindAllCitiesUseCase(citiesRepository);
 
 	return useCase;
 }

@@ -1,31 +1,40 @@
 import type { Request, Response } from "express";
 import z, { ZodError } from "zod";
 import { CityNotFoundError } from "~/use-cases/@errors/cities/city-not-found-error";
-import { makeFindCityByNameAndStateUseCase } from "~/use-cases/@factories/cities/make-find-city-by-name-and-state-use-case";
+import { makeUpdateCityUseCase } from "~/use-cases/@factories/cities/make-update-city-use-case";
 
-const findCityByNameAndStateSchema = z.object({
-	name: z.string(),
-	state: z.string(),
+const updateBodyCitySchema = z.object({
+	name: z.string().min(3).optional(),
+	state: z.string().min(2).optional(),
 });
 
-export async function findCityByNameAndStateController(
+const updateParamsCitySchema = z.object({
+	id: z.uuid(),
+});
+
+export async function updateCityController(
 	request: Request,
 	response: Response,
 ) {
-	const { name, state } = findCityByNameAndStateSchema.parse(request.query);
-	try {
-		const findCityByNameAndStateUseCase = makeFindCityByNameAndStateUseCase();
+	const { id } = updateParamsCitySchema.parse(request.params);
+	const { name, state } = updateBodyCitySchema.parse(request.body);
 
-		const { city } = await findCityByNameAndStateUseCase.execute({
-			name,
-			state,
+	try {
+		const updateCityUseCase = makeUpdateCityUseCase();
+
+		const { city } = await updateCityUseCase.execute({
+			id,
+			data: {
+				name,
+				state,
+			},
 		});
 
 		return response.status(200).json({
 			city,
 		});
 	} catch (error) {
-		console.error(error);
+		console.error("Error updating city:", error);
 
 		if (error instanceof ZodError) {
 			return response.status(400).json({

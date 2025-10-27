@@ -25,6 +25,8 @@ export async function createCityController(
 			city,
 		});
 	} catch (error) {
+		console.error("Error creating city:", error);
+
 		if (error instanceof ZodError) {
 			return response.status(400).json({
 				message: "Validation error",

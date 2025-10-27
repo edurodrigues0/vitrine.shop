@@ -11,7 +11,16 @@ Content-Type: application/json
 
 ###
 
-# @name find_city_by_name_and_state
-GET {{baseURL}}/cities?name=Ribeirão%20Preto&state=SP
+# @name find_all_cities
+GET {{baseURL}}/cities?page=1
 
 ###
+
+# @name update_city
+PUT {{baseURL}}/cities/0b1a820c-eac2-4c9c-9974-9f7951b99753
+Content-Type: application/json
+
+{
+  "name": "Sacramento",
+  "state": "MG"
+}

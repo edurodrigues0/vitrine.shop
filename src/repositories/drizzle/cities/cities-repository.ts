@@ -54,37 +54,35 @@ export class DrizzleCitiesRepository implements CitiesRepository {
 	}> {
 		const { name, state } = filters;
 
-		const whereConditions = [];
-
-		if (name) {
-			whereConditions.push(ilike(cities.name, `%${name}%`));
-		}
-
-		if (state) {
-			whereConditions.push(eq(cities.state, state));
-		}
+		// Construir condições WHERE de forma mais eficiente
+		const whereConditions = [
+			...(name ? [ilike(cities.name, `%${name}%`)] : []),
+			...(state ? [eq(cities.state, state)] : []),
+		];
 
 		const whereClause =
 			whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
-		const [count] = await this.drizzle
-			.select({ count: sql<number>`count(*)` })
-			.from(cities)
-			.where(whereClause);
+		// Executar contagem e busca em paralelo para melhor performance
+		const [countResult, citiesResult] = await Promise.all([
+			this.drizzle
+				.select({ count: sql<number>`count(*)` })
+				.from(cities)
+				.where(whereClause),
+			this.drizzle
+				.select()
+				.from(cities)
+				.where(whereClause)
+				.limit(limit)
+				.offset((page - 1) * limit)
+				.orderBy(cities.name), // Adicionar ordenação consistente
+		]);
 
-		const totalItems = Number(count);
+		const totalItems = Number(countResult[0]?.count ?? 0);
 		const totalPages = Math.ceil(totalItems / limit);
-		const offset = (page - 1) * limit;
-
-		const result = await this.drizzle
-			.select()
-			.from(cities)
-			.where(whereClause)
-			.limit(limit)
-			.offset(offset);
 
 		return {
-			cities: result,
+			cities: citiesResult,
 			pagination: {
 				totalItems,
 				totalPages,
