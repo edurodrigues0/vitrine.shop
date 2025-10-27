@@ -15,6 +15,7 @@ export class InMemoryUsersRepository implements UsersRepository {
 		email,
 		password,
 		role,
+		storeId,
 	}: CreateUserParams): Promise<User> {
 		const id = crypto.randomUUID();
 		const createdAt = new Date();
@@ -25,7 +26,7 @@ export class InMemoryUsersRepository implements UsersRepository {
 			email,
 			passwordHash: password,
 			role: role ?? "OWNER",
-			storeId: null,
+			storeId: storeId ?? null,
 			createdAt,
 		};
 
