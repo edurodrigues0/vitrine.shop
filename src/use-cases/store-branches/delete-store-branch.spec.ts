@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryStoreBranchesRepository } from "~/repositories/in-memory/in-memory-store-branches-repository";
+import { BranchNotFoundError } from "../@errors/store-branches/branch-not-found-error";
 import { DeleteStoreBranchUseCase } from "./delete-store-branch";
 
 describe("DeleteStoreBranchUseCase", () => {
@@ -31,8 +32,8 @@ describe("DeleteStoreBranchUseCase", () => {
 	});
 
 	it("should throw error when branch is not found", async () => {
-		await expect(sut.execute({ id: "non-existent-id" })).rejects.toThrow(
-			"Branch not found",
+		await expect(sut.execute({ id: "non-existent-id" })).rejects.toBeInstanceOf(
+			BranchNotFoundError,
 		);
 	});
 

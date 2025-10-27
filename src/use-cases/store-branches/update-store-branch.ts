@@ -1,5 +1,6 @@
 import type { StoreBranch } from "~/database/schema";
 import type { StoreBranchesRepository } from "~/repositories/store-branches-repository";
+import { BranchNotFoundError } from "../@errors/store-branches/branch-not-found-error";
 
 interface UpdateStoreBranchUseCaseRequest {
 	id: string;
@@ -31,7 +32,7 @@ export class UpdateStoreBranchUseCase {
 		});
 
 		if (!branch) {
-			throw new Error("Branch not found");
+			throw new BranchNotFoundError();
 		}
 
 		return { branch };

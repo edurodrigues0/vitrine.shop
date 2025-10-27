@@ -17,10 +17,10 @@ export class FindStoreBranchesByStoreIdUseCase {
 	async execute({
 		storeId,
 	}: FindStoreBranchesByStoreIdUseCaseRequest): Promise<FindStoreBranchesByStoreIdUseCaseResponse> {
-		const branches =
-			await this.storeBranchesRepository.findByStoreId({ storeId });
+		const branches = await this.storeBranchesRepository.findByStoreId({
+			storeId,
+		});
 
 		return { branches };
 	}
 }
-
