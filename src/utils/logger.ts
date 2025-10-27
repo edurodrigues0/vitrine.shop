@@ -3,8 +3,6 @@
  * Exemplo de uso do alias ~/utils/logger
  */
 
-import { env } from "~/config/env";
-
 type LogLevel = "info" | "warn" | "error" | "debug";
 
 export const logger = {
@@ -21,7 +19,7 @@ export const logger = {
 	},
 
 	debug: (message: string, ...args: any[]) => {
-		if (env.NODE_ENV === "development") {
+		if (process.env.NODE_ENV === "development") {
 			console.debug(
 				`[DEBUG] ${new Date().toISOString()} - ${message}`,
 				...args,

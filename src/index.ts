@@ -1,11 +1,8 @@
-import express, { type Request, type Response } from "express";
 import dotenv from "dotenv";
-import { env } from "~/config/env";
+import express, { type Request, type Response } from "express";
 import { logger } from "~/utils/logger";
-import { errorHandler } from "~/middleware/errorHandler";
-import routes from "~/routes";
+import { citiesRoutes } from "./http/controllers/cities/_routes";
 
-// Carrega variáveis de ambiente
 dotenv.config();
 
 const app = express();
@@ -15,37 +12,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Rotas
-app.use("/api", routes);
+app.use("/api", citiesRoutes);
 
-// Rota de health check
-app.get("/health", (_req: Request, res: Response) => {
+app.get("/api/health", (_req: Request, res: Response) => {
 	res.json({
 		status: "ok",
 		timestamp: new Date().toISOString(),
-		environment: env.NODE_ENV,
+		environment: process.env.NODE_ENV,
 	});
 });
-
-// Rota raiz
-app.get("/", (_req: Request, res: Response) => {
-	res.json({
-		message: "API de Controle Financeiro Multi-empresa",
-		version: "1.0.0",
-		endpoints: {
-			health: "/health",
-			api: "/api",
-		},
-	});
-});
-
-// Middleware de tratamento de erros (deve ser o último)
-app.use(errorHandler);
 
 // Inicia o servidor
-const PORT = env.PORT;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
 	logger.info(`🚀 Servidor rodando na porta ${PORT}`);
-	logger.info(`📊 Ambiente: ${env.NODE_ENV}`);
+	logger.info(`📊 Ambiente: ${process.env.NODE_ENV}`);
 	logger.info(`🔗 http://localhost:${PORT}`);
 });
 
