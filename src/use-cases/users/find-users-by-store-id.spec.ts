@@ -19,20 +19,16 @@ describe("FindUserByStoreIdUseCase", () => {
 			email: "john@example.com",
 			password: "hashed_password",
 			role: "OWNER",
+			storeId,
 		});
-
-		// Manually set storeId
-		usersRepository.items[0]!.storeId = storeId;
 
 		await usersRepository.create({
 			name: "Jane Doe",
 			email: "jane@example.com",
 			password: "hashed_password",
 			role: "EMPLOYEE",
+			storeId,
 		});
-
-		// Manually set storeId
-		usersRepository.items[1]!.storeId = storeId;
 
 		const { users, pagination } = await sut.execute({
 			storeId,
@@ -57,16 +53,16 @@ describe("FindUserByStoreIdUseCase", () => {
 			email: "store1@example.com",
 			password: "hashed_password",
 			role: "OWNER",
+			storeId: storeId1,
 		});
-		usersRepository.items[0]!.storeId = storeId1;
 
 		await usersRepository.create({
 			name: "Store 2 User",
 			email: "store2@example.com",
 			password: "hashed_password",
 			role: "OWNER",
+			storeId: storeId2,
 		});
-		usersRepository.items[1]!.storeId = storeId2;
 
 		const { users } = await sut.execute({
 			storeId: storeId1,
@@ -88,16 +84,16 @@ describe("FindUserByStoreIdUseCase", () => {
 			email: "john.doe@example.com",
 			password: "hashed_password",
 			role: "OWNER",
+			storeId,
 		});
-		usersRepository.items[0]!.storeId = storeId;
 
 		await usersRepository.create({
 			name: "Jane Smith",
 			email: "jane.smith@example.com",
 			password: "hashed_password",
 			role: "EMPLOYEE",
+			storeId,
 		});
-		usersRepository.items[1]!.storeId = storeId;
 
 		const { users } = await sut.execute({
 			storeId,
@@ -120,16 +116,16 @@ describe("FindUserByStoreIdUseCase", () => {
 			email: "john@example.com",
 			password: "hashed_password",
 			role: "OWNER",
+			storeId,
 		});
-		usersRepository.items[0]!.storeId = storeId;
 
 		await usersRepository.create({
 			name: "Jane Doe",
 			email: "jane@example.com",
 			password: "hashed_password",
 			role: "EMPLOYEE",
+			storeId,
 		});
-		usersRepository.items[1]!.storeId = storeId;
 
 		const { users } = await sut.execute({
 			storeId,
@@ -152,24 +148,24 @@ describe("FindUserByStoreIdUseCase", () => {
 			email: "owner@example.com",
 			password: "hashed_password",
 			role: "OWNER",
+			storeId,
 		});
-		usersRepository.items[0]!.storeId = storeId;
 
 		await usersRepository.create({
 			name: "Employee User",
 			email: "employee@example.com",
 			password: "hashed_password",
 			role: "EMPLOYEE",
+			storeId,
 		});
-		usersRepository.items[1]!.storeId = storeId;
 
 		await usersRepository.create({
 			name: "Admin User",
 			email: "admin@example.com",
 			password: "hashed_password",
 			role: "ADMIN",
+			storeId,
 		});
-		usersRepository.items[2]!.storeId = storeId;
 
 		const { users } = await sut.execute({
 			storeId,
@@ -192,24 +188,24 @@ describe("FindUserByStoreIdUseCase", () => {
 			email: "john.doe@example.com",
 			password: "hashed_password",
 			role: "OWNER",
+			storeId,
 		});
-		usersRepository.items[0]!.storeId = storeId;
 
 		await usersRepository.create({
 			name: "Jane Doe",
 			email: "jane.doe@example.com",
 			password: "hashed_password",
 			role: "EMPLOYEE",
+			storeId,
 		});
-		usersRepository.items[1]!.storeId = storeId;
 
 		await usersRepository.create({
 			name: "Bob Smith",
 			email: "bob.smith@example.com",
 			password: "hashed_password",
 			role: "EMPLOYEE",
+			storeId,
 		});
-		usersRepository.items[2]!.storeId = storeId;
 
 		const { users } = await sut.execute({
 			storeId,
@@ -236,8 +232,8 @@ describe("FindUserByStoreIdUseCase", () => {
 				email: `user${i}@example.com`,
 				password: "hashed_password",
 				role: "EMPLOYEE",
+				storeId,
 			});
-			usersRepository.items[i - 1]!.storeId = storeId;
 		}
 
 		// Page 1 with limit 2
@@ -286,7 +282,6 @@ describe("FindUserByStoreIdUseCase", () => {
 			password: "hashed_password",
 			role: "OWNER",
 		});
-		usersRepository.items[0]!.storeId = differentStoreId;
 
 		const { users, pagination } = await sut.execute({
 			storeId,
@@ -308,8 +303,8 @@ describe("FindUserByStoreIdUseCase", () => {
 			email: "john@example.com",
 			password: "hashed_password",
 			role: "OWNER",
+			storeId,
 		});
-		usersRepository.items[0]!.storeId = storeId;
 
 		const { users } = await sut.execute({
 			storeId,
@@ -331,9 +326,8 @@ describe("FindUserByStoreIdUseCase", () => {
 			email: "JOHN.DOE@EXAMPLE.COM",
 			password: "hashed_password",
 			role: "OWNER",
+			storeId,
 		});
-
-		usersRepository.items[0]!.storeId = storeId;
 
 		const resultByEmail = await sut.execute({
 			storeId,
