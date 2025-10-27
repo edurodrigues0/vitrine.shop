@@ -1,6 +1,6 @@
+import type { Pagination } from "~/@types/pagination";
 import type { Product } from "~/database/schema";
 import type { ProductsRespository } from "~/repositories/products-respository";
-import type { Pagination } from "~/types/pagination";
 
 interface FindAllProductsUseCaseRequest {
 	page: number;

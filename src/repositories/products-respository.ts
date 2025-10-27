@@ -1,5 +1,5 @@
+import type { Pagination } from "~/@types/pagination";
 import type { Product } from "~/database/schema";
-import type { Pagination } from "~/types/pagination";
 
 export interface CreateProductParams {
 	name: string;

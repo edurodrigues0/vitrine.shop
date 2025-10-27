@@ -1,6 +1,6 @@
+import type { Pagination } from "~/@types/pagination";
 import type { Address } from "~/database/schema";
 import type { AddressesRepository } from "~/repositories/addresses-repository";
-import type { Pagination } from "~/types/pagination";
 
 interface FindAllAddressesUseCaseRequest {
 	page: number;

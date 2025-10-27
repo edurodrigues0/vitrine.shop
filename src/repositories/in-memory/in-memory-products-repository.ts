@@ -1,5 +1,5 @@
+import type { Pagination } from "~/@types/pagination";
 import type { Product } from "~/database/schema";
-import type { Pagination } from "~/types/pagination";
 import type { CategoriesRespository } from "../categories-repository";
 import type {
 	CreateProductParams,

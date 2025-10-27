@@ -1,5 +1,5 @@
+import type { Pagination } from "~/@types/pagination";
 import type { Address } from "~/database/schema";
-import type { Pagination } from "~/types/pagination";
 import type {
 	AddressesRepository,
 	CreateAddressParams,

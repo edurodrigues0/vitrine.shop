@@ -1,5 +1,5 @@
+import type { Pagination } from "~/@types/pagination";
 import type { Category } from "~/database/schema";
-import type { Pagination } from "~/types/pagination";
 
 interface CreateCategoryParams {
 	name: string;

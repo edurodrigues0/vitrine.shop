@@ -1,6 +1,6 @@
+import type { Pagination } from "~/@types/pagination";
 import type { Category } from "~/database/schema";
 import type { CategoriesRespository } from "~/repositories/categories-repository";
-import type { Pagination } from "~/types/pagination";
 
 interface FindAllCategoriesUseCaseRequest {
 	page: number;
