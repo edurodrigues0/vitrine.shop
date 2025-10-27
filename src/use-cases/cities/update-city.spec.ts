@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCitiesRepository } from "~/repositories/in-memory/in-memory-cities-repository";
+import { CityNotFoundError } from "../@errors/cities/city-not-found-error";
 import { UpdateCityUseCase } from "./update-city";
 
 describe("UpdateCityUseCase", () => {
@@ -74,7 +75,7 @@ describe("UpdateCityUseCase", () => {
 					name: "Test City",
 				},
 			}),
-		).rejects.toThrow("City not found");
+		).rejects.toBeInstanceOf(CityNotFoundError);
 	});
 
 	it("should not update fields that are not provided", async () => {

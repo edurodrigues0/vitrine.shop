@@ -161,7 +161,6 @@ describe("FindAllCitiesUseCase", () => {
 		expect(page2.cities).toHaveLength(2);
 		expect(page2.pagination.currentPage).toBe(2);
 
-		// Page 3 with limit 2 (should have only 1 city)
 		const page3 = await sut.execute({
 			page: 3,
 			limit: 2,

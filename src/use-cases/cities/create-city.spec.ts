@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCitiesRepository } from "~/repositories/in-memory/in-memory-cities-repository";
+import { CityAlreadyExistsError } from "../@errors/cities/city-already-exists-error";
 import { CreateCityUseCase } from "./create-city";
 
 describe("CreateCityUseCase", () => {
@@ -34,6 +35,6 @@ describe("CreateCityUseCase", () => {
 				name: "São Paulo",
 				state: "SP",
 			}),
-		).rejects.toThrow("City with same name and state already exists");
+		).rejects.toBeInstanceOf(CityAlreadyExistsError);
 	});
 });

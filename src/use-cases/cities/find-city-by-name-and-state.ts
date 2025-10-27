@@ -1,5 +1,6 @@
 import type { City } from "~/database/schema";
 import type { CitiesRepository } from "~/repositories/cities-repository";
+import { CityNotFoundError } from "../@errors/cities/city-not-found-error";
 
 interface FindCityByNameAndStateUseCaseRequest {
 	name: string;
@@ -23,7 +24,7 @@ export class FindCityByNameAndStateUseCase {
 		});
 
 		if (!city) {
-			throw new Error("City not found");
+			throw new CityNotFoundError();
 		}
 
 		return { city };

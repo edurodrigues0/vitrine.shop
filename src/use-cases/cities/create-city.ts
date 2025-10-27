@@ -1,5 +1,6 @@
 import type { City } from "~/database/schema";
 import type { CitiesRepository } from "~/repositories/cities-repository";
+import { CityAlreadyExistsError } from "../@errors/cities/city-already-exists-error";
 
 interface CreateCityUseCaseRequest {
 	name: string;
@@ -24,7 +25,7 @@ export class CreateCityUseCase {
 			});
 
 		if (cityWithSameNameInSameState) {
-			throw new Error("City with same name and state already exists");
+			throw new CityAlreadyExistsError();
 		}
 
 		const { city } = await this.citiesRepository.create({
