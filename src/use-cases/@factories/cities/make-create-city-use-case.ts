@@ -1,5 +1,5 @@
 import { DrizzleORM } from "~/database/connection";
-import { DrizzleCitiesRepository } from "~/repositories/drizzle/cities/cities-repository";
+import { DrizzleCitiesRepository } from "~/repositories/drizzle/cities-repository";
 import { CreateCityUseCase } from "~/use-cases/cities/create-city";
 
 export function makeCreateCityUseCase() {

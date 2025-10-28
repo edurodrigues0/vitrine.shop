@@ -24,3 +24,61 @@ Content-Type: application/json
   "name": "Sacramento",
   "state": "MG"
 }
+
+###
+
+# @name create_user
+POST {{baseURL}}/users
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "123456789",
+  "role": "OWNER"
+}
+
+###
+
+# @name find_all_users
+GET {{baseURL}}/users?page=1&limit=10
+
+###
+
+# @name find_user_by_id
+GET {{baseURL}}/users/dabf1ca7-5397-4cae-95e0-9e19648e92bd
+
+###
+
+# @name find_users_by_store_id
+GET {{baseURL}}/users/store/0b1a820c-eac2-4c9c-9974-9f7951b99753?page=1&limit=10
+
+###
+
+# @name update_user
+PUT {{baseURL}}/users/dabf1ca7-5397-4cae-95e0-9e19648e92bd
+Content-Type: application/json
+
+{
+  "name": "Eduardo Rodrigues",
+  "email": "john.updated@example.com",
+  "role": "ADMIN"
+}
+
+###
+
+# @name delete_user
+DELETE {{baseURL}}/users/0b1a820c-eac2-4c9c-9974-9f7951b99753
+
+###
+
+# @name login
+POST {{baseURL}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "123456789"
+}
+
+###

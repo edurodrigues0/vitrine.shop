@@ -1,18 +1,32 @@
+import cookieParser from "cookie-parser";
+import cors from "cors";
 import dotenv from "dotenv";
 import express, { type Request, type Response } from "express";
 import { logger } from "~/utils/logger";
+import { authRoutes } from "./http/controllers/auth/_routes";
 import { citiesRoutes } from "./http/controllers/cities/_routes";
+import { usersRoutes } from "./http/controllers/users/_routes";
 
 dotenv.config();
 
 const app = express();
 
+app.use(
+	cors({
+		credentials: true,
+		origin: "*",
+	}),
+);
+
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Rotas
 app.use("/api", citiesRoutes);
+app.use("/api", usersRoutes);
+app.use("/api", authRoutes);
 
 app.get("/api/health", (_req: Request, res: Response) => {
 	res.json({

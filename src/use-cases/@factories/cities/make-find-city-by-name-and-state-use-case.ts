@@ -1,5 +1,5 @@
 import { DrizzleORM } from "~/database/connection";
-import { DrizzleCitiesRepository } from "~/repositories/drizzle/cities/cities-repository";
+import { DrizzleCitiesRepository } from "~/repositories/drizzle/cities-repository";
 import { FindCityByNameAndStateUseCase } from "~/use-cases/cities/find-city-by-name-and-state";
 
 export function makeFindCityByNameAndStateUseCase() {

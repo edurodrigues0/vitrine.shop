@@ -31,7 +31,9 @@
 		"vitest": "^4.0.1"
 	},
 	"dependencies": {
+		"@types/cors": "^2.8.19",
 		"bcryptjs": "^3.0.2",
+		"cors": "^2.8.5",
 		"dayjs": "^1.11.18",
 		"dotenv": "^17.2.3",
 		"drizzle-kit": "^0.31.5",
@@ -39,6 +41,7 @@
 		"express": "^5.1.0",
 		"firebase": "^12.4.0",
 		"firebase-admin": "^13.5.0",
+		"jsonwebtoken": "^9.0.2",
 		"postgres": "^3.4.7",
 		"zod": "^4.1.12"
 	}

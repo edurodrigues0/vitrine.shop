@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { createCityController } from "./create";
 import { findAllCitiesController } from "./find-all";
-import { findCityByNameAndStateController } from "./find-by-name-and-state";
 import { updateCityController } from "./update-city";
 
 export const citiesRoutes = Router();
