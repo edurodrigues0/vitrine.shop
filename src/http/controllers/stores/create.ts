@@ -1,5 +1,6 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
 import z, { ZodError } from "zod";
+import type { AuthenticatedRequest } from "~/http/middleware/authenticate";
 import { StoreWithSameCnpjCpfError } from "~/use-cases/@errors/stores/store-with-same-cpnjcpf-error";
 import { StoreWithSameSlugError } from "~/use-cases/@errors/stores/store-with-same-slug";
 import { StoreWithSameWhatsappError } from "~/use-cases/@errors/stores/store-with-same-whatsapp-error";
@@ -36,7 +37,7 @@ const createStoreBodySchema = z.object({
 });
 
 export async function createStoreController(
-	request: Request,
+	request: AuthenticatedRequest,
 	response: Response,
 ) {
 	try {
@@ -65,7 +66,7 @@ export async function createStoreController(
 			facebookUrl,
 			instagramUrl,
 			logoUrl,
-			ownerId: request.user!.id,
+			ownerId: request.user?.id || "",
 			slug,
 			theme,
 			whatsapp,

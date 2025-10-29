@@ -2,9 +2,13 @@ import type { Store } from "~/database/schema";
 import type { StoresRepository } from "~/repositories/stores-repository";
 import { FailedToUpdateStoreError } from "../@errors/stores/failed-to-update-store-error";
 import { StoreNotFoundError } from "../@errors/stores/store-not-found-error";
+import { StoreWithSameCnpjCpfError } from "../@errors/stores/store-with-same-cpnjcpf-error";
+import { StoreWithSameSlugError } from "../@errors/stores/store-with-same-slug";
+import { StoreWithSameWhatsappError } from "../@errors/stores/store-with-same-whatsapp-error";
 
 interface UpdateStoreUseCaseRequest {
 	id: string;
+	ownerId: string;
 	data: {
 		name?: string;
 		description?: string;
@@ -15,7 +19,11 @@ interface UpdateStoreUseCaseRequest {
 		instagramUrl?: string;
 		facebookUrl?: string;
 		bannerUrl?: string;
-		theme?: string;
+		theme?: {
+			primaryColor: string;
+			secondaryColor: string;
+			tertiaryColor: string;
+		};
 		cityId?: string;
 	};
 }
@@ -29,6 +37,7 @@ export class UpdateStoreUseCase {
 
 	async execute({
 		id,
+		ownerId,
 		data,
 	}: UpdateStoreUseCaseRequest): Promise<UpdateStoreUseCaseResponse> {
 		const store = await this.storesRepository.findById({
@@ -37,6 +46,44 @@ export class UpdateStoreUseCase {
 
 		if (!store) {
 			throw new StoreNotFoundError();
+		}
+
+		// Verificar se o usuário é o dono da loja
+		if (store.ownerId !== ownerId) {
+			throw new StoreNotFoundError(); // Não revelar que a loja existe
+		}
+
+		// Verificar duplicação de CNPJ/CPF se estiver sendo atualizado
+		if (data.cnpjcpf && data.cnpjcpf !== store.cnpjcpf) {
+			const storeWithSameCnpjcpf = await this.storesRepository.findByCnpjcpf({
+				cnpjcpf: data.cnpjcpf,
+			});
+
+			if (storeWithSameCnpjcpf) {
+				throw new StoreWithSameCnpjCpfError();
+			}
+		}
+
+		// Verificar duplicação de WhatsApp se estiver sendo atualizado
+		if (data.whatsapp && data.whatsapp !== store.whatsapp) {
+			const storeWithSameWhatsapp = await this.storesRepository.findByWhatsapp({
+				whatsapp: data.whatsapp,
+			});
+
+			if (storeWithSameWhatsapp) {
+				throw new StoreWithSameWhatsappError();
+			}
+		}
+
+		// Verificar duplicação de slug se estiver sendo atualizado
+		if (data.slug && data.slug !== store.slug) {
+			const storeWithSameSlug = await this.storesRepository.findBySlug({
+				slug: data.slug,
+			});
+
+			if (storeWithSameSlug) {
+				throw new StoreWithSameSlugError();
+			}
 		}
 
 		const updatedStore = await this.storesRepository.update({

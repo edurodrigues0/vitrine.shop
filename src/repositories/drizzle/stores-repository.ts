@@ -1,7 +1,12 @@
-import { eq } from "drizzle-orm";
+import { and, count, desc, eq, ilike } from "drizzle-orm";
 import type { DrizzleORM } from "~/database/connection";
 import { type Store, stores } from "~/database/schema";
-import type { CreateStoreParams, StoresRepository } from "../stores-repository";
+import type {
+	CreateStoreParams,
+	FindAllStoresParams,
+	StoresRepository,
+	UpdateStoreParams,
+} from "../stores-repository";
 
 export class DrizzleStoresRepository implements StoresRepository {
 	constructor(private readonly drizzle: typeof DrizzleORM) {}
@@ -92,5 +97,108 @@ export class DrizzleStoresRepository implements StoresRepository {
 			.where(eq(stores.id, id));
 
 		return store ?? null;
+	}
+
+	async findAll({ page, limit, filters }: FindAllStoresParams): Promise<{
+		stores: Store[];
+		pagination: {
+			totalItems: number;
+			totalPages: number;
+			currentPage: number;
+			perPage: number;
+		};
+	}> {
+		const offset = (page - 1) * limit;
+
+		// Construir condições de filtro
+		const conditions = [];
+
+		if (filters.name) {
+			conditions.push(ilike(stores.name, `%${filters.name}%`));
+		}
+
+		if (filters.description) {
+			conditions.push(ilike(stores.description, `%${filters.description}%`));
+		}
+
+		if (filters.slug) {
+			conditions.push(ilike(stores.slug, `%${filters.slug}%`));
+		}
+
+		if (filters.ownerId) {
+			conditions.push(eq(stores.ownerId, filters.ownerId));
+		}
+
+		if (filters.isPaid !== undefined) {
+			conditions.push(eq(stores.isPaid, filters.isPaid));
+		}
+
+		// Sempre filtrar por status ACTIVE
+		conditions.push(eq(stores.status, "ACTIVE"));
+
+		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+		// Buscar lojas
+		const storesResult = await this.drizzle
+			.select({
+				id: stores.id,
+				name: stores.name,
+				description: stores.description,
+				cnpjcpf: stores.cnpjcpf,
+				logoUrl: stores.logoUrl,
+				whatsapp: stores.whatsapp,
+				slug: stores.slug,
+				instagramUrl: stores.instagramUrl,
+				facebookUrl: stores.facebookUrl,
+				bannerUrl: stores.bannerUrl,
+				theme: stores.theme,
+				cityId: stores.cityId,
+				ownerId: stores.ownerId,
+				status: stores.status,
+				isPaid: stores.isPaid,
+				createdAt: stores.createdAt,
+				updatedAt: stores.updatedAt,
+			})
+			.from(stores)
+			.where(whereClause)
+			.orderBy(desc(stores.createdAt))
+			.limit(limit)
+			.offset(offset);
+
+		// Contar total de itens
+		const [totalResult] = await this.drizzle
+			.select({ count: count() })
+			.from(stores)
+			.where(whereClause);
+
+		const totalItems = totalResult?.count ?? 0;
+		const totalPages = Math.ceil(totalItems / limit);
+
+		return {
+			stores: storesResult,
+			pagination: {
+				totalItems,
+				totalPages,
+				currentPage: page,
+				perPage: limit,
+			},
+		};
+	}
+
+	async update({ id, data }: UpdateStoreParams): Promise<Store | null> {
+		const [updatedStore] = await this.drizzle
+			.update(stores)
+			.set({
+				...data,
+				updatedAt: new Date(),
+			})
+			.where(eq(stores.id, id))
+			.returning();
+
+		return updatedStore ?? null;
+	}
+
+	async delete({ id }: { id: string }): Promise<void> {
+		await this.drizzle.delete(stores).where(eq(stores.id, id));
 	}
 }

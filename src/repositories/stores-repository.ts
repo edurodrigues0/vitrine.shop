@@ -47,7 +47,11 @@ export interface UpdateStoreParams {
 		instagramUrl?: string;
 		facebookUrl?: string;
 		bannerUrl?: string;
-		theme?: string;
+		theme?: {
+			primaryColor: string;
+			secondaryColor: string;
+			tertiaryColor: string;
+		};
 		cityId?: string;
 	};
 }
