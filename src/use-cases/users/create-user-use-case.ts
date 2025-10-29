@@ -9,6 +9,7 @@ interface CreateUserUseCaseRequest {
 	email: string;
 	password: string;
 	role: schema.UserRole;
+	storeId?: string | null;
 }
 
 interface CreateUserUseCaseResponse {
@@ -23,6 +24,7 @@ export class CreateUserUseCase {
 		email,
 		password,
 		role,
+		storeId,
 	}: CreateUserUseCaseRequest): Promise<CreateUserUseCaseResponse> {
 		const userWithSameEmail = await this.usersRepository.findByEmail({ email });
 
@@ -37,6 +39,7 @@ export class CreateUserUseCase {
 			email,
 			password: passwordHash,
 			role,
+			storeId,
 		});
 
 		return { user };

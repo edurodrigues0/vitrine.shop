@@ -1,7 +1,5 @@
-import { hash } from "bcryptjs";
 import type { Request, Response } from "express";
 import z, { ZodError } from "zod";
-import { BCRYPT_SALT_ROUNDS } from "~/config/constants";
 import { UserAlreadyExistsError } from "~/use-cases/@errors/users/user-already-exists-error";
 import { makeCreateUserUseCase } from "~/use-cases/@factories/users/make-create-user-use-case";
 
@@ -10,13 +8,16 @@ const createUserSchema = z.object({
 	email: z.email(),
 	password: z.string().min(8),
 	role: z.enum(["ADMIN", "OWNER", "EMPLOYEE"]).default("OWNER"),
+	storeId: z.uuid().optional(),
 });
 
 export async function createUserController(
 	request: Request,
 	response: Response,
 ) {
-	const { name, email, password, role } = createUserSchema.parse(request.body);
+	const { name, email, password, role, storeId } = createUserSchema.parse(
+		request.body,
+	);
 	try {
 		const createUserUseCase = makeCreateUserUseCase();
 
@@ -25,6 +26,7 @@ export async function createUserController(
 			email,
 			password,
 			role,
+			storeId,
 		});
 
 		return response.status(201).json({ id: user.id });

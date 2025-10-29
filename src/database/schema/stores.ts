@@ -34,11 +34,6 @@ export const stores = pgTable("stores", {
 			primaryColor: string;
 			secondaryColor: string;
 			tertiaryColor: string;
-			quaternaryColor: string;
-			quinaryColor: string;
-			senaryColor: string;
-			septenaryColor: string;
-			octonaryColor: string;
 		}>()
 		.notNull(),
 	cityId: uuid("city_id")

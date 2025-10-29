@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import z, { ZodError } from "zod";
+import { UserNotFoundError } from "~/use-cases/@errors/users/user-not-found-error";
 import { makeFindUserByIdUseCase } from "~/use-cases/@factories/users/make-find-user-by-id-use-case";
 
 const findUserByIdParamsSchema = z.object({
@@ -34,6 +35,12 @@ export async function findUserByIdController(
 			return response.status(400).json({
 				message: "Validation error",
 				issues: error.issues,
+			});
+		}
+
+		if (error instanceof UserNotFoundError) {
+			return response.status(404).json({
+				message: error.message,
 			});
 		}
 

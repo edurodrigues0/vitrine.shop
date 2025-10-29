@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import z, { ZodError } from "zod";
+import type { AuthenticatedRequest } from "~/http/middleware/authenticate";
 import { makeFindAllUsersUseCase } from "~/use-cases/@factories/users/make-find-all-users-use-case";
 
 const findAllUsersQuerySchema = z.object({

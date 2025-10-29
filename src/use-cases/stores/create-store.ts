@@ -6,14 +6,14 @@ import { StoreWithSameWhatsappError } from "../@errors/stores/store-with-same-wh
 
 interface CreateStoreUseCaseRequest {
 	name: string;
-	description: string;
+	description?: string | null;
 	cnpjcpf: string;
-	logoUrl: string;
+	logoUrl?: string | null;
 	whatsapp: string;
 	slug: string;
-	instagramUrl: string;
-	facebookUrl: string;
-	bannerUrl: string;
+	instagramUrl?: string | null;
+	facebookUrl?: string | null;
+	bannerUrl?: string | null;
 	theme: {
 		primaryColor: string;
 		secondaryColor: string;

@@ -27,6 +27,7 @@ export async function loginController(request: Request, response: Response) {
 				id: user.id,
 				name: user.name,
 				email: user.email,
+				role: user.role,
 			},
 			token,
 		});

@@ -7,7 +7,7 @@ export async function logoutController(_request: Request, response: Response) {
 		clearAuthCookie(response);
 
 		return response.status(200).json({
-			message: "Logout realizado com sucesso",
+			message: "Logged out successfully",
 		});
 	} catch (_error) {
 		return response.status(500).json({

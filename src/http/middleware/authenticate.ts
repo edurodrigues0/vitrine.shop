@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import type { UserRole } from "~/database/schema";
 import { getAuthCookie } from "~/utils/cookies";
 import { verifyToken } from "~/utils/jwt";
 
@@ -7,6 +8,7 @@ export interface AuthenticatedRequest extends Request {
 		id: string;
 		email: string;
 		name: string;
+		role: UserRole;
 	};
 }
 
@@ -20,23 +22,23 @@ export async function authenticateMiddleware(
 
 		if (!token) {
 			return response.status(401).json({
-				error: "Token de acesso não fornecido",
+				message: "Unauthorized",
 			});
 		}
 
 		const payload = verifyToken(token);
 
-		// Adiciona as informações do usuário ao request
 		request.user = {
 			id: payload.sub,
 			email: payload.email,
 			name: payload.name,
+			role: payload.role,
 		};
 
 		next();
-	} catch (error) {
+	} catch {
 		return response.status(401).json({
-			error: "Token inválido ou expirado",
+			message: "Invalid or expired token",
 		});
 	}
 }

@@ -1,9 +1,11 @@
 import jsonwebtoken from "jsonwebtoken";
+import type { UserRole } from "~/database/schema";
 
 export interface JwtPayload {
 	sub: string;
 	email: string;
 	name: string;
+	role: UserRole;
 }
 
 export function generateToken(
@@ -14,6 +16,7 @@ export function generateToken(
 			sub: payload.userId,
 			email: payload.email,
 			name: payload.name,
+			role: payload.role,
 		},
 		process.env.JWT_SECRET as jsonwebtoken.Secret,
 		{
