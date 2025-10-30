@@ -2,19 +2,19 @@ import type * as schema from "~/database/schema";
 
 export interface CreateStoreParams {
 	name: string;
-	description: string;
+	description?: string | null;
 	cnpjcpf: string;
-	logoUrl: string;
+	logoUrl?: string | null;
 	whatsapp: string;
 	slug: string;
-	instagramUrl: string;
-	facebookUrl: string;
-	bannerUrl: string;
+	instagramUrl?: string | null;
+	facebookUrl?: string | null;
+	bannerUrl?: string | null;
 	theme: {
 		primaryColor: string;
 		secondaryColor: string;
 		tertiaryColor: string;
-	};
+	} | null;
 	cityId: string;
 	ownerId: string;
 }

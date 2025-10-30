@@ -40,6 +40,7 @@ describe("UpdateStoreUseCase", () => {
 
 		const { store } = await sut.execute({
 			id: createdStore.id,
+			ownerId,
 			data: { name: "Store Updated" },
 		});
 
@@ -71,6 +72,7 @@ describe("UpdateStoreUseCase", () => {
 
 		const { store } = await sut.execute({
 			id: createdStore.id,
+			ownerId,
 			data: { description: "New Description" },
 		});
 
@@ -102,6 +104,7 @@ describe("UpdateStoreUseCase", () => {
 
 		const { store } = await sut.execute({
 			id: createdStore.id,
+			ownerId,
 			data: { whatsapp: "31988888888" },
 		});
 
@@ -109,9 +112,12 @@ describe("UpdateStoreUseCase", () => {
 	});
 
 	it("should throw error when store is not found", async () => {
+		const ownerId = crypto.randomUUID();
+
 		await expect(
 			sut.execute({
 				id: "non-existent-id",
+				ownerId,
 				data: { name: "Test" },
 			}),
 		).rejects.toBeInstanceOf(StoreNotFoundError);
@@ -142,6 +148,7 @@ describe("UpdateStoreUseCase", () => {
 
 		const { store } = await sut.execute({
 			id: createdStore.id,
+			ownerId,
 			data: { name: "Store Updated" },
 		});
 
@@ -175,6 +182,7 @@ describe("UpdateStoreUseCase", () => {
 
 		const { store } = await sut.execute({
 			id: createdStore.id,
+			ownerId,
 			data: {
 				name: "New Name",
 				description: "New Description",
@@ -231,6 +239,7 @@ describe("UpdateStoreUseCase", () => {
 
 		await sut.execute({
 			id: store1.id,
+			ownerId,
 			data: { name: "Store 1 Updated" },
 		});
 
@@ -266,6 +275,7 @@ describe("UpdateStoreUseCase", () => {
 
 		const { store } = await sut.execute({
 			id: originalId,
+			ownerId,
 			data: { name: "Updated Store" },
 		});
 
