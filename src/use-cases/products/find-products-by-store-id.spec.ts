@@ -21,9 +21,6 @@ describe("FindProductsByStoreIdUseCase", () => {
 		await productsRepository.create({
 			name: "Produto 1",
 			description: "Desc 1",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -31,9 +28,6 @@ describe("FindProductsByStoreIdUseCase", () => {
 		await productsRepository.create({
 			name: "Produto 2",
 			description: "Desc 2",
-			price: 200,
-			stock: 20,
-			colors: ["vermelho"],
 			categoryId,
 			storeId,
 		});
@@ -53,9 +47,6 @@ describe("FindProductsByStoreIdUseCase", () => {
 		await productsRepository.create({
 			name: "Produto Loja 1",
 			description: "Desc",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId: storeId1,
 		});
@@ -63,9 +54,6 @@ describe("FindProductsByStoreIdUseCase", () => {
 		await productsRepository.create({
 			name: "Produto Loja 2",
 			description: "Desc",
-			price: 200,
-			stock: 20,
-			colors: ["vermelho"],
 			categoryId,
 			storeId: storeId2,
 		});
@@ -92,9 +80,6 @@ describe("FindProductsByStoreIdUseCase", () => {
 		await productsRepository.create({
 			name: "Produto Completo",
 			description: "Descricao completa",
-			price: 150,
-			stock: 5,
-			colors: ["preto"],
 			categoryId,
 			storeId,
 		});

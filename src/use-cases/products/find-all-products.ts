@@ -9,10 +9,6 @@ interface FindAllProductsUseCaseRequest {
 		name?: string;
 		description?: string;
 		categorySlug?: string;
-		size?: string;
-		stock?: number;
-		weight?: number;
-		dimensions?: Record<string, any>;
 	};
 }
 

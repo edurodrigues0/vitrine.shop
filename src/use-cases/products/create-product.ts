@@ -3,14 +3,7 @@ import type { ProductsRespository } from "~/repositories/products-respository";
 
 interface CreateProductUseCaseRequest {
 	name: string;
-	description: string;
-	price: number;
-	discountPrice?: number;
-	stock: number;
-	colors: string[];
-	size?: string;
-	weight?: number;
-	dimensions?: Record<string, any>;
+	description?: string | null;
 	categoryId: string;
 	storeId: string;
 }
@@ -25,26 +18,12 @@ export class CreateProductUseCase {
 	async execute({
 		name,
 		description,
-		price,
-		discountPrice,
-		stock,
-		colors,
-		size,
-		weight,
-		dimensions,
 		categoryId,
 		storeId,
 	}: CreateProductUseCaseRequest): Promise<CreateProductUseCaseResponse> {
 		const product = await this.productsRepository.create({
 			name,
 			description,
-			price,
-			discountPrice,
-			stock,
-			colors,
-			size,
-			weight,
-			dimensions,
 			categoryId,
 			storeId,
 		});

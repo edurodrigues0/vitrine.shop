@@ -21,9 +21,6 @@ describe("FindAllProductsUseCase", () => {
 		await productsRepository.create({
 			name: "Produto 1",
 			description: "Desc 1",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -56,9 +53,6 @@ describe("FindAllProductsUseCase", () => {
 		await productsRepository.create({
 			name: "Smartphone Samsung",
 			description: "Desc",
-			price: 1000,
-			stock: 5,
-			colors: ["preto"],
 			categoryId,
 			storeId,
 		});
@@ -90,9 +84,6 @@ describe("FindAllProductsUseCase", () => {
 		await productsRepository.create({
 			name: "Produto 1",
 			description: "Produto com garantia estendida",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -133,9 +124,6 @@ describe("FindAllProductsUseCase", () => {
 		await productsRepository.create({
 			name: "Produto Eletronicos",
 			description: "Desc",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId: category1.id,
 			storeId,
 		});
@@ -143,9 +131,6 @@ describe("FindAllProductsUseCase", () => {
 		await productsRepository.create({
 			name: "Produto Roupas",
 			description: "Desc",
-			price: 200,
-			stock: 20,
-			colors: ["vermelho"],
 			categoryId: category2.id,
 			storeId,
 		});
@@ -161,77 +146,6 @@ describe("FindAllProductsUseCase", () => {
 		expect(products[0]?.name).toBe("Produto Eletronicos");
 	});
 
-	it("should filter products by size", async () => {
-		const storeId = crypto.randomUUID();
-		const categoryId = crypto.randomUUID();
-
-		await productsRepository.create({
-			name: "Camiseta P",
-			description: "Desc",
-			price: 50,
-			stock: 10,
-			colors: ["azul"],
-			size: "P",
-			categoryId,
-			storeId,
-		});
-
-		await productsRepository.create({
-			name: "Camiseta M",
-			description: "Desc",
-			price: 50,
-			stock: 15,
-			colors: ["vermelho"],
-			size: "M",
-			categoryId,
-			storeId,
-		});
-
-		const { products } = await sut.execute({
-			page: 1,
-			limit: 10,
-			filters: { size: "M" },
-		});
-
-		expect(products).toHaveLength(1);
-		expect(products[0]?.size).toBe("M");
-	});
-
-	it("should filter products by stock", async () => {
-		const storeId = crypto.randomUUID();
-		const categoryId = crypto.randomUUID();
-
-		await productsRepository.create({
-			name: "Produto Pouco Estoque",
-			description: "Desc",
-			price: 50,
-			stock: 5,
-			colors: ["azul"],
-			categoryId,
-			storeId,
-		});
-
-		await productsRepository.create({
-			name: "Produto Muito Estoque",
-			description: "Desc",
-			price: 50,
-			stock: 50,
-			colors: ["vermelho"],
-			categoryId,
-			storeId,
-		});
-
-		const { products } = await sut.execute({
-			page: 1,
-			limit: 10,
-			filters: { stock: 20 },
-		});
-
-		expect(products).toHaveLength(1);
-		expect(products[0]?.name).toBe("Produto Muito Estoque");
-		expect(products[0]?.stock).toBeGreaterThanOrEqual(20);
-	});
-
 	it("should paginate results correctly", async () => {
 		const storeId = crypto.randomUUID();
 		const categoryId = crypto.randomUUID();
@@ -240,9 +154,6 @@ describe("FindAllProductsUseCase", () => {
 			await productsRepository.create({
 				name: `Produto ${i}`,
 				description: `Desc ${i}`,
-				price: i * 10,
-				stock: i,
-				colors: ["azul"],
 				categoryId,
 				storeId,
 			});
@@ -284,9 +195,6 @@ describe("FindAllProductsUseCase", () => {
 		await productsRepository.create({
 			name: "PRODUTO MAIUSCULO",
 			description: "Descricao",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -308,9 +216,6 @@ describe("FindAllProductsUseCase", () => {
 		await productsRepository.create({
 			name: "Produto Teste",
 			description: "Desc teste",
-			price: 99.99,
-			stock: 10,
-			colors: ["preto"],
 			categoryId,
 			storeId,
 		});
@@ -324,8 +229,6 @@ describe("FindAllProductsUseCase", () => {
 		expect(products[0]).toHaveProperty("id");
 		expect(products[0]).toHaveProperty("name");
 		expect(products[0]).toHaveProperty("description");
-		expect(products[0]).toHaveProperty("price");
-		expect(products[0]).toHaveProperty("stock");
 		expect(products[0]).toHaveProperty("categoryId");
 		expect(products[0]).toHaveProperty("storeId");
 	});

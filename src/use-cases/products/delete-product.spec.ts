@@ -22,9 +22,6 @@ describe("DeleteProductUseCase", () => {
 		const product = await productsRepository.create({
 			name: "Produto para deletar",
 			description: "Descricao",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -51,9 +48,6 @@ describe("DeleteProductUseCase", () => {
 		const product1 = await productsRepository.create({
 			name: "Produto 1",
 			description: "Desc 1",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -61,9 +55,6 @@ describe("DeleteProductUseCase", () => {
 		const product2 = await productsRepository.create({
 			name: "Produto 2",
 			description: "Desc 2",
-			price: 200,
-			stock: 20,
-			colors: ["vermelho"],
 			categoryId,
 			storeId,
 		});
@@ -89,9 +80,6 @@ describe("DeleteProductUseCase", () => {
 		const product = await productsRepository.create({
 			name: "Produto Teste",
 			description: "Descricao",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -111,19 +99,13 @@ describe("DeleteProductUseCase", () => {
 		const product1 = await productsRepository.create({
 			name: "Produto Loja 1",
 			description: "Desc",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId: storeId1,
 		});
 
-		const product2 = await productsRepository.create({
+		await productsRepository.create({
 			name: "Produto Loja 2",
 			description: "Desc",
-			price: 200,
-			stock: 20,
-			colors: ["vermelho"],
 			categoryId,
 			storeId: storeId2,
 		});

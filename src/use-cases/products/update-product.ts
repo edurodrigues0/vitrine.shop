@@ -8,7 +8,6 @@ interface UpdateProductUseCaseRequest {
 	data: {
 		name?: string;
 		description?: string;
-		price?: number;
 	};
 }
 

@@ -3,14 +3,7 @@ import type { Product } from "~/database/schema";
 
 export interface CreateProductParams {
 	name: string;
-	description: string;
-	price: number;
-	discountPrice?: number;
-	stock: number;
-	colors: string[];
-	size?: string;
-	weight?: number;
-	dimensions?: Record<string, any>;
+	description?: string | null;
 	categoryId: string;
 	storeId: string;
 }
@@ -21,12 +14,8 @@ export interface FindAllProductsParams {
 	filters: {
 		name?: string;
 		description?: string;
-		price?: number;
-		stock?: number;
-		size?: string;
-		weight?: number;
-		dimensions?: Record<string, any>;
 		categorySlug?: string;
+		storeId?: string;
 	};
 }
 
@@ -35,7 +24,6 @@ export interface UpdateProductParams {
 	data: {
 		name?: string;
 		description?: string;
-		price?: number;
 	};
 }
 
@@ -43,13 +31,6 @@ export interface ProductsRespository {
 	create({
 		name,
 		description,
-		price,
-		discountPrice,
-		stock,
-		colors,
-		size,
-		weight,
-		dimensions,
 		categoryId,
 		storeId,
 	}: CreateProductParams): Promise<Product>;

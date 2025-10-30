@@ -3,6 +3,7 @@ export * from "./category";
 export * from "./cities";
 export * from "./products";
 export * from "./products-images";
+export * from "./products-variations";
 export * from "./store-branches";
 export * from "./stores";
 export * from "./subscriptions";

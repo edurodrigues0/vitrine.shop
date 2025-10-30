@@ -22,9 +22,6 @@ describe("FindProductByIdUseCase", () => {
 		const createdProduct = await productsRepository.create({
 			name: "Produto Teste",
 			description: "Descricao teste",
-			price: 99.99,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -49,13 +46,6 @@ describe("FindProductByIdUseCase", () => {
 		const createdProduct = await productsRepository.create({
 			name: "Produto Completo",
 			description: "Descricao completa",
-			price: 150,
-			discountPrice: 120,
-			stock: 5,
-			colors: ["preto", "branco"],
-			size: "G",
-			weight: 1.5,
-			dimensions: { height: 10, width: 20, depth: 5 },
 			categoryId,
 			storeId,
 		});
@@ -65,13 +55,6 @@ describe("FindProductByIdUseCase", () => {
 		expect(product).toHaveProperty("id");
 		expect(product).toHaveProperty("name");
 		expect(product).toHaveProperty("description");
-		expect(product).toHaveProperty("price");
-		expect(product).toHaveProperty("discountPrice");
-		expect(product).toHaveProperty("stock");
-		expect(product).toHaveProperty("colors");
-		expect(product).toHaveProperty("size");
-		expect(product).toHaveProperty("weight");
-		expect(product).toHaveProperty("dimensions");
 		expect(product).toHaveProperty("categoryId");
 		expect(product).toHaveProperty("storeId");
 		expect(product).toHaveProperty("createdAt");
@@ -84,9 +67,6 @@ describe("FindProductByIdUseCase", () => {
 		const product1 = await productsRepository.create({
 			name: "Produto 1",
 			description: "Desc 1",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -94,9 +74,6 @@ describe("FindProductByIdUseCase", () => {
 		await productsRepository.create({
 			name: "Produto 2",
 			description: "Desc 2",
-			price: 200,
-			stock: 20,
-			colors: ["vermelho"],
 			categoryId,
 			storeId,
 		});

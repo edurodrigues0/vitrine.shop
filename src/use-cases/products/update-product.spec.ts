@@ -22,9 +22,6 @@ describe("UpdateProductUseCase", () => {
 		const createdProduct = await productsRepository.create({
 			name: "Nome Antigo",
 			description: "Descricao",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -47,9 +44,6 @@ describe("UpdateProductUseCase", () => {
 		const createdProduct = await productsRepository.create({
 			name: "Produto",
 			description: "Descricao Antiga",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -65,30 +59,6 @@ describe("UpdateProductUseCase", () => {
 		expect(product?.name).toBe("Produto");
 	});
 
-	it("should be able to update product price", async () => {
-		const storeId = crypto.randomUUID();
-		const categoryId = crypto.randomUUID();
-
-		const createdProduct = await productsRepository.create({
-			name: "Produto",
-			description: "Descricao",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
-			categoryId,
-			storeId,
-		});
-
-		const { product } = await sut.execute({
-			id: createdProduct.id,
-			data: {
-				price: 150,
-			},
-		});
-
-		expect(product?.price).toBe("150");
-	});
-
 	it("should be able to update multiple fields at once", async () => {
 		const storeId = crypto.randomUUID();
 		const categoryId = crypto.randomUUID();
@@ -96,9 +66,6 @@ describe("UpdateProductUseCase", () => {
 		const createdProduct = await productsRepository.create({
 			name: "Nome Antigo",
 			description: "Descricao Antiga",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -108,13 +75,11 @@ describe("UpdateProductUseCase", () => {
 			data: {
 				name: "Nome Novo",
 				description: "Descricao Nova",
-				price: 200,
 			},
 		});
 
 		expect(product?.name).toBe("Nome Novo");
 		expect(product?.description).toBe("Descricao Nova");
-		expect(product?.price).toBe("200");
 	});
 
 	it("should throw error when product is not found", async () => {
@@ -133,9 +98,6 @@ describe("UpdateProductUseCase", () => {
 		const createdProduct = await productsRepository.create({
 			name: "Nome Original",
 			description: "Descricao Original",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -149,7 +111,6 @@ describe("UpdateProductUseCase", () => {
 
 		expect(product?.name).toBe("Nome Atualizado");
 		expect(product?.description).toBe("Descricao Original");
-		expect(product?.price).toBe("100");
 	});
 
 	it("should update only the specified product", async () => {
@@ -159,9 +120,6 @@ describe("UpdateProductUseCase", () => {
 		const product1 = await productsRepository.create({
 			name: "Produto 1",
 			description: "Desc 1",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -169,9 +127,6 @@ describe("UpdateProductUseCase", () => {
 		const product2 = await productsRepository.create({
 			name: "Produto 2",
 			description: "Desc 2",
-			price: 200,
-			stock: 20,
-			colors: ["vermelho"],
 			categoryId,
 			storeId,
 		});
@@ -201,9 +156,6 @@ describe("UpdateProductUseCase", () => {
 		const createdProduct = await productsRepository.create({
 			name: "Produto",
 			description: "Descricao",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});
@@ -225,9 +177,6 @@ describe("UpdateProductUseCase", () => {
 		const createdProduct = await productsRepository.create({
 			name: "Produto",
 			description: "Descricao",
-			price: 100,
-			stock: 10,
-			colors: ["azul"],
 			categoryId,
 			storeId,
 		});

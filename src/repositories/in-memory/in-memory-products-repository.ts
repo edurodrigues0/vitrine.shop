@@ -15,13 +15,6 @@ export class InMemoryProductsRepository implements ProductsRespository {
 	async create({
 		name,
 		description,
-		price,
-		discountPrice,
-		stock,
-		colors,
-		size,
-		weight,
-		dimensions,
 		categoryId,
 		storeId,
 	}: CreateProductParams): Promise<Product> {
@@ -31,13 +24,6 @@ export class InMemoryProductsRepository implements ProductsRespository {
 			id,
 			name,
 			description,
-			price: price.toString(),
-			discountPrice: discountPrice?.toString() ?? null,
-			stock,
-			colors: colors ?? null,
-			size: size ?? null,
-			weight: weight?.toString() ?? null,
-			dimensions: dimensions ?? null,
 			categoryId,
 			storeId,
 			createdAt: new Date(),
@@ -68,8 +54,7 @@ export class InMemoryProductsRepository implements ProductsRespository {
 		pagination: Pagination;
 	}> {
 		let products = this.items;
-		const { name, description, size, categorySlug, stock, weight, dimensions } =
-			filters;
+		const { name, description, categorySlug } = filters;
 
 		if (name) {
 			products = products.filter((item) =>
@@ -88,25 +73,6 @@ export class InMemoryProductsRepository implements ProductsRespository {
 				slug: categorySlug,
 			});
 			products = products.filter((item) => item.categoryId === category?.id);
-		}
-
-		if (stock) {
-			products = products.filter((item) => item.stock >= stock);
-		}
-
-		if (weight) {
-			products = products.filter(
-				(item) => item.weight?.toString() === weight.toString(),
-			);
-		}
-		if (dimensions) {
-			products = products.filter(
-				(item) => item.dimensions?.toString() === dimensions.toString(),
-			);
-		}
-
-		if (size) {
-			products = products.filter((item) => item.size === size);
 		}
 
 		const totalItems = products.length;
@@ -141,7 +107,6 @@ export class InMemoryProductsRepository implements ProductsRespository {
 			...currentProduct,
 			name: data.name ?? currentProduct.name,
 			description: data.description ?? currentProduct.description,
-			price: data.price ? data.price.toString() : currentProduct.price,
 		};
 
 		this.items[productIndex] = updatedProduct;
