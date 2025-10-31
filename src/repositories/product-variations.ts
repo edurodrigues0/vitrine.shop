@@ -4,10 +4,10 @@ export interface CreateProductVariationParams {
 	productId: string;
 	size: string;
 	color: string;
-	weight?: number;
-	dimensions?: Record<string, unknown>;
-	discountPrice?: number;
-	price?: number;
+	weight?: number | null;
+	dimensions?: Record<string, unknown> | null;
+	discountPrice?: number | null;
+	price: number;
 	stock: number;
 }
 

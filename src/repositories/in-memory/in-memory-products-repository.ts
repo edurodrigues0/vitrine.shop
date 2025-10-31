@@ -23,7 +23,7 @@ export class InMemoryProductsRepository implements ProductsRespository {
 		const product: Product = {
 			id,
 			name,
-			description,
+			description: description ?? null,
 			categoryId,
 			storeId,
 			createdAt: new Date(),

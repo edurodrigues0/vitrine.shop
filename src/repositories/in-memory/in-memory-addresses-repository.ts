@@ -58,7 +58,6 @@ export class InMemoryAddressesRepository implements AddressesRepository {
 			number,
 			complement,
 			neighborhood,
-			state,
 			zipCode,
 			country,
 			cityName,
