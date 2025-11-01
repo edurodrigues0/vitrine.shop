@@ -4,9 +4,9 @@ export interface CreateProductVariationParams {
 	productId: string;
 	size: string;
 	color: string;
-	weight?: number | null;
-	dimensions?: Record<string, unknown> | null;
-	discountPrice?: number | null;
+	weight: string | null;
+	dimensions: Record<string, unknown> | null;
+	discountPrice: number | null;
 	price: number;
 	stock: number;
 }
@@ -16,7 +16,7 @@ export interface UpdateProductVariationParams {
 	data: {
 		size?: string;
 		color?: string;
-		weight?: number;
+		weight?: string;
 		dimensions?: Record<string, unknown>;
 		discountPrice?: number;
 		price?: number;
@@ -34,7 +34,7 @@ export interface ProductVariationsRepository {
 		discountPrice,
 		price,
 		stock,
-	}: CreateProductVariationParams): Promise<ProductVariation>;
+	}: CreateProductVariationParams): Promise<ProductVariation | null>;
 
 	findById({ id }: { id: string }): Promise<ProductVariation | null>;
 
