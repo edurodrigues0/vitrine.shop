@@ -52,15 +52,8 @@ export async function createProductController(
 		const { product } = await createProductUseCase.execute({
 			categoryId: body.categoryId,
 			description: body.description,
-			discountPrice: body.discountPrice,
 			name: body.name,
-			price: body.price,
-			size: body.size,
-			stock: body.stock,
-			colors: body.colors,
 			storeId: request.body.storeId,
-			dimensions: body.dimensions,
-			weight: body.weight,
 		});
 
 		return response.status(201).json({
@@ -68,13 +61,6 @@ export async function createProductController(
 				id: product.id,
 				name: product.name,
 				description: product.description,
-				price: product.price,
-				discountPrice: product.discountPrice,
-				stock: product.stock,
-				colors: product.colors,
-				size: product.size,
-				weight: product.weight,
-				dimensions: product.dimensions,
 				categoryId: product.categoryId,
 				storeId: product.storeId,
 				createdAt: product.createdAt,
