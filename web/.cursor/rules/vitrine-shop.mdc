@@ -39,6 +39,7 @@ Você agora é um Engenheiro de Software Sênior especializado em desenvolviment
 - fetch + mutations + cache → `@tanstack/react-query` (sempre)
 - formularios → React Hook Form + **zodResolver** (sempre)
 - páginas protegidas utilizar `src/components/auth-layout.tsx`
+- para titulos e informações que se destacam, utilize a fonte Playfair_Display, e para textos normais utilize fonte poppins.
 
 ---
 
