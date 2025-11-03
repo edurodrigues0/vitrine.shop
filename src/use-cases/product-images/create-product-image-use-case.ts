@@ -1,11 +1,11 @@
 import type { ProductImage } from "~/database/schema";
 import type { ProductImagesRepository } from "~/repositories/product-images-repository";
-import type { ProductsRespository } from "~/repositories/products-respository";
+import type { ProductVariationsRepository } from "~/repositories/product-variations";
 import { FailedToCreateProductImageError } from "../@errors/product-images/failed-to-create-product-image-error";
-import { ProductNotFoundError } from "../@errors/products/product-not-found-error";
+import { ProductVariationNotFoundError } from "../@errors/product-variations/product-variation-not-found-error";
 
 interface CreateProductImageUseCaseRequest {
-	productId: string;
+	productVariationId: string;
 	url: string;
 }
 
@@ -16,23 +16,24 @@ interface CreateProductImageUseCaseResponse {
 export class CreateProductImageUseCase {
 	constructor(
 		private readonly productImagesRepository: ProductImagesRepository,
-		private readonly productsRepository: ProductsRespository,
+		private readonly productVariationsRepository: ProductVariationsRepository,
 	) {}
 
 	async execute({
-		productId,
+		productVariationId,
 		url,
 	}: CreateProductImageUseCaseRequest): Promise<CreateProductImageUseCaseResponse> {
-		const existingProduct = await this.productsRepository.findById({
-			id: productId,
-		});
+		const existingProductVariation =
+			await this.productVariationsRepository.findById({
+				id: productVariationId,
+			});
 
-		if (!existingProduct) {
-			throw new ProductNotFoundError();
+		if (!existingProductVariation) {
+			throw new ProductVariationNotFoundError();
 		}
 
 		const productImage = await this.productImagesRepository.create({
-			productId,
+			productVariationId,
 			url,
 		});
 

@@ -1,25 +1,25 @@
 import type { ProductImage } from "~/database/schema";
 import type { ProductImagesRepository } from "~/repositories/product-images-repository";
 
-interface FindProductImagesByProductIdUseCaseRequest {
-	productId: string;
+interface FindProductImagesByProductVariationIdUseCaseRequest {
+	productVariationId: string;
 }
 
-interface FindProductImagesByProductIdUseCaseResponse {
+interface FindProductImagesByProductVariationIdUseCaseResponse {
 	productImages: ProductImage[];
 }
 
-export class FindProductImagesByProductIdUseCase {
+export class FindProductImagesByProductVariationIdUseCase {
 	constructor(
 		private readonly productImagesRepository: ProductImagesRepository,
 	) {}
 
 	async execute({
-		productId,
-	}: FindProductImagesByProductIdUseCaseRequest): Promise<FindProductImagesByProductIdUseCaseResponse> {
+		productVariationId,
+	}: FindProductImagesByProductVariationIdUseCaseRequest): Promise<FindProductImagesByProductVariationIdUseCaseResponse> {
 		const productImages =
 			await this.productImagesRepository.findProductImagesByProductId({
-				productId,
+				productVariationId,
 			});
 
 		return { productImages };

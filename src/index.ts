@@ -5,6 +5,7 @@ import express, { type Request, type Response } from "express";
 import { logger } from "~/utils/logger";
 import { authRoutes } from "./http/controllers/auth/_routes";
 import { citiesRoutes } from "./http/controllers/cities/_routes";
+import { productImagesRoutes } from "./http/controllers/product-images/_routes";
 import { productsRoutes } from "./http/controllers/products/_routes";
 import { storesRoutes } from "./http/controllers/stores/_routes";
 import { usersRoutes } from "./http/controllers/users/_routes";
@@ -28,6 +29,7 @@ app.use(cookieParser());
 // Rotas
 app.use("/api", citiesRoutes);
 app.use("/api", productsRoutes);
+app.use("/api", productImagesRoutes);
 app.use("/api", storesRoutes);
 app.use("/api", usersRoutes);
 app.use("/api", authRoutes);

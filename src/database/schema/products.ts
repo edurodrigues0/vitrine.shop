@@ -36,7 +36,6 @@ export const productsRelations = relations(products, ({ one, many }) => ({
 		fields: [products.storeId],
 		references: [stores.id],
 	}),
-	images: many(productsImages),
 	category: one(categories, {
 		fields: [products.categoryId],
 		references: [categories.id],

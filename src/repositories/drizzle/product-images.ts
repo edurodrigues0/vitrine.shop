@@ -11,13 +11,13 @@ export class DrizzleProductImagesRepository implements ProductImagesRepository {
 	constructor(private readonly drizzle: typeof DrizzleORM) {}
 
 	async create({
-		productId,
+		productVariationId,
 		url,
 	}: CreateProductImageParams): Promise<ProductImage | null> {
 		const [image] = await this.drizzle
 			.insert(productsImages)
 			.values({
-				productId,
+				productVariationId,
 				url,
 			})
 			.returning();
@@ -39,14 +39,14 @@ export class DrizzleProductImagesRepository implements ProductImagesRepository {
 	}
 
 	async findProductImagesByProductId({
-		productId,
+		productVariationId,
 	}: {
-		productId: string;
+		productVariationId: string;
 	}): Promise<ProductImage[]> {
 		const images = await this.drizzle
 			.select()
 			.from(productsImages)
-			.where(eq(productsImages.productId, productId))
+			.where(eq(productsImages.productVariationId, productVariationId))
 			.orderBy(desc(productsImages.createdAt));
 
 		return images;

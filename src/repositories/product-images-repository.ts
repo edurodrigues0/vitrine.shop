@@ -1,7 +1,7 @@
-import type { NewProductImage, ProductImage } from "~/database/schema";
+import type { ProductImage } from "~/database/schema";
 
 export interface CreateProductImageParams {
-	productId: string;
+	productVariationId: string;
 	url: string;
 }
 
@@ -14,16 +14,16 @@ export interface UpdateProductImageParams {
 
 export interface ProductImagesRepository {
 	create({
-		productId,
+		productVariationId,
 		url,
 	}: CreateProductImageParams): Promise<ProductImage | null>;
 
 	findById({ id }: { id: string }): Promise<ProductImage | null>;
 
 	findProductImagesByProductId({
-		productId,
+		productVariationId,
 	}: {
-		productId: string;
+		productVariationId: string;
 	}): Promise<ProductImage[]>;
 
 	update({ id, data }: UpdateProductImageParams): Promise<ProductImage | null>;

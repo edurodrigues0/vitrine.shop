@@ -9,6 +9,7 @@ import {
 	varchar,
 } from "drizzle-orm/pg-core";
 import { products } from "./products";
+import { productsImages } from "./products-images";
 
 export const productsVariations = pgTable("products_variations", {
 	id: uuid("id").defaultRandom().primaryKey(),
@@ -31,10 +32,11 @@ export type NewProductVariation = typeof productsVariations.$inferInsert;
 
 export const productsVariationsRelations = relations(
 	productsVariations,
-	({ one }) => ({
+	({ one, many }) => ({
 		product: one(products, {
 			fields: [productsVariations.productId],
 			references: [products.id],
 		}),
+		images: many(productsImages),
 	}),
 );

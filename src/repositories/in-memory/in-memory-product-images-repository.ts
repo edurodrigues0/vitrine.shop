@@ -11,7 +11,7 @@ export class InMemoryProductImagesRepository
 	public items: ProductImage[] = [];
 
 	async create({
-		productId,
+		productVariationId,
 		url,
 	}: CreateProductImageParams): Promise<ProductImage | null> {
 		const id = crypto.randomUUID();
@@ -19,7 +19,8 @@ export class InMemoryProductImagesRepository
 
 		const productImage: ProductImage = {
 			id,
-			productId,
+			isMain: false,
+			productVariationId,
 			url,
 			createdAt,
 		};
@@ -34,12 +35,12 @@ export class InMemoryProductImagesRepository
 	}
 
 	async findProductImagesByProductId({
-		productId,
+		productVariationId,
 	}: {
-		productId: string;
+		productVariationId: string;
 	}): Promise<ProductImage[]> {
 		const productImages = this.items.filter(
-			(item) => item.productId === productId,
+			(item) => item.productVariationId === productVariationId,
 		);
 
 		return productImages;

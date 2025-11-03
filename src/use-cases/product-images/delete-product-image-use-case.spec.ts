@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryCategoriesRepository } from "~/repositories/in-memory/in-memory-categories-repository";
 import { InMemoryProductImagesRepository } from "~/repositories/in-memory/in-memory-product-images-repository";
 import { InMemoryProductsRepository } from "~/repositories/in-memory/in-memory-products-repository";
+import { InMemoryProductsVariationsRepository } from "~/repositories/in-memory/in-memory-products-variations";
 import { ProductImageNotFoundError } from "../@errors/product-images/product-image-not-found-error";
 import { DeleteProductImageUseCase } from "./delete-product-image-use-cae";
 
@@ -9,12 +10,16 @@ describe("DeleteProductImageUseCase", () => {
 	let categoriesRepository: InMemoryCategoriesRepository;
 	let productsRepository: InMemoryProductsRepository;
 	let productImagesRepository: InMemoryProductImagesRepository;
+	let productVariationsRepository: InMemoryProductsVariationsRepository;
 	let sut: DeleteProductImageUseCase;
 
 	beforeEach(() => {
 		categoriesRepository = new InMemoryCategoriesRepository();
 		productsRepository = new InMemoryProductsRepository(categoriesRepository);
 		productImagesRepository = new InMemoryProductImagesRepository();
+		productVariationsRepository = new InMemoryProductsVariationsRepository(
+			productsRepository,
+		);
 		sut = new DeleteProductImageUseCase(productImagesRepository);
 	});
 
@@ -29,8 +34,23 @@ describe("DeleteProductImageUseCase", () => {
 			storeId,
 		});
 
-		const createdImage = await productImagesRepository.create({
+		const productVariation = await productVariationsRepository.create({
 			productId: product.id,
+			size: "M",
+			color: "Azul",
+			weight: null,
+			dimensions: null,
+			discountPrice: null,
+			price: 10000,
+			stock: 10,
+		});
+
+		if (!productVariation) {
+			throw new Error("Failed to create product variation");
+		}
+
+		const createdImage = await productImagesRepository.create({
+			productVariationId: productVariation.id,
 			url: "https://example.com/image.jpg",
 		});
 
@@ -62,13 +82,28 @@ describe("DeleteProductImageUseCase", () => {
 			storeId,
 		});
 
-		const image1 = await productImagesRepository.create({
+		const productVariation = await productVariationsRepository.create({
 			productId: product.id,
+			size: "M",
+			color: "Azul",
+			weight: null,
+			dimensions: null,
+			discountPrice: null,
+			price: 10000,
+			stock: 10,
+		});
+
+		if (!productVariation) {
+			throw new Error("Failed to create product variation");
+		}
+
+		const image1 = await productImagesRepository.create({
+			productVariationId: productVariation.id,
 			url: "https://example.com/image1.jpg",
 		});
 
 		const image2 = await productImagesRepository.create({
-			productId: product.id,
+			productVariationId: productVariation.id,
 			url: "https://example.com/image2.jpg",
 		});
 
@@ -100,8 +135,23 @@ describe("DeleteProductImageUseCase", () => {
 			storeId,
 		});
 
-		const createdImage = await productImagesRepository.create({
+		const productVariation = await productVariationsRepository.create({
 			productId: product.id,
+			size: "M",
+			color: "Azul",
+			weight: null,
+			dimensions: null,
+			discountPrice: null,
+			price: 10000,
+			stock: 10,
+		});
+
+		if (!productVariation) {
+			throw new Error("Failed to create product variation");
+		}
+
+		const createdImage = await productImagesRepository.create({
+			productVariationId: productVariation.id,
 			url: "https://example.com/image.jpg",
 		});
 
@@ -114,7 +164,7 @@ describe("DeleteProductImageUseCase", () => {
 		expect(productImagesRepository.items).toHaveLength(0);
 	});
 
-	it("should delete product image from specific product", async () => {
+	it("should delete product image from specific product variation", async () => {
 		const storeId = crypto.randomUUID();
 		const categoryId = crypto.randomUUID();
 
@@ -132,13 +182,39 @@ describe("DeleteProductImageUseCase", () => {
 			storeId,
 		});
 
-		const image1 = await productImagesRepository.create({
+		const productVariation1 = await productVariationsRepository.create({
 			productId: product1.id,
+			size: "M",
+			color: "Azul",
+			weight: null,
+			dimensions: null,
+			discountPrice: null,
+			price: 10000,
+			stock: 10,
+		});
+
+		const productVariation2 = await productVariationsRepository.create({
+			productId: product2.id,
+			size: "G",
+			color: "Vermelho",
+			weight: null,
+			dimensions: null,
+			discountPrice: null,
+			price: 12000,
+			stock: 5,
+		});
+
+		if (!productVariation1 || !productVariation2) {
+			throw new Error("Failed to create product variations");
+		}
+
+		const image1 = await productImagesRepository.create({
+			productVariationId: productVariation1.id,
 			url: "https://example.com/product1-image.jpg",
 		});
 
 		await productImagesRepository.create({
-			productId: product2.id,
+			productVariationId: productVariation2.id,
 			url: "https://example.com/product2-image.jpg",
 		});
 
@@ -148,11 +224,11 @@ describe("DeleteProductImageUseCase", () => {
 
 		const imagesProduct1 =
 			await productImagesRepository.findProductImagesByProductId({
-				productId: product1.id,
+				productVariationId: productVariation1.id,
 			});
 		const imagesProduct2 =
 			await productImagesRepository.findProductImagesByProductId({
-				productId: product2.id,
+				productVariationId: productVariation2.id,
 			});
 
 		expect(imagesProduct1).toHaveLength(0);
@@ -162,7 +238,7 @@ describe("DeleteProductImageUseCase", () => {
 		);
 	});
 
-	it("should handle deletion when multiple images exist for same product", async () => {
+	it("should handle deletion when multiple images exist for same product variation", async () => {
 		const storeId = crypto.randomUUID();
 		const categoryId = crypto.randomUUID();
 
@@ -173,18 +249,33 @@ describe("DeleteProductImageUseCase", () => {
 			storeId,
 		});
 
-		const image1 = await productImagesRepository.create({
+		const productVariation = await productVariationsRepository.create({
 			productId: product.id,
+			size: "M",
+			color: "Azul",
+			weight: null,
+			dimensions: null,
+			discountPrice: null,
+			price: 10000,
+			stock: 10,
+		});
+
+		if (!productVariation) {
+			throw new Error("Failed to create product variation");
+		}
+
+		const image1 = await productImagesRepository.create({
+			productVariationId: productVariation.id,
 			url: "https://example.com/image1.jpg",
 		});
 
 		await productImagesRepository.create({
-			productId: product.id,
+			productVariationId: productVariation.id,
 			url: "https://example.com/image2.jpg",
 		});
 
 		await productImagesRepository.create({
-			productId: product.id,
+			productVariationId: productVariation.id,
 			url: "https://example.com/image3.jpg",
 		});
 
@@ -194,7 +285,7 @@ describe("DeleteProductImageUseCase", () => {
 
 		const remainingImages =
 			await productImagesRepository.findProductImagesByProductId({
-				productId: product.id,
+				productVariationId: productVariation.id,
 			});
 
 		expect(remainingImages).toHaveLength(2);
