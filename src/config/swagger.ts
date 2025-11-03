@@ -3,6 +3,7 @@ import { readdirSync, statSync } from "fs";
 import { join } from "path";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import { env } from "./env";
 
 function getControllerFiles(dir: string, fileList: string[] = []): string[] {
 	const files = readdirSync(dir);
@@ -42,8 +43,8 @@ const swaggerOptions: swaggerJsdoc.Options = {
 		},
 		servers: [
 			{
-				url: "http://localhost:3000/api",
-				description: "Servidor de Desenvolvimento",
+				url: `http://localhost:${env.PORT}/api`,
+				description: "Servidor de Desenvolvimento Local",
 			},
 			{
 				url: "https://api.vitrine.shop/api",
@@ -119,5 +120,55 @@ const swaggerOptions: swaggerJsdoc.Options = {
 export const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 export function setupSwagger(app: Express) {
-	app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+	// Endpoint para servir o JSON do Swagger com CORS completo
+	app.get("/api-docs.json", (req, res) => {
+		const origin = req.headers.origin;
+		if (origin) {
+			res.setHeader("Access-Control-Allow-Origin", origin);
+		} else {
+			res.setHeader("Access-Control-Allow-Origin", "*");
+		}
+		res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+		res.setHeader(
+			"Access-Control-Allow-Headers",
+			"Content-Type, Authorization, X-Requested-With",
+		);
+		res.setHeader("Access-Control-Allow-Credentials", "true");
+		res.setHeader("Content-Type", "application/json; charset=utf-8");
+		res.send(swaggerSpec);
+	});
+
+	// Handler OPTIONS para o endpoint JSON
+	app.options("/api-docs.json", (req, res) => {
+		const origin = req.headers.origin;
+		if (origin) {
+			res.setHeader("Access-Control-Allow-Origin", origin);
+		} else {
+			res.setHeader("Access-Control-Allow-Origin", "*");
+		}
+		res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+		res.setHeader(
+			"Access-Control-Allow-Headers",
+			"Content-Type, Authorization, X-Requested-With",
+		);
+		res.setHeader("Access-Control-Allow-Credentials", "true");
+		res.sendStatus(200);
+	});
+
+	// Configuração do Swagger UI - passando o objeto diretamente
+	// Isso evita que o Swagger UI tente buscar de uma URL externa
+	app.use(
+		"/api-docs",
+		swaggerUi.serve,
+		swaggerUi.setup(swaggerSpec, {
+			customCss: ".swagger-ui .topbar { display: none }",
+			customSiteTitle: "Vitrine.shop API Documentation",
+			swaggerOptions: {
+				persistAuthorization: true,
+				displayRequestDuration: true,
+				filter: true,
+				tryItOutEnabled: true,
+			},
+		}),
+	);
 }

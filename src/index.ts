@@ -16,10 +16,35 @@ dotenv.config();
 
 const app = express();
 
+// CORS - Deve vir antes de outros middlewares
 app.use(
 	cors({
 		credentials: true,
-		origin: true,
+		origin: (origin, callback) => {
+			// Permite requisições sem origin (como mobile apps, Postman, Swagger UI do mesmo servidor)
+			if (!origin) {
+				return callback(null, true);
+			}
+			// Permite todas as origens em desenvolvimento
+			if (process.env.NODE_ENV === "development") {
+				return callback(null, true);
+			}
+			// Em produção, você pode validar origens específicas aqui
+			return callback(null, true);
+		},
+		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+		allowedHeaders: [
+			"Content-Type",
+			"Authorization",
+			"X-Requested-With",
+			"Accept",
+			"Origin",
+			"Access-Control-Request-Method",
+			"Access-Control-Request-Headers",
+		],
+		exposedHeaders: ["Content-Type", "Authorization"],
+		optionsSuccessStatus: 200,
+		preflightContinue: false,
 	}),
 );
 
