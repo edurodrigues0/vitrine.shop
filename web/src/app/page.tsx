@@ -20,19 +20,14 @@ export default function Home() {
             <div className="flex justify-center mb-8">
               <div className="relative">
                 <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse"></div>
-                <div className="relative p-5 rounded-2xl bg-gradient-to-br from-[hsl(var(--primary)/0.2)] to-[hsl(var(--primary)/0.05)] backdrop-blur-sm border border-[hsl(var(--primary))]/20 shadow-glow">
+                <div className="relative p-5 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 backdrop-blur-sm border border-primary/20 shadow-glow">
                   <Store className="h-16 w-16 text-primary animate-bounce-subtle" />
                 </div>
               </div>
             </div>
 
             {/* Main heading */}
-            <h1
-              className="font-playfair text-5xl md:text-7xl lg:text-8xl font-bold mb-6
-                bg-gradient-to-r from-[hsl(var(--primary))]
-                via-[hsl(var(--primary)/0.8)] to-[hsl(var(--accent))]
-                bg-clip-text text-transparent leading-tight animate-fade-in-delay"
-            >
+            <h1 className="font-playfair text-5xl md:text-7xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent leading-tight animate-fade-in-delay">
               Descubra Lojas<br className="md:hidden" /> Incríveis
             </h1>
             
@@ -67,12 +62,12 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 md:py-32 px-4 bg-gradient-to-b from-[hsl(var(--background))] to-[hsl(var(--muted))/0.3]">
+      <section className="py-24 md:py-32 px-4 bg-gradient-to-b from-background to-muted/30">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
               <Sparkles className="h-4 w-4" />
-              Por que escolher o Vitrine Shop?
+              Por que escolher o MultiStore?
             </div>
             <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">
               Uma experiência única de compra
@@ -84,9 +79,9 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
             <Card className="group relative p-8 hover:shadow-xl transition-all duration-300 animate-slide-up border-2 hover:border-primary/20 hover:-translate-y-2 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.05)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10">
-                <div className="p-4 rounded-xl bg-gradient-to-br from-[hsl(var(--primary)/0.2)] to-[hsl(var(--primary)/0.05)] w-fit mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 w-fit mb-6 group-hover:scale-110 transition-transform duration-300">
                   <MapPin className="h-10 w-10 text-primary" />
                 </div>
                 <h3 className="font-playfair text-2xl font-bold mb-3">Lojas Locais</h3>
@@ -97,9 +92,9 @@ export default function Home() {
             </Card>
 
             <Card className="group relative p-8 hover:shadow-xl transition-all duration-300 animate-slide-up border-2 hover:border-accent/20 hover:-translate-y-2 overflow-hidden" style={{ animationDelay: "0.1s" }}>
-              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--accent)/0.05)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10">
-                <div className="p-4 rounded-xl bg-gradient-to-br from-[hsl(var(--accent)/0.2)] to-[hsl(var(--accent)/0.05)] w-fit mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 w-fit mb-6 group-hover:scale-110 transition-transform duration-300">
                   <ShoppingBag className="h-10 w-10 text-accent" />
                 </div>
                 <h3 className="font-playfair text-2xl font-bold mb-3">Compra Simples</h3>
@@ -110,9 +105,9 @@ export default function Home() {
             </Card>
 
             <Card className="group relative p-8 hover:shadow-xl transition-all duration-300 animate-slide-up border-2 hover:border-success/20 hover:-translate-y-2 overflow-hidden" style={{ animationDelay: "0.2s" }}>
-              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--success)/0.05)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10">
-                <div className="p-4 rounded-xl bg-gradient-to-br from-[hsl(var(--success)/0.2)] to-[hsl(var(--success)/0.05)] w-fit mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-success/20 to-success/5 w-fit mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Shield className="h-10 w-10 text-success" />
                 </div>
                 <h3 className="font-playfair text-2xl font-bold mb-3">Seguro e Confiável</h3>
