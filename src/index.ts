@@ -2,8 +2,10 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { type Request, type Response } from "express";
+import { setupSwagger } from "~/config/swagger";
 import { logger } from "~/utils/logger";
 import { authRoutes } from "./http/controllers/auth/_routes";
+import { categoriesRoutes } from "./http/controllers/categories/_routes";
 import { citiesRoutes } from "./http/controllers/cities/_routes";
 import { productImagesRoutes } from "./http/controllers/product-images/_routes";
 import { productsRoutes } from "./http/controllers/products/_routes";
@@ -17,7 +19,7 @@ const app = express();
 app.use(
 	cors({
 		credentials: true,
-		origin: "*",
+		origin: true,
 	}),
 );
 
@@ -26,8 +28,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Swagger Documentation
+setupSwagger(app);
+
 // Rotas
 app.use("/api", citiesRoutes);
+app.use("/api", categoriesRoutes);
 app.use("/api", productsRoutes);
 app.use("/api", productImagesRoutes);
 app.use("/api", storesRoutes);
