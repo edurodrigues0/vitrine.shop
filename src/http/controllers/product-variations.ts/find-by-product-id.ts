@@ -7,6 +7,84 @@ const findProductVariationsByProductIdParamsSchema = z.object({
 	productId: z.uuid("Valid product ID is required"),
 });
 
+/**
+ * @swagger
+ * /product-variations/product/{productId}:
+ *   get:
+ *     summary: Lista todas as variações de um produto
+ *     tags: [Product Variations]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID do produto
+ *     responses:
+ *       200:
+ *         description: Lista de variações retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 productVariations:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       productId:
+ *                         type: string
+ *                         format: uuid
+ *                       size:
+ *                         type: string
+ *                       color:
+ *                         type: string
+ *                       weight:
+ *                         type: string
+ *                         nullable: true
+ *                       dimensions:
+ *                         type: object
+ *                         nullable: true
+ *                       discountPrice:
+ *                         type: integer
+ *                         nullable: true
+ *                       price:
+ *                         type: integer
+ *                       stock:
+ *                         type: integer
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       updatedAt:
+ *                         type: string
+ *                         format: date-time
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Produto não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function findProductVariationsByProductIdController(
 	request: Request,
 	response: Response,

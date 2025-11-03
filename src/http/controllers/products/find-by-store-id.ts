@@ -6,6 +6,63 @@ const findProductsByStoreIdParamsSchema = z.object({
 	storeId: z.string().uuid("ID da loja deve ser um UUID válido"),
 });
 
+/**
+ * @swagger
+ * /products/store/{storeId}:
+ *   get:
+ *     summary: Lista todos os produtos de uma loja
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: storeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID da loja
+ *     responses:
+ *       200:
+ *         description: Lista de produtos da loja retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 products:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                         nullable: true
+ *                       categoryId:
+ *                         type: string
+ *                         format: uuid
+ *                       storeId:
+ *                         type: string
+ *                         format: uuid
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function findProductsByStoreIdController(
 	request: Request,
 	response: Response,

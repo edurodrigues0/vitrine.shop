@@ -9,6 +9,78 @@ const createProductImageBodySchema = z.object({
 	productVariationId: z.uuid("Valid product variation ID is required"),
 });
 
+/**
+ * @swagger
+ * /product-images:
+ *   post:
+ *     summary: Cria uma nova imagem de produto
+ *     tags: [Product Images]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - image
+ *               - productVariationId
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *                 description: Arquivo de imagem do produto
+ *               productVariationId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID da variação do produto
+ *                 example: "123e4567-e89b-12d3-a456-426614174000"
+ *     responses:
+ *       201:
+ *         description: Imagem de produto criada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 productImage:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     productVariationId:
+ *                       type: string
+ *                       format: uuid
+ *                     url:
+ *                       type: string
+ *                       format: uri
+ *                     isMain:
+ *                       type: boolean
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Erro de validação ou imagem não fornecida
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Variação de produto não encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function createProductImageController(
 	request: Request,
 	response: Response,

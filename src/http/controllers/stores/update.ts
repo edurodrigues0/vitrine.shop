@@ -44,6 +44,113 @@ const updateStoreBodySchema = z.object({
 	cityId: z.uuid("ID da cidade deve ser um UUID válido").optional(),
 });
 
+/**
+ * @swagger
+ * /stores/{id}:
+ *   put:
+ *     summary: Atualiza uma loja existente
+ *     tags: [Stores]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID da loja
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 120
+ *               description:
+ *                 type: string
+ *               cnpjcpf:
+ *                 type: string
+ *                 minLength: 11
+ *                 maxLength: 14
+ *               logoUrl:
+ *                 type: string
+ *                 format: uri
+ *               whatsapp:
+ *                 type: string
+ *                 minLength: 10
+ *                 maxLength: 20
+ *               slug:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 120
+ *               instagramUrl:
+ *                 type: string
+ *                 format: uri
+ *               facebookUrl:
+ *                 type: string
+ *                 format: uri
+ *               bannerUrl:
+ *                 type: string
+ *                 format: uri
+ *               theme:
+ *                 type: object
+ *                 properties:
+ *                   primaryColor:
+ *                     type: string
+ *                   secondaryColor:
+ *                     type: string
+ *                   tertiaryColor:
+ *                     type: string
+ *               cityId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       200:
+ *         description: Loja atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 store:
+ *                   $ref: '#/components/schemas/Store'
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Usuário não autenticado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Loja não encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       409:
+ *         description: CNPJ/CPF, WhatsApp ou Slug já existe
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function updateStoreController(
 	request: AuthenticatedRequest,
 	response: Response,

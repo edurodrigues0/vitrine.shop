@@ -6,6 +6,63 @@ const findProductImagesByProductVariationIdParamsSchema = z.object({
 	productVariationId: z.uuid("Valid product variation ID is required"),
 });
 
+/**
+ * @swagger
+ * /product-images/variation/{productVariationId}:
+ *   get:
+ *     summary: Lista todas as imagens de uma variação de produto
+ *     tags: [Product Images]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: productVariationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID da variação do produto
+ *     responses:
+ *       200:
+ *         description: Lista de imagens retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 productImages:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       productVariationId:
+ *                         type: string
+ *                         format: uuid
+ *                       url:
+ *                         type: string
+ *                         format: uri
+ *                       isMain:
+ *                         type: boolean
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function findProductImagesByProductVariationIdController(
 	request: Request,
 	response: Response,

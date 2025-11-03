@@ -12,6 +12,138 @@ const findAllStoresQuerySchema = z.object({
 	isPaid: z.coerce.boolean().optional(),
 });
 
+/**
+ * @swagger
+ * /stores:
+ *   get:
+ *     summary: Lista todas as lojas com paginação e filtros
+ *     tags: [Stores]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Número da página
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Quantidade de itens por página
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Filtrar por nome
+ *         required: false
+ *       - in: query
+ *         name: description
+ *         schema:
+ *           type: string
+ *         description: Filtrar por descrição
+ *         required: false
+ *       - in: query
+ *         name: slug
+ *         schema:
+ *           type: string
+ *         description: Filtrar por slug
+ *         required: false
+ *       - in: query
+ *         name: ownerId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filtrar por ID do proprietário
+ *         required: false
+ *       - in: query
+ *         name: isPaid
+ *         schema:
+ *           type: boolean
+ *         description: Filtrar por status de pagamento
+ *         required: false
+ *     responses:
+ *       200:
+ *         description: Lista de lojas retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 stores:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                         nullable: true
+ *                       slug:
+ *                         type: string
+ *                       theme:
+ *                         type: object
+ *                       status:
+ *                         type: string
+ *                         enum: [ACTIVE, INACTIVE]
+ *                       logoUrl:
+ *                         type: string
+ *                         nullable: true
+ *                       whatsapp:
+ *                         type: string
+ *                       instagramUrl:
+ *                         type: string
+ *                         nullable: true
+ *                       facebookUrl:
+ *                         type: string
+ *                         nullable: true
+ *                       bannerUrl:
+ *                         type: string
+ *                         nullable: true
+ *                       cityId:
+ *                         type: string
+ *                         format: uuid
+ *                       ownerId:
+ *                         type: string
+ *                       isPaid:
+ *                         type: boolean
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       updatedAt:
+ *                         type: string
+ *                         format: date-time
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     totalItems:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *                     currentPage:
+ *                       type: integer
+ *                     perPage:
+ *                       type: integer
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function findAllStoresController(
 	request: Request,
 	response: Response,

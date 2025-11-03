@@ -2,6 +2,67 @@ import type { Request, Response } from "express";
 import { ProductNotFoundError } from "~/use-cases/@errors/products/product-not-found-error";
 import { makeFindProductByIdUseCase } from "~/use-cases/@factories/products/make-find-product-by-id-use-case";
 
+/**
+ * @swagger
+ * /products/{id}:
+ *   get:
+ *     summary: Busca um produto por ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID do produto
+ *     responses:
+ *       200:
+ *         description: Produto encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 product:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     name:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                       nullable: true
+ *                     categoryId:
+ *                       type: string
+ *                       format: uuid
+ *                     storeId:
+ *                       type: string
+ *                       format: uuid
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: ID do produto é obrigatório
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Produto não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function findProductByIdController(
 	request: Request,
 	response: Response,

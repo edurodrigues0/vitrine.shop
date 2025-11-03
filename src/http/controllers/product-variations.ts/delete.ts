@@ -7,6 +7,45 @@ const deleteProductVariationParamsSchema = z.object({
 	id: z.uuid("Valid product variation ID is required"),
 });
 
+/**
+ * @swagger
+ * /product-variations/{id}:
+ *   delete:
+ *     summary: Exclui uma variação de produto
+ *     tags: [Product Variations]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID da variação do produto
+ *     responses:
+ *       204:
+ *         description: Variação excluída com sucesso
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Variação não encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function deleteProductVariationController(
 	request: Request,
 	response: Response,

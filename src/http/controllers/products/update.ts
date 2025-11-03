@@ -43,6 +43,123 @@ const updateProductBodySchema = z.object({
 	dimensions: z.record(z.any(), z.any()).optional(),
 });
 
+/**
+ * @swagger
+ * /products/{id}:
+ *   put:
+ *     summary: Atualiza um produto existente
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID do produto
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 120
+ *                 description: Novo nome do produto
+ *               description:
+ *                 type: string
+ *                 description: Nova descrição
+ *               price:
+ *                 type: number
+ *                 minimum: 0.01
+ *                 maximum: 999999.99
+ *                 description: Novo preço
+ *               discountPrice:
+ *                 type: number
+ *                 minimum: 0.01
+ *                 maximum: 999999.99
+ *                 description: Novo preço com desconto
+ *               stock:
+ *                 type: integer
+ *                 minimum: 0
+ *                 description: Novo estoque
+ *               colors:
+ *                 type: array
+ *                 minItems: 1
+ *                 items:
+ *                   type: string
+ *                 description: Nova lista de cores
+ *               size:
+ *                 type: string
+ *                 maxLength: 100
+ *                 description: Novo tamanho
+ *               weight:
+ *                 type: number
+ *                 minimum: 0.01
+ *                 maximum: 999.99
+ *                 description: Novo peso
+ *               dimensions:
+ *                 type: object
+ *                 description: Novas dimensões
+ *     responses:
+ *       200:
+ *         description: Produto atualizado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 product:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     name:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                       nullable: true
+ *                     categoryId:
+ *                       type: string
+ *                       format: uuid
+ *                     storeId:
+ *                       type: string
+ *                       format: uuid
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Usuário não autenticado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Produto não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function updateProductController(
 	request: AuthenticatedRequest,
 	response: Response,

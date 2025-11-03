@@ -20,6 +20,115 @@ const updateProductVariationBodySchema = z.object({
 	}),
 });
 
+/**
+ * @swagger
+ * /product-variations/{id}:
+ *   put:
+ *     summary: Atualiza uma variação de produto existente
+ *     tags: [Product Variations]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID da variação do produto
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - data
+ *             properties:
+ *               data:
+ *                 type: object
+ *                 properties:
+ *                   size:
+ *                     type: string
+ *                     description: Novo tamanho
+ *                   color:
+ *                     type: string
+ *                     description: Nova cor
+ *                   weight:
+ *                     type: string
+ *                     description: Novo peso
+ *                   dimensions:
+ *                     type: object
+ *                     description: Novas dimensões
+ *                   discountPrice:
+ *                     type: number
+ *                     description: Novo preço com desconto
+ *                   price:
+ *                     type: number
+ *                     description: Novo preço
+ *                   stock:
+ *                     type: number
+ *                     description: Novo estoque
+ *     responses:
+ *       200:
+ *         description: Variação atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 productVariation:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     productId:
+ *                       type: string
+ *                       format: uuid
+ *                     size:
+ *                       type: string
+ *                     color:
+ *                       type: string
+ *                     weight:
+ *                       type: string
+ *                       nullable: true
+ *                     dimensions:
+ *                       type: object
+ *                       nullable: true
+ *                     discountPrice:
+ *                       type: integer
+ *                       nullable: true
+ *                     price:
+ *                       type: integer
+ *                     stock:
+ *                       type: integer
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Variação não encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function updateProductVariationController(
 	request: Request,
 	response: Response,

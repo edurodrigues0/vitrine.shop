@@ -40,6 +40,127 @@ const createProductBodySchema = z.object({
 	storeId: z.uuid("ID da loja deve ser um UUID válido"),
 });
 
+/**
+ * @swagger
+ * /products:
+ *   post:
+ *     summary: Cria um novo produto
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - colors
+ *               - categoryId
+ *               - storeId
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 120
+ *                 description: Nome do produto
+ *                 example: "Camiseta Polo"
+ *               description:
+ *                 type: string
+ *                 description: Descrição do produto
+ *                 example: "Camiseta polo de alta qualidade"
+ *               price:
+ *                 type: number
+ *                 minimum: 0.01
+ *                 maximum: 999999.99
+ *                 description: Preço do produto
+ *                 example: 99.99
+ *               discountPrice:
+ *                 type: number
+ *                 minimum: 0.01
+ *                 maximum: 999999.99
+ *                 description: Preço com desconto (opcional)
+ *                 example: 79.99
+ *               stock:
+ *                 type: integer
+ *                 minimum: 0
+ *                 default: 0
+ *                 description: Quantidade em estoque
+ *                 example: 50
+ *               colors:
+ *                 type: array
+ *                 minItems: 1
+ *                 items:
+ *                   type: string
+ *                 description: Lista de cores disponíveis
+ *                 example: ["Azul", "Preto", "Branco"]
+ *               size:
+ *                 type: string
+ *                 maxLength: 100
+ *                 description: Tamanho do produto (opcional)
+ *                 example: "M"
+ *               weight:
+ *                 type: number
+ *                 minimum: 0.01
+ *                 maximum: 999.99
+ *                 description: Peso do produto em kg (opcional)
+ *                 example: 0.5
+ *               dimensions:
+ *                 type: object
+ *                 description: Dimensões do produto (opcional)
+ *                 example: {"length": 30, "width": 25, "height": 5}
+ *               categoryId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID da categoria
+ *               storeId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID da loja
+ *     responses:
+ *       201:
+ *         description: Produto criado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 product:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     name:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                       nullable: true
+ *                     categoryId:
+ *                       type: string
+ *                       format: uuid
+ *                     storeId:
+ *                       type: string
+ *                       format: uuid
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function createProductController(
 	request: AuthenticatedRequest,
 	response: Response,

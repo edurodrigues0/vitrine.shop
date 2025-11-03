@@ -36,6 +36,166 @@ const createStoreBodySchema = z.object({
 	cityId: z.uuid("ID da cidade deve ser um UUID válido"),
 });
 
+/**
+ * @swagger
+ * /stores:
+ *   post:
+ *     summary: Cria uma nova loja
+ *     tags: [Stores]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - cnpjcpf
+ *               - whatsapp
+ *               - slug
+ *               - theme
+ *               - cityId
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 120
+ *                 description: Nome da loja
+ *                 example: "Minha Loja"
+ *               description:
+ *                 type: string
+ *                 description: Descrição da loja
+ *               cnpjcpf:
+ *                 type: string
+ *                 minLength: 11
+ *                 maxLength: 14
+ *                 description: CNPJ ou CPF da loja
+ *                 example: "12345678901234"
+ *               logoUrl:
+ *                 type: string
+ *                 format: uri
+ *                 description: URL do logo da loja
+ *               whatsapp:
+ *                 type: string
+ *                 minLength: 10
+ *                 maxLength: 20
+ *                 description: Número do WhatsApp
+ *                 example: "5511999999999"
+ *               slug:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 120
+ *                 description: Slug único da loja
+ *                 example: "minha-loja"
+ *               instagramUrl:
+ *                 type: string
+ *                 format: uri
+ *                 description: URL do Instagram
+ *               facebookUrl:
+ *                 type: string
+ *                 format: uri
+ *                 description: URL do Facebook
+ *               bannerUrl:
+ *                 type: string
+ *                 format: uri
+ *                 description: URL do banner
+ *               theme:
+ *                 type: object
+ *                 required:
+ *                   - primaryColor
+ *                   - secondaryColor
+ *                   - tertiaryColor
+ *                 properties:
+ *                   primaryColor:
+ *                     type: string
+ *                     example: "#FF5733"
+ *                   secondaryColor:
+ *                     type: string
+ *                     example: "#33FF57"
+ *                   tertiaryColor:
+ *                     type: string
+ *                     example: "#5733FF"
+ *               cityId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID da cidade
+ *     responses:
+ *       201:
+ *         description: Loja criada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 store:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     name:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                       nullable: true
+ *                     cnpjcpf:
+ *                       type: string
+ *                     logoUrl:
+ *                       type: string
+ *                       nullable: true
+ *                     whatsapp:
+ *                       type: string
+ *                     slug:
+ *                       type: string
+ *                     instagramUrl:
+ *                       type: string
+ *                       nullable: true
+ *                     facebookUrl:
+ *                       type: string
+ *                       nullable: true
+ *                     bannerUrl:
+ *                       type: string
+ *                       nullable: true
+ *                     theme:
+ *                       type: object
+ *                     cityId:
+ *                       type: string
+ *                       format: uuid
+ *                     ownerId:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                       enum: [ACTIVE, INACTIVE]
+ *                     isPaid:
+ *                       type: boolean
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       409:
+ *         description: CNPJ/CPF, WhatsApp ou Slug já existe
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function createStoreController(
 	request: AuthenticatedRequest,
 	response: Response,

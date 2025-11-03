@@ -12,6 +12,79 @@ const updateProductImageBodySchema = z.object({
 	url: z.string().url("Valid URL is required").optional(),
 });
 
+/**
+ * @swagger
+ * /product-images/{id}:
+ *   put:
+ *     summary: Atualiza uma imagem de produto existente
+ *     tags: [Product Images]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID da imagem do produto
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               url:
+ *                 type: string
+ *                 format: uri
+ *                 description: Nova URL da imagem
+ *                 example: "https://example.com/image.jpg"
+ *     responses:
+ *       200:
+ *         description: Imagem atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 productImage:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     productVariationId:
+ *                       type: string
+ *                       format: uuid
+ *                     url:
+ *                       type: string
+ *                       format: uri
+ *                     isMain:
+ *                       type: boolean
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Imagem não encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function updateProductImageController(
 	request: Request,
 	response: Response,

@@ -7,6 +7,45 @@ const deleteProductImageParamsSchema = z.object({
 	id: z.uuid("Valid product image ID is required"),
 });
 
+/**
+ * @swagger
+ * /product-images/{id}:
+ *   delete:
+ *     summary: Exclui uma imagem de produto
+ *     tags: [Product Images]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID da imagem do produto
+ *     responses:
+ *       204:
+ *         description: Imagem excluída com sucesso
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Imagem não encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function deleteProductImageController(
 	request: Request,
 	response: Response,

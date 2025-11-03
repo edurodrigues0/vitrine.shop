@@ -7,6 +7,82 @@ const findProductVariationByIdParamsSchema = z.object({
 	id: z.uuid("Valid product variation ID is required"),
 });
 
+/**
+ * @swagger
+ * /product-variations/{id}:
+ *   get:
+ *     summary: Busca uma variação de produto por ID
+ *     tags: [Product Variations]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID da variação do produto
+ *     responses:
+ *       200:
+ *         description: Variação de produto encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 productVariation:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     productId:
+ *                       type: string
+ *                       format: uuid
+ *                     size:
+ *                       type: string
+ *                     color:
+ *                       type: string
+ *                     weight:
+ *                       type: string
+ *                       nullable: true
+ *                     dimensions:
+ *                       type: object
+ *                       nullable: true
+ *                     discountPrice:
+ *                       type: integer
+ *                       nullable: true
+ *                     price:
+ *                       type: integer
+ *                     stock:
+ *                       type: integer
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Variação de produto não encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function findProductVariationByIdController(
 	request: Request,
 	response: Response,

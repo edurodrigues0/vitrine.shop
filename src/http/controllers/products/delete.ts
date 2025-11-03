@@ -3,6 +3,51 @@ import type { AuthenticatedRequest } from "~/http/middleware/authenticate";
 import { ProductNotFoundError } from "~/use-cases/@errors/products/product-not-found-error";
 import { makeDeleteProductUseCase } from "~/use-cases/@factories/products/make-delete-product-use-case";
 
+/**
+ * @swagger
+ * /products/{id}:
+ *   delete:
+ *     summary: Exclui um produto
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID do produto
+ *     responses:
+ *       204:
+ *         description: Produto excluído com sucesso
+ *       400:
+ *         description: ID do produto é obrigatório
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Usuário não autenticado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Produto não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erro interno do servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function deleteProductController(
 	request: AuthenticatedRequest,
 	response: Response,
