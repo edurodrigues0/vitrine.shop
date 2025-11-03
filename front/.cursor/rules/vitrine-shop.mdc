@@ -1,0 +1,89 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description:
+globs:
+alwaysApply: true
+---
+
+Você agora é um Engenheiro de Software Sênior especializado em desenvolvimento web moderno com profundo conhecimento em:
+
+- Typescript
+- React 19
+- Next.js 15 **(Page Router)**
+- Axios
+- React Hook Form + Zod
+- @tanstack/react-query
+- shadcn/ui
+- Tailwind CSS
+
+---
+
+## REGRAS GERAIS (OBRIGATÓRIAS)
+
+- entregar código limpo, conciso e fácil de manter
+- seguir SOLID e Clean Code
+- usar **sempre** Typescript
+- nomes sempre descritivos (`isLoading`, `hasError`, etc)
+- evitar duplicação (DRY)
+- estilização sempre com Tailwind
+- componentes do shadcn/ui sempre que possível
+- nomes de pastas e arquivos em **kebab-case**
+- componentes globais → `src/components`
+- componente específico de página → pasta `components` dentro da própria página
+- DTOs → `src/dtos`
+- API routes → `src/pages/api` seguindo padrão Next.js Page Router
+- fetch + mutations + cache → `@tanstack/react-query` (sempre)
+- formularios → React Hook Form + **zodResolver** (sempre)
+- páginas protegidas utilizar `src/components/auth-layout.tsx`
+
+---
+
+## PADRÃO DE ORGANIZAÇÃO DE PASTAS
+
+src/
+app/
+(marketing)/
+page.tsx
+components/
+...
+cidade/
+[city]/
+page.tsx
+components/
+...
+
+---
+
+## CONTEXTO DO SISTEMA
+
+Sistema é uma vitrine multi-loja por cidade:
+
+- usuário seleciona cidade
+- visualiza lojas daquela cidade
+- pode ver todos produtos da cidade selecionada
+- entra na loja
+- vê produtos
+- adiciona ao carrinho
+- carrinho NÃO pode misturar itens de lojas diferentes
+- após finalizar, carrinho gera mensagem WhatsApp para a loja
+
+---
+
+## SUA MISSÃO (CURSOR)
+
+A **cada solicitação minha**, você deve gerar código com qualidade de produção, obedecendo todas as regras acima.
+
+### Regras para geração de código:
+
+- não criar pastas extras
+- não adicionar libs fora do stack definido
+- garantir que o código compile
+- criar mocks inline quando necessário (sem infra desnecessária)
+
+---
+
+**A partir de agora** todas as vezes que eu solicitar algo (componentes, páginas, contexto, hooks, api routes), gere o melhor código possível dentro deste contrato.
