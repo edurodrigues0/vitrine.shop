@@ -6,7 +6,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -66,8 +66,18 @@
   --muted: 210 40% 96%;
   --muted-foreground: 215 16% 47%;
 
-  --accent: 25 95% 53%;
+  --accent: 262 83% 58%;
   --accent-foreground: 0 0% 100%;
+  
+  /* Cores da paleta Tasklyn */
+  --color-blue: 217 91% 60%;
+  --color-blue-light: 217 91% 95%;
+  --color-purple: 262 83% 58%;
+  --color-purple-light: 262 83% 95%;
+  --color-orange: 25 95% 53%;
+  --color-orange-light: 25 95% 95%;
+  --color-pink: 330 81% 60%;
+  --color-pink-light: 330 81% 95%;
 
   --success: 142 76% 36%;
   --success-foreground: 0 0% 100%;
@@ -81,10 +91,28 @@
 
   --radius: 0.75rem;
 
+  /* Gradientes baseados na paleta Tasklyn */
   --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
-  --gradient-accent: linear-gradient(135deg, hsl(25 95% 53%), hsl(30 100% 58%));
+  --gradient-accent: linear-gradient(135deg, hsl(262 83% 58%), hsl(271 81% 56%));
   --gradient-hero: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
-  --gradient-text-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%), hsl(25 95% 53%));
+  --gradient-text-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(262 83% 58%), hsl(25 95% 53%));
+  
+  /* Gradientes coloridos da paleta */
+  --gradient-purple: linear-gradient(135deg, hsl(262 83% 58%), hsl(271 81% 56%));
+  --gradient-blue: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
+  --gradient-orange: linear-gradient(135deg, hsl(25 95% 53%), hsl(30 100% 58%));
+  --gradient-pink: linear-gradient(135deg, hsl(330 81% 60%), hsl(340 75% 55%));
+  --gradient-blue-purple: linear-gradient(135deg, hsl(217 91% 60%), hsl(262 83% 58%));
+  --gradient-purple-pink: linear-gradient(135deg, hsl(262 83% 58%), hsl(330 81% 60%));
+  --gradient-orange-pink: linear-gradient(135deg, hsl(25 95% 53%), hsl(330 81% 60%));
+  
+  /* Backgrounds de seção suaves */
+  --section-alt-1: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
+  --section-alt-2: linear-gradient(180deg, hsl(217 91% 98%), hsl(210 40% 99%));
+  --section-purple: linear-gradient(135deg, hsl(262 83% 97%), hsl(271 81% 98%));
+  --section-blue: linear-gradient(135deg, hsl(217 91% 97%), hsl(217 91% 99%));
+  --section-orange: linear-gradient(135deg, hsl(25 95% 97%), hsl(30 100% 98%));
+  --section-pink: linear-gradient(135deg, hsl(330 81% 97%), hsl(340 75% 98%));
 
   --shadow-sm: 0 2px 8px hsl(217 91% 60% / 0.08);
   --shadow-md: 0 4px 16px hsl(217 91% 60% / 0.12);
@@ -123,11 +151,21 @@
   --muted: 217 33% 17%;
   --muted-foreground: 215 20% 65%;
 
-  --accent: 25 95% 53%;
+  --accent: 262 83% 58%;
   --accent-foreground: 0 0% 100%;
 
   --success: 142 76% 36%;
   --success-foreground: 0 0% 100%;
+  
+  /* Cores da paleta Tasklyn - Dark Mode */
+  --color-blue: 217 91% 60%;
+  --color-blue-light: 217 91% 20%;
+  --color-purple: 262 83% 58%;
+  --color-purple-light: 262 83% 20%;
+  --color-orange: 25 95% 53%;
+  --color-orange-light: 25 95% 20%;
+  --color-pink: 330 81% 60%;
+  --color-pink-light: 330 81% 20%;
 
   --destructive: 0 63% 31%;
   --destructive-foreground: 210 40% 98%;
@@ -136,10 +174,28 @@
   --input: 217 33% 17%;
   --ring: 217 91% 60%;
 
+  /* Gradientes Dark Mode - Paleta Tasklyn */
   --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
-  --gradient-accent: linear-gradient(135deg, hsl(25 95% 53%), hsl(30 100% 58%));
+  --gradient-accent: linear-gradient(135deg, hsl(262 83% 58%), hsl(271 81% 56%));
   --gradient-hero: linear-gradient(180deg, hsl(222 47% 11%), hsl(217 33% 17%));
-  --gradient-text-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%), hsl(25 95% 53%));
+  --gradient-text-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(262 83% 58%), hsl(25 95% 53%));
+  
+  /* Gradientes coloridos - Dark Mode */
+  --gradient-purple: linear-gradient(135deg, hsl(262 83% 58%), hsl(271 81% 56%));
+  --gradient-blue: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
+  --gradient-orange: linear-gradient(135deg, hsl(25 95% 53%), hsl(30 100% 58%));
+  --gradient-pink: linear-gradient(135deg, hsl(330 81% 60%), hsl(340 75% 55%));
+  --gradient-blue-purple: linear-gradient(135deg, hsl(217 91% 60%), hsl(262 83% 58%));
+  --gradient-purple-pink: linear-gradient(135deg, hsl(262 83% 58%), hsl(330 81% 60%));
+  --gradient-orange-pink: linear-gradient(135deg, hsl(25 95% 53%), hsl(330 81% 60%));
+  
+  /* Backgrounds de seção - Dark Mode */
+  --section-alt-1: linear-gradient(180deg, hsl(222 47% 11%), hsl(217 33% 17%));
+  --section-alt-2: linear-gradient(180deg, hsl(217 33% 17%), hsl(222 47% 11%));
+  --section-purple: linear-gradient(135deg, hsl(262 33% 15%), hsl(271 33% 17%));
+  --section-blue: linear-gradient(135deg, hsl(217 33% 17%), hsl(217 33% 19%));
+  --section-orange: linear-gradient(135deg, hsl(25 33% 15%), hsl(30 33% 17%));
+  --section-pink: linear-gradient(135deg, hsl(330 33% 15%), hsl(340 33% 17%));
 
   --shadow-sm: 0 2px 8px hsl(0 0% 0% / 0.2);
   --shadow-md: 0 4px 16px hsl(0 0% 0% / 0.3);
@@ -163,6 +219,10 @@
   border-color: hsl(var(--border));
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   color: hsl(var(--foreground));
   background: hsl(var(--background));
@@ -172,10 +232,7 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   letter-spacing: -0.02em;
-}
-
-.font-playfair {
-  font-family: var(--font-playfair-display), serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
 /* ✅ Custom utilities (Tailwind v4 usa @utility) */
@@ -249,4 +306,132 @@ h1, h2, h3, h4, h5, h6 {
   50% { 
     transform: translateY(-10px); 
   }
+}
+
+/* Smooth scroll offset for fixed header */
+:target {
+  scroll-margin-top: 80px;
+}
+
+/* Divisores de seção com cores vibrantes */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--border)), transparent);
+  margin: 0;
+  border: none;
+}
+
+.section-divider-gradient {
+  height: 3px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    hsl(217 91% 60% / 0.4), 
+    hsl(262 83% 58% / 0.4),
+    hsl(25 95% 53% / 0.4), 
+    hsl(330 81% 60% / 0.4),
+    transparent
+  );
+  margin: 0;
+  border: none;
+  border-radius: 2px;
+}
+
+.section-divider-colorful {
+  height: 4px;
+  background: linear-gradient(90deg, 
+    hsl(217 91% 60%), 
+    hsl(262 83% 58%),
+    hsl(25 95% 53%), 
+    hsl(330 81% 60%),
+    hsl(217 91% 60%)
+  );
+  margin: 0;
+  border: none;
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+/* Wave divider */
+.wave-divider {
+  position: relative;
+  height: 60px;
+  overflow: hidden;
+}
+
+.wave-divider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: linear-gradient(180deg, 
+    hsl(var(--background)), 
+    hsl(217 91% 60% / 0.05),
+    hsl(var(--background))
+  );
+  clip-path: polygon(0 0, 100% 0, 100% 70%, 0 100%);
+}
+
+/* Utilities para backgrounds de seção */
+@utility section-bg-1 {
+  background: var(--section-alt-1);
+}
+
+@utility section-bg-2 {
+  background: var(--section-alt-2);
+}
+
+@utility section-bg-purple {
+  background: var(--section-purple);
+}
+
+@utility section-bg-blue {
+  background: var(--section-blue);
+}
+
+@utility section-bg-green {
+  background: var(--section-green);
+}
+
+@utility section-bg-orange {
+  background: var(--section-orange);
+}
+
+/* Gradientes coloridos para cards e elementos */
+@utility gradient-purple {
+  background: var(--gradient-purple);
+}
+
+@utility gradient-blue {
+  background: var(--gradient-blue);
+}
+
+@utility gradient-green {
+  background: var(--gradient-green);
+}
+
+@utility gradient-pink {
+  background: var(--gradient-pink);
+}
+
+@utility gradient-orange {
+  background: var(--gradient-orange);
+}
+
+@utility gradient-cyan {
+  background: var(--gradient-cyan);
+}
+
+/* Backgrounds com padrões sutis */
+.pattern-dots {
+  background-image: radial-gradient(circle, hsl(var(--primary) / 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.pattern-grid {
+  background-image: 
+    linear-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--primary) / 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
 }

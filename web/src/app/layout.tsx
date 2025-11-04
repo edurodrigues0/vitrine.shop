@@ -1,23 +1,31 @@
 import type { Metadata } from "next";
-import { Poppins, Playfair_Display } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
+import { ThemeProvider } from "next-themes";
 
-const poppins = Poppins({
-  variable: "--font-poppins-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const playfairDisplay = Playfair_Display({
-  variable: "--font-playfair-display",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Vitrine Shop",
-  description: "Vitrine Shop - Crie sua loja online. Venda online de forma simples. No vitrinshop.com você cria sua loja, mostra seus produtos e recebe pedidos direto no WhatsApp ou pelo site — rápido e sem burocracia.",
+  title: "Vitrine.shop - Sua Vitrine Multi-Loja por Cidade | Descubra e Compre de Lojas Locais",
+  description: "Descubra lojas locais da sua cidade, encontre produtos exclusivos e compre direto via WhatsApp. Para lojistas: crie sua vitrine digital em minutos, sem comissões abusivas. Plataforma moderna e inteligente para negócios locais.",
+  keywords: "vitrine digital, lojas locais, comércio local, compra online, WhatsApp, e-commerce local, multi-loja, marketplace local",
+  openGraph: {
+    title: "Vitrine.shop - Sua Vitrine Multi-Loja por Cidade",
+    description: "Descubra e compre de lojas locais da sua cidade direto via WhatsApp",
+    type: "website",
+    locale: "pt_BR",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -26,12 +34,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body
-        className={`${poppins.variable} ${playfairDisplay.variable} antialiased`}
+        className={`${inter.variable} font-sans antialiased`}
       >
-        <Header />
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Header />
+          {children}
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );
