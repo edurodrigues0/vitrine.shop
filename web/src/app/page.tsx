@@ -959,7 +959,7 @@ export default function Home() {
       {/* FAQ */}
       <section id="faq" className="relative py-24 md:py-32 px-4 bg-gradient-to-b from-background via-purple-50/20 to-background dark:from-background dark:via-purple-950/10 dark:to-background">
         <div className="absolute inset-0 pattern-grid opacity-20 dark:opacity-10"></div>
-        <div className="container mx-auto max-w-3xl relative z-10">
+        <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-300 text-sm font-medium mb-4">
               <MessageCircle className="h-4 w-4" />
@@ -973,24 +973,24 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {faqs.map((faq, index) => (
-              <Card key={index} className="border-2 border-purple-200/50 dark:border-purple-800/50 hover:border-purple-400 dark:hover:border-purple-600 transition-all bg-white/80 dark:bg-card/80 backdrop-blur-sm">
+              <Card key={index} className="border-2 border-purple-200/50 dark:border-purple-800/50 hover:border-purple-400 dark:hover:border-purple-600 transition-all bg-white/80 dark:bg-card/80 backdrop-blur-sm overflow-hidden">
                 <button
-                  className="w-full p-6 text-left flex items-center justify-between gap-4 hover:bg-purple-50/50 dark:hover:bg-purple-950/30 transition-colors rounded-lg"
+                  className="w-full py-3 px-4 text-left flex items-start justify-between gap-4 hover:bg-purple-50/50 dark:hover:bg-purple-950/30 transition-colors rounded-lg group"
                   onClick={() => toggleFaq(index)}
                   aria-expanded={openFaq === index}
                 >
-                  <span className="font-semibold text-lg text-foreground dark:text-foreground">{faq.question}</span>
+                  <span className="font-semibold text-base text-foreground dark:text-foreground group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors pr-2">{faq.question}</span>
                   <ChevronDown
-                    className={`h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 transition-transform ${
+                    className={`h-4 w-4 text-purple-600 dark:text-purple-400 shrink-0 transition-all duration-300 mt-0.5 ${
                       openFaq === index ? "transform rotate-180" : ""
                     }`}
                   />
                 </button>
                 {openFaq === index && (
-                  <div className="px-6 pb-6 pt-0">
-                    <p className="text-muted-foreground dark:text-muted-foreground leading-relaxed">{faq.answer}</p>
+                  <div className="px-4 pb-4 pt-0 animate-in slide-in-from-top-2 duration-200">
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed">{faq.answer}</p>
                   </div>
                 )}
               </Card>

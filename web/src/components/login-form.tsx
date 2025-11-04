@@ -1,20 +1,60 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+"use client";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "@/hooks/use-auth";
+import Link from "next/link";
+import { toast } from "sonner";
+
+const loginSchema = z.object({
+  email: z.string().email("E-mail inválido"),
+  password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const { login, isLoggingIn } = useAuth();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      login(data);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Erro ao fazer login. Tente novamente.",
+      );
+    }
+  };
+
   return (
-    <form className={cn("flex flex-col gap-6", className)} {...props}>
+    <form
+      className={cn("flex flex-col gap-6", className)}
+      onSubmit={handleSubmit(onSubmit)}
+      {...props}
+    >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Entre na sua conta</h1>
@@ -24,7 +64,18 @@ export function LoginForm({
         </div>
         <Field>
           <FieldLabel htmlFor="email">E-mail</FieldLabel>
-          <Input id="email" type="email" placeholder="m@example.com" required />
+          <Input
+            id="email"
+            type="email"
+            placeholder="m@example.com"
+            {...register("email")}
+            aria-invalid={errors.email ? "true" : "false"}
+          />
+          {errors.email && (
+            <p className="text-sm text-destructive mt-1">
+              {errors.email.message}
+            </p>
+          )}
         </Field>
         <Field>
           <div className="flex items-center">
@@ -36,10 +87,22 @@ export function LoginForm({
               Esqueceu sua senha?
             </a>
           </div>
-          <Input id="password" type="password" required />
+          <Input
+            id="password"
+            type="password"
+            {...register("password")}
+            aria-invalid={errors.password ? "true" : "false"}
+          />
+          {errors.password && (
+            <p className="text-sm text-destructive mt-1">
+              {errors.password.message}
+            </p>
+          )}
         </Field>
         <Field>
-          <Button type="submit">Entrar</Button>
+          <Button type="submit" disabled={isLoggingIn}>
+            {isLoggingIn ? "Entrando..." : "Entrar"}
+          </Button>
         </Field>
         <FieldSeparator>Ou continue com</FieldSeparator>
         <Field>
@@ -54,12 +117,12 @@ export function LoginForm({
           </Button>
           <FieldDescription className="text-center">
             Não tem uma conta?{" "}
-            <a href="#" className="underline underline-offset-4">
+            <Link href="/register" className="underline underline-offset-4">
               Cadastre-se
-            </a>
+            </Link>
           </FieldDescription>
         </Field>
       </FieldGroup>
     </form>
-  )
+  );
 }
