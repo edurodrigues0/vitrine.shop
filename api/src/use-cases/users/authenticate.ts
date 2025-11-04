@@ -13,6 +13,7 @@ interface AuthenticateUseCaseResponse {
 		id: string;
 		name: string;
 		email: string;
+		role: string;
 	};
 	token: string;
 }
@@ -48,6 +49,7 @@ export class AuthenticateUseCase {
 				id: user.id,
 				name: user.name,
 				email: user.email,
+				role: user.role,
 			},
 			token,
 		};

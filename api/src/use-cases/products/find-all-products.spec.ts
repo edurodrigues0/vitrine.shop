@@ -28,9 +28,6 @@ describe("FindAllProductsUseCase", () => {
 		await productsRepository.create({
 			name: "Produto 2",
 			description: "Desc 2",
-			price: 200,
-			stock: 20,
-			colors: ["vermelho"],
 			categoryId,
 			storeId,
 		});
@@ -60,9 +57,6 @@ describe("FindAllProductsUseCase", () => {
 		await productsRepository.create({
 			name: "iPhone Apple",
 			description: "Desc",
-			price: 5000,
-			stock: 3,
-			colors: ["branco"],
 			categoryId,
 			storeId,
 		});
@@ -91,9 +85,6 @@ describe("FindAllProductsUseCase", () => {
 		await productsRepository.create({
 			name: "Produto 2",
 			description: "Produto sem garantia",
-			price: 50,
-			stock: 20,
-			colors: ["vermelho"],
 			categoryId,
 			storeId,
 		});

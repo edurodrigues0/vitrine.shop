@@ -35,7 +35,11 @@ export class DrizzleStoresRepository implements StoresRepository {
 				instagramUrl,
 				ownerId,
 				cityId,
-				theme,
+				theme: theme ?? {
+					primaryColor: "#000000",
+					secondaryColor: "#FFFFFF",
+					tertiaryColor: "#808080",
+				},
 				facebookUrl,
 				description,
 				cnpjcpf,

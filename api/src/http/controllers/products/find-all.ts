@@ -8,9 +8,6 @@ const findAllProductsQuerySchema = z.object({
 	name: z.string().optional(),
 	description: z.string().optional(),
 	categorySlug: z.string().optional(),
-	size: z.string().optional(),
-	stock: z.coerce.number().int().min(0).optional(),
-	weight: z.coerce.number().positive().optional(),
 });
 
 /**
@@ -53,26 +50,6 @@ const findAllProductsQuerySchema = z.object({
  *           type: string
  *         description: Filtrar por slug da categoria
  *         required: false
- *       - in: query
- *         name: size
- *         schema:
- *           type: string
- *         description: Filtrar por tamanho
- *         required: false
- *       - in: query
- *         name: stock
- *         schema:
- *           type: integer
- *           minimum: 0
- *         description: Filtrar por estoque mínimo
- *         required: false
- *       - in: query
- *         name: weight
- *         schema:
- *           type: number
- *           minimum: 0.01
- *         description: Filtrar por peso
- *         required: false
  *     responses:
  *       200:
  *         description: Lista de produtos retornada com sucesso
@@ -93,26 +70,6 @@ const findAllProductsQuerySchema = z.object({
  *                         type: string
  *                       description:
  *                         type: string
- *                         nullable: true
- *                       price:
- *                         type: number
- *                       discountPrice:
- *                         type: number
- *                         nullable: true
- *                       stock:
- *                         type: integer
- *                       colors:
- *                         type: array
- *                         items:
- *                           type: string
- *                       size:
- *                         type: string
- *                         nullable: true
- *                       weight:
- *                         type: number
- *                         nullable: true
- *                       dimensions:
- *                         type: object
  *                         nullable: true
  *                       categoryId:
  *                         type: string
@@ -158,9 +115,6 @@ export async function findAllProductsController(
 			name,
 			description,
 			categorySlug,
-			size,
-			stock,
-			weight,
 		} = findAllProductsQuerySchema.parse(request.query);
 
 		const findAllProductsUseCase = makeFindAllProductsUseCase();
@@ -172,9 +126,6 @@ export async function findAllProductsController(
 				name,
 				description,
 				categorySlug,
-				size,
-				stock,
-				weight,
 			},
 		});
 
@@ -183,13 +134,6 @@ export async function findAllProductsController(
 				id: product.id,
 				name: product.name,
 				description: product.description,
-				price: product.price,
-				discountPrice: product.discountPrice,
-				stock: product.stock,
-				colors: product.colors,
-				size: product.size,
-				weight: product.weight,
-				dimensions: product.dimensions,
 				categoryId: product.categoryId,
 				storeId: product.storeId,
 				createdAt: product.createdAt,

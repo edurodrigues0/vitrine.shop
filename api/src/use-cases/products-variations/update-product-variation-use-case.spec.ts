@@ -259,6 +259,9 @@ describe("UpdateProductVariationUseCase", () => {
 			},
 		});
 
+		if (!createdVariation) {
+			throw new Error("Failed to create variation");
+		}
 		expect(productVariation?.id).toBe(createdVariation.id);
 	});
 

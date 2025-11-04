@@ -42,6 +42,10 @@ describe("FindProductVariationByIdUseCase", () => {
 			stock: 10,
 		});
 
+		if (!createdVariation) {
+			throw new Error("Failed to create variation");
+		}
+
 		const { productVariation } = await sut.execute({
 			id: createdVariation.id,
 		});
@@ -81,6 +85,10 @@ describe("FindProductVariationByIdUseCase", () => {
 			stock: 15,
 		});
 
+		if (!createdVariation) {
+			throw new Error("Failed to create variation");
+		}
+
 		const { productVariation } = await sut.execute({
 			id: createdVariation.id,
 		});
@@ -119,6 +127,10 @@ describe("FindProductVariationByIdUseCase", () => {
 			price: 90,
 			stock: 5,
 		});
+
+		if (!variation1) {
+			throw new Error("Failed to create variation");
+		}
 
 		await productVariationsRepository.create({
 			productId: product.id,
@@ -165,6 +177,10 @@ describe("FindProductVariationByIdUseCase", () => {
 			stock: 12,
 		});
 
+		if (!createdVariation) {
+			throw new Error("Failed to create variation");
+		}
+
 		const { productVariation } = await sut.execute({
 			id: createdVariation.id,
 		});
@@ -196,6 +212,10 @@ describe("FindProductVariationByIdUseCase", () => {
 			price: 150,
 			stock: 20,
 		});
+
+		if (!createdVariation) {
+			throw new Error("Failed to create variation");
+		}
 
 		const { productVariation } = await sut.execute({
 			id: createdVariation.id,

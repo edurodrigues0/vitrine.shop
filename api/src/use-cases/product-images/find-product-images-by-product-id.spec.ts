@@ -117,6 +117,9 @@ describe("FindProductImagesByProductVariationIdUseCase", () => {
 			productId: product.id,
 			size: "M",
 			color: "Azul",
+			weight: null,
+			dimensions: null,
+			discountPrice: null,
 			price: 10000,
 			stock: 10,
 		});

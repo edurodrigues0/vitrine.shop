@@ -175,7 +175,7 @@ describe("UpdateAddressUseCase", () => {
 		const { address } = await sut.execute({
 			id: createdAddress.id,
 			data: {
-				branchId: null,
+				branchId: undefined,
 			},
 		});
 
@@ -200,7 +200,7 @@ describe("UpdateAddressUseCase", () => {
 		const { address } = await sut.execute({
 			id: createdAddress.id,
 			data: {
-				storeId: null,
+				storeId: undefined,
 			},
 		});
 
@@ -223,7 +223,7 @@ describe("UpdateAddressUseCase", () => {
 		const { address } = await sut.execute({
 			id: createdAddress.id,
 			data: {
-				complement: null,
+				complement: undefined,
 			},
 		});
 

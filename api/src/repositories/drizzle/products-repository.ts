@@ -8,12 +8,14 @@ import {
 } from "~/database/schema";
 import type {
 	CreateProductParams,
-	CreateProductVariationParams,
 	FindAllProductsParams,
 	ProductsRespository,
 	UpdateProductParams,
-	UpdateProductVariationParams,
 } from "../products-respository";
+import type {
+	CreateProductVariationParams,
+	UpdateProductVariationParams,
+} from "../product-variations";
 
 export class DrizzleProductsRepository implements ProductsRespository {
 	constructor(private readonly drizzle: typeof DrizzleORM) {}
