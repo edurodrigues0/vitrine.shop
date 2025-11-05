@@ -70,6 +70,7 @@ export function StoreList({ params, citySlug }: StoreListProps) {
                   alt={store.name}
                   fill
                   className="object-cover"
+                  unoptimized
                 />
               </div>
             ) : (
@@ -85,6 +86,7 @@ export function StoreList({ params, citySlug }: StoreListProps) {
                     alt={store.name}
                     fill
                     className="object-contain rounded"
+                    unoptimized
                   />
                 </div>
               )}

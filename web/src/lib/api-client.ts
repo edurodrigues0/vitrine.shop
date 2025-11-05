@@ -82,7 +82,10 @@ async function apiClient<T>(
     }
 
     if (!response.ok) {
-      throw new ApiError(response.status, response.statusText, data);
+      const error = new ApiError(response.status, response.statusText, data);
+      // Adicionar data ao erro para facilitar tratamento no frontend
+      (error as any).data = data;
+      throw error;
     }
 
     return data as T;

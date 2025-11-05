@@ -31,8 +31,8 @@ export const storesService = {
   },
 
   update: async (id: string, data: UpdateStoreRequest): Promise<Store> => {
-    const response = await api.put<Store>(`/stores/${id}`, data);
-    return response;
+    const response = await api.put<{ store: Store }>(`/stores/${id}`, data);
+    return response.store;
   },
 
   delete: async (id: string): Promise<void> => {

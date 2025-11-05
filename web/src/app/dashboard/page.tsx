@@ -1,9 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { storesService } from "@/services/stores-service";
 import { productsService } from "@/services/products-service";
-import { useAuth } from "@/hooks/use-auth";
+import { useSelectedStore } from "@/hooks/use-selected-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,52 +24,38 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function DashboardPage() {
-  const { user, isLoading: isLoadingUser } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
+  const { selectedStore, isLoading: isLoadingStore } = useSelectedStore();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Get user's store
-  const { data: storesData, isLoading: isLoadingStores } = useQuery({
-    queryKey: ["stores", "user", user?.id],
-    queryFn: () =>
-      storesService.findAll({
-        // We'll need to filter by ownerId in the future
-      }),
-    enabled: !!user?.id,
-  });
-
-  const userStore = storesData?.stores?.find(
-    (store) => store.ownerId === user?.id,
-  );
-
-  // Get products for user's store
+  // Get products for selected store
   const { data: productsData, isLoading: isLoadingProducts } = useQuery({
-    queryKey: ["products", "store", userStore?.id],
+    queryKey: ["products", "store", selectedStore?.id],
     queryFn: () => {
-      if (!userStore?.id) {
+      if (!selectedStore?.id) {
         return Promise.resolve([]);
       }
-      return productsService.findByStoreId(userStore.id);
+      return productsService.findByStoreId(selectedStore.id);
     },
-    enabled: !!userStore?.id,
+    enabled: !!selectedStore?.id,
   });
 
   // Ensure products is always an array
   const products = Array.isArray(productsData) ? productsData : [];
 
-  const isLoading = isLoadingUser || isLoadingStores || isLoadingProducts;
+  const isLoading = isLoadingStore || isLoadingProducts;
 
   const stats = [
     {
       label: "Minha Loja",
-      value: userStore ? "Ativa" : "Não configurada",
+      value: selectedStore ? "Ativa" : "Não configurada",
       icon: Store,
       color: "text-blue-600 dark:text-blue-400",
       bgColor: "bg-blue-500/10 dark:bg-blue-500/20",
-      description: userStore ? "Loja configurada e ativa" : "Configure sua loja",
+      description: selectedStore ? "Loja configurada e ativa" : "Configure sua loja",
     },
     {
       label: "Produtos",
@@ -158,7 +143,7 @@ export default function DashboardPage() {
                 <div className={`p-3 rounded-lg ${stat.bgColor}`}>
                   <Icon className={`h-6 w-6 ${stat.color}`} />
                 </div>
-                {stat.label === "Minha Loja" && userStore && (
+                {stat.label === "Minha Loja" && selectedStore && (
                   <Badge variant="outline" className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
                     <CheckCircle2 className="h-3 w-3 mr-1" />
                     Ativa
@@ -227,14 +212,14 @@ export default function DashboardPage() {
             Informações
           </h2>
           <div className="space-y-4">
-            {userStore ? (
+            {selectedStore ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
                   <span>Sua loja está configurada</span>
                 </div>
                 <div className="p-3 rounded-lg bg-muted">
-                  <p className="text-sm font-medium mb-1">{userStore.name}</p>
+                  <p className="text-sm font-medium mb-1">{selectedStore.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {products.length} {products.length === 1 ? "produto" : "produtos"} cadastrado{products.length === 1 ? "" : "s"}
                   </p>

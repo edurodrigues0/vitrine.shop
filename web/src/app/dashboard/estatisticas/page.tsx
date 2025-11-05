@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { storesService } from "@/services/stores-service";
-import { useAuth } from "@/hooks/use-auth";
+import { useSelectedStore } from "@/hooks/use-selected-store";
 import { Card } from "@/components/ui/card";
 import { Loader2, TrendingUp, Package, DollarSign, Clock, CheckCircle2, Truck, XCircle, Eye } from "lucide-react";
 
@@ -25,27 +25,16 @@ const statusIcons: Record<string, typeof Package> = {
 };
 
 export default function StatisticsPage() {
-  const { user } = useAuth();
-
-  // Get user's store
-  const { data: storesData, isLoading: isLoadingStores } = useQuery({
-    queryKey: ["stores", "user", user?.id],
-    queryFn: () => storesService.findAll(),
-    enabled: !!user,
-  });
-
-  const userStore = storesData?.stores.find(
-    (store) => store.ownerId === user?.id,
-  );
+  const { selectedStore, isLoading: isLoadingStore } = useSelectedStore();
 
   // Get statistics
   const { data: statistics, isLoading: isLoadingStats } = useQuery({
-    queryKey: ["statistics", userStore?.id],
-    queryFn: () => storesService.getStatistics(userStore!.id),
-    enabled: !!userStore?.id,
+    queryKey: ["statistics", selectedStore?.id],
+    queryFn: () => storesService.getStatistics(selectedStore!.id),
+    enabled: !!selectedStore?.id,
   });
 
-  if (isLoadingStores || isLoadingStats) {
+  if (isLoadingStore || isLoadingStats) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -53,7 +42,7 @@ export default function StatisticsPage() {
     );
   }
 
-  if (!userStore) {
+  if (!selectedStore) {
     return (
       <div>
         <h1 className="text-3xl font-bold mb-8">Estatísticas</h1>

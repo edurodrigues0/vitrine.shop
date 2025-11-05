@@ -1,9 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { storesService } from "@/services/stores-service";
 import { citiesService } from "@/services/cities-service";
-import { useAuth } from "@/hooks/use-auth";
+import { useSelectedStore } from "@/hooks/use-selected-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,25 +11,15 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function StoreDashboardPage() {
-  const { user } = useAuth();
-
-  const { data: storesData, isLoading } = useQuery({
-    queryKey: ["stores", "user", user?.id],
-    queryFn: () => storesService.findAll(),
-    enabled: !!user,
-  });
+  const { selectedStore, isLoading } = useSelectedStore();
 
   const { data: citiesData } = useQuery({
     queryKey: ["cities"],
     queryFn: () => citiesService.findAll(),
   });
 
-  const userStore = storesData?.stores.find(
-    (store) => store.ownerId === user?.id,
-  );
-
   const storeCity = citiesData?.cities.find(
-    (city) => city.id === userStore?.cityId,
+    (city) => city.id === selectedStore?.cityId,
   );
 
   if (isLoading) {
@@ -41,7 +30,7 @@ export default function StoreDashboardPage() {
     );
   }
 
-  if (!userStore) {
+  if (!selectedStore) {
     return (
       <div>
         <h1 className="text-3xl font-bold mb-8">Minha Loja</h1>
@@ -87,7 +76,7 @@ export default function StoreDashboardPage() {
           <p className="text-muted-foreground">Gerencie as informações da sua loja</p>
         </div>
         <Button asChild>
-          <Link href={`/dashboard/loja/cadastro?id=${userStore.id}`}>
+          <Link href={`/dashboard/loja/cadastro?id=${selectedStore.id}`}>
             <Edit className="h-4 w-4 mr-2" />
             Editar
           </Link>
@@ -97,13 +86,14 @@ export default function StoreDashboardPage() {
       {/* Banner e Logo */}
       <div className="mb-6">
         <Card className="overflow-hidden">
-          {userStore.bannerUrl ? (
+          {selectedStore.bannerUrl ? (
             <div className="relative h-48 md:h-64 w-full">
               <Image
-                src={userStore.bannerUrl}
-                alt={userStore.name}
+                src={selectedStore.bannerUrl}
+                alt={selectedStore.name}
                 fill
                 className="object-cover"
+                unoptimized
               />
             </div>
           ) : (
@@ -113,13 +103,14 @@ export default function StoreDashboardPage() {
           )}
           <div className="p-6 -mt-12 relative">
             <div className="flex items-end gap-4">
-              {userStore.logoUrl ? (
+              {selectedStore.logoUrl ? (
                 <div className="relative h-24 w-24 rounded-lg border-4 border-background shadow-lg bg-background">
                   <Image
-                    src={userStore.logoUrl}
-                    alt={userStore.name}
+                    src={selectedStore.logoUrl}
+                    alt={selectedStore.name}
                     fill
                     className="object-contain rounded"
+                    unoptimized
                   />
                 </div>
               ) : (
@@ -129,8 +120,8 @@ export default function StoreDashboardPage() {
               )}
               <div className="flex-1 pb-2">
                 <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-2xl font-bold">{userStore.name}</h2>
-                  {getStatusBadge(userStore.status)}
+                  <h2 className="text-2xl font-bold">{selectedStore.name}</h2>
+                  {getStatusBadge(selectedStore.status)}
                 </div>
                 {storeCity && (
                   <div className="flex items-center gap-1 text-muted-foreground">
@@ -154,23 +145,23 @@ export default function StoreDashboardPage() {
           <div className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground mb-1">Nome da Loja</p>
-              <p className="font-semibold">{userStore.name}</p>
+              <p className="font-semibold">{selectedStore.name}</p>
             </div>
-            {userStore.description && (
+            {selectedStore.description && (
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Descrição</p>
-                <p className="text-sm">{userStore.description}</p>
+                <p className="text-sm">{selectedStore.description}</p>
               </div>
             )}
             <div>
               <p className="text-sm text-muted-foreground mb-1">Slug</p>
               <p className="font-mono text-sm bg-muted px-2 py-1 rounded inline-block">
-                {userStore.slug}
+                {selectedStore.slug}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Status</p>
-              {getStatusBadge(userStore.status)}
+              {getStatusBadge(selectedStore.status)}
             </div>
           </div>
         </Card>
@@ -188,45 +179,45 @@ export default function StoreDashboardPage() {
                 WhatsApp
               </p>
               <a
-                href={`https://wa.me/${userStore.whatsapp.replace(/\D/g, "")}`}
+                href={`https://wa.me/${selectedStore.whatsapp.replace(/\D/g, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-semibold text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 flex items-center gap-1 transition-colors"
               >
-                {userStore.whatsapp}
+                {selectedStore.whatsapp}
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
-            {userStore.instagramUrl && (
+            {selectedStore.instagramUrl && (
               <div>
                 <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
                   <Instagram className="h-4 w-4" />
                   Instagram
                 </p>
                 <a
-                  href={userStore.instagramUrl}
+                  href={selectedStore.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 flex items-center gap-1 transition-colors"
                 >
-                  {userStore.instagramUrl.replace(/^https?:\/\//, "")}
+                  {selectedStore.instagramUrl.replace(/^https?:\/\//, "")}
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
             )}
-            {userStore.facebookUrl && (
+            {selectedStore.facebookUrl && (
               <div>
                 <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
                   <Facebook className="h-4 w-4" />
                   Facebook
                 </p>
                 <a
-                  href={userStore.facebookUrl}
+                  href={selectedStore.facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 transition-colors"
                 >
-                  {userStore.facebookUrl.replace(/^https?:\/\//, "")}
+                  {selectedStore.facebookUrl.replace(/^https?:\/\//, "")}
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>

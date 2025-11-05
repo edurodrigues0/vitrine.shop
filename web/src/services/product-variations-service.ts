@@ -10,11 +10,11 @@ export const productVariationsService = {
   create: async (
     data: CreateProductVariationRequest,
   ): Promise<ProductVariation> => {
-    const response = await api.post<ProductVariation>(
+    const response = await api.post<{ productVariation: ProductVariation }>(
       "/product-variations",
       data,
     );
-    return response;
+    return response.productVariation;
   },
 
   findById: async (id: string): Promise<ProductVariation> => {

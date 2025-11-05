@@ -1,10 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CitySelector } from "@/components/city-selector";
+import { StoreSelector } from "@/components/store-selector";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Home, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function DashboardHeader() {
@@ -28,7 +27,7 @@ export function DashboardHeader() {
               <span className="hidden sm:inline">Voltar ao Início</span>
             </Button>
             <div className="hidden md:block">
-              <CitySelector />
+              <StoreSelector />
             </div>
           </div>
           <div className="flex items-center gap-2">

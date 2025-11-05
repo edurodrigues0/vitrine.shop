@@ -18,9 +18,9 @@ export default function LoginPage() {
       <div className="relative min-h-screen grid lg:grid-cols-2">
         {/* Left Side - Form */}
         <div className="flex flex-col items-center justify-center p-6 md:p-10 lg:p-12 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 dark:from-blue-950/20 dark:via-purple-950/10 dark:to-pink-950/20 relative z-10">
-          <div className="w-full max-w-md space-y-8">
+          <div className="w-full max-w-md space-y-6">
             {/* Logo/Brand */}
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-3">
               <Link href="/" className="inline-flex items-center gap-2.5 font-bold text-2xl group">
                 <div className="relative">
                   <div className="absolute inset-0 bg-primary/30 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100 animate-pulse" />
@@ -40,12 +40,12 @@ export default function LoginPage() {
             </div>
 
             {/* Form Card */}
-            <div className="bg-background/80 backdrop-blur-xl border border-border/60 rounded-2xl shadow-2xl shadow-primary/5 p-8 space-y-6">
+            <div className="bg-background/80 backdrop-blur-xl border border-border/60 rounded-2xl shadow-2xl shadow-primary/5 p-8">
               <LoginForm />
             </div>
 
             {/* Additional Info */}
-            <div className="text-center space-y-2">
+            <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 Ao continuar, você concorda com nossos{" "}
                 <Link href="/termos" className="text-primary hover:underline font-medium">

@@ -2,8 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ordersService } from "@/services/orders-service";
-import { storesService } from "@/services/stores-service";
-import { useAuth } from "@/hooks/use-auth";
+import { useSelectedStore } from "@/hooks/use-selected-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,34 +35,23 @@ const statusIcons: Record<string, typeof Package> = {
 };
 
 export default function OrdersPage() {
-  const { user } = useAuth();
+  const { selectedStore, isLoading: isLoadingStore } = useSelectedStore();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [customerNameFilter, setCustomerNameFilter] = useState<string>("");
   const [customerPhoneFilter, setCustomerPhoneFilter] = useState<string>("");
 
-  // Get user's store
-  const { data: storesData, isLoading: isLoadingStores } = useQuery({
-    queryKey: ["stores", "user", user?.id],
-    queryFn: () => storesService.findAll(),
-    enabled: !!user,
-  });
-
-  const userStore = storesData?.stores.find(
-    (store) => store.ownerId === user?.id,
-  );
-
   // Get orders
   const { data: ordersData, isLoading: isLoadingOrders } = useQuery({
-    queryKey: ["orders", "store", userStore?.id, statusFilter, customerNameFilter, customerPhoneFilter],
+    queryKey: ["orders", "store", selectedStore?.id, statusFilter, customerNameFilter, customerPhoneFilter],
     queryFn: () =>
       ordersService.findAll({
-        storeId: userStore?.id,
+        storeId: selectedStore?.id,
         status: statusFilter || undefined,
         customerName: customerNameFilter || undefined,
         customerPhone: customerPhoneFilter || undefined,
       }),
-    enabled: !!userStore?.id,
+    enabled: !!selectedStore?.id,
   });
 
   const updateStatusMutation = useMutation({
@@ -100,10 +88,10 @@ export default function OrdersPage() {
       }
       return itemsMap;
     },
-    enabled: orders.length > 0 && !!userStore?.id,
+    enabled: orders.length > 0 && !!selectedStore?.id,
   });
 
-  if (isLoadingStores || isLoadingOrders) {
+  if (isLoadingStore || isLoadingOrders) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -111,7 +99,7 @@ export default function OrdersPage() {
     );
   }
 
-  if (!userStore) {
+  if (!selectedStore) {
     return (
       <div>
         <h1 className="text-3xl font-bold mb-8">Pedidos</h1>

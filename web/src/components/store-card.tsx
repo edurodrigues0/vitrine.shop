@@ -39,6 +39,7 @@ export function StoreCard({
               alt={store.name}
               fill
               className="object-cover"
+              unoptimized
             />
           </div>
         ) : (

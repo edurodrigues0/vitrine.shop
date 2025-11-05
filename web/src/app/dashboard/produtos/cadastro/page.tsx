@@ -6,12 +6,12 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { productsService } from "@/services/products-service";
-import { storesService } from "@/services/stores-service";
 import { categoriesService } from "@/services/categories-service";
 import { productVariationsService } from "@/services/product-variations-service";
 import { productImagesService } from "@/services/product-images-service";
-import { useAuth } from "@/hooks/use-auth";
+import { useSelectedStore } from "@/hooks/use-selected-store";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Field,
   FieldGroup,
@@ -35,21 +35,10 @@ type ProductFormData = z.infer<typeof productSchema>;
 
 export default function CreateProductPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { selectedStore } = useSelectedStore();
   const queryClient = useQueryClient();
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-
-  // Get user's store
-  const { data: storesData } = useQuery({
-    queryKey: ["stores", "user", user?.id],
-    queryFn: () => storesService.findAll(),
-    enabled: !!user,
-  });
-
-  const userStore = storesData?.stores.find(
-    (store) => store.ownerId === user?.id,
-  );
 
   // Get categories
   const { data: categoriesData } = useQuery({
@@ -69,14 +58,14 @@ export default function CreateProductPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: ProductFormData) => {
-      if (!userStore) throw new Error("Loja não encontrada");
+      if (!selectedStore) throw new Error("Loja não encontrada");
       
       // Criar produto
       const createData: any = {
         name: data.name,
         description: data.description,
         categoryId: data.categoryId,
-        storeId: userStore.id,
+        storeId: selectedStore.id,
       };
 
       // Convert price from reais to centavos if provided
@@ -146,14 +135,14 @@ export default function CreateProductPage() {
   };
 
   const onSubmit = async (data: ProductFormData) => {
-    if (!userStore) {
+    if (!selectedStore) {
       toast.error("Você precisa criar uma loja primeiro");
       return;
     }
     createMutation.mutate(data);
   };
 
-  if (!userStore) {
+  if (!selectedStore) {
     return (
       <div>
         <h1 className="text-3xl font-bold mb-8">Criar Produto</h1>

@@ -229,6 +229,7 @@ export default function StorePage() {
               fill
               className="object-cover"
               priority
+              unoptimized
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-transparent" />
           </div>
@@ -256,6 +257,7 @@ export default function StorePage() {
                     alt={store.name}
                     fill
                     className="object-cover"
+                    unoptimized
                   />
                 </div>
               ) : (

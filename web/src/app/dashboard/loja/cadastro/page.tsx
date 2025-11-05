@@ -148,14 +148,19 @@ export default function StoreFormPage() {
   const updateMutation = useMutation({
     mutationFn: (data: StoreFormData) => {
       const { primaryColor, secondaryColor, tertiaryColor, ...storeData } = data;
-      return storesService.update(storeId!, {
+      
+      // Campos opcionais que podem ser strings vazias - serão convertidos para undefined pelo backend
+      // O backend aceita strings vazias e as transforma em undefined automaticamente
+      const updateData: Record<string, any> = {
         ...storeData,
         theme: {
           primaryColor,
           secondaryColor,
           tertiaryColor,
         },
-      });
+      };
+      
+      return storesService.update(storeId!, updateData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
@@ -163,8 +168,27 @@ export default function StoreFormPage() {
       toast.success("Loja atualizada com sucesso!");
       router.push("/dashboard/loja");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Erro ao atualizar loja");
+    onError: (error: any) => {
+      // Melhorar tratamento de erros da API
+      let errorMessage = "Erro ao atualizar loja";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.status === 400 && error?.data?.issues) {
+        // Erros de validação do Zod
+        const validationErrors = error.data.issues.map((issue: any) => issue.message).join(", ");
+        errorMessage = `Erro de validação: ${validationErrors}`;
+      } else if (error?.status === 401) {
+        errorMessage = "Você precisa estar logado para atualizar a loja";
+      } else if (error?.status === 404) {
+        errorMessage = "Loja não encontrada";
+      } else if (error?.status === 409) {
+        errorMessage = error?.data?.message || "Os dados informados já estão em uso por outra loja";
+      }
+      
+      toast.error(errorMessage);
     },
   });
 

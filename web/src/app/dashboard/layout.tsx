@@ -3,8 +3,7 @@
 import { AuthLayout } from "@/components/auth-layout";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
-import { storesService } from "@/services/stores-service";
+import { useSelectedStore, SelectedStoreProvider } from "@/hooks/use-selected-store";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -31,24 +30,10 @@ const menuItems = [
   { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { logout, user } = useAuth();
-
-  // Buscar loja do usuário para mostrar o logo
-  const { data: storesData } = useQuery({
-    queryKey: ["stores", "user", user?.id],
-    queryFn: () => storesService.findAll(),
-    enabled: !!user?.id,
-  });
-
-  const userStore = storesData?.stores.find(
-    (store) => store.ownerId === user?.id,
-  );
+  const { selectedStore } = useSelectedStore();
 
   // Estado do sidebar expansível
   // Inicializar sempre como true para evitar mismatch de hidratação
@@ -76,9 +61,9 @@ export default function DashboardLayout({
   };
 
   return (
-    <AuthLayout>
+    <>
+      <DashboardHeader />
       <div className="min-h-screen bg-background">
-        <DashboardHeader />
         <div className="flex">
           {/* Sidebar */}
           <aside
@@ -104,14 +89,15 @@ export default function DashboardLayout({
               </Button>
               {isExpanded ? (
                 <>
-                  {userStore?.logoUrl ? (
+                  {selectedStore?.logoUrl ? (
                     <div className="flex items-center justify-center mb-4">
                       <div className="relative h-16 w-16">
                         <Image
-                          src={userStore.logoUrl}
-                          alt={userStore.name}
+                          src={selectedStore.logoUrl}
+                          alt={selectedStore.name}
                           fill
                           className="object-contain rounded"
+                          unoptimized
                         />
                       </div>
                     </div>
@@ -126,13 +112,14 @@ export default function DashboardLayout({
                 </>
               ) : (
                 <div className="flex items-center justify-center">
-                  {userStore?.logoUrl ? (
+                  {selectedStore?.logoUrl ? (
                     <div className="relative h-10 w-10">
                       <Image
-                        src={userStore.logoUrl}
-                        alt={userStore.name}
+                        src={selectedStore.logoUrl}
+                        alt={selectedStore.name}
                         fill
                         className="object-contain rounded"
+                        unoptimized
                       />
                     </div>
                   ) : (
@@ -188,6 +175,20 @@ export default function DashboardLayout({
           </main>
         </div>
       </div>
+    </>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <AuthLayout>
+      <SelectedStoreProvider>
+        <DashboardContent>{children}</DashboardContent>
+      </SelectedStoreProvider>
     </AuthLayout>
   );
 }

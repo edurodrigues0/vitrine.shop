@@ -59,14 +59,20 @@ export function ProductVariationsModal({
       stock: number;
       discountPrice?: number | null;
     }) => {
-      return await productVariationsService.create({
-        productId,
-        color: data.color,
-        size: data.size,
-        price: data.price,
-        stock: data.stock,
-        discountPrice: data.discountPrice ? data.discountPrice : null,
-      });
+      try {
+        const response = await productVariationsService.create({
+          productId,
+          color: data.color,
+          size: data.size,
+          price: data.price,
+          stock: data.stock,
+          discountPrice: data.discountPrice ? data.discountPrice : null,
+        });
+        return response;
+      } catch (error) {
+        console.error("Error creating variation:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product-variations", productId] });
@@ -74,8 +80,10 @@ export function ProductVariationsModal({
       resetForm();
       setIsCreating(false);
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Erro ao criar variação");
+    onError: (error: any) => {
+      console.error("Create mutation error:", error);
+      const errorMessage = error?.message || error?.response?.data?.message || "Erro ao criar variação";
+      toast.error(errorMessage);
     },
   });
 
@@ -156,8 +164,19 @@ export function ProductVariationsModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validação básica
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      toast.error("O preço é obrigatório e deve ser maior que zero");
+      return;
+    }
+
+    if (!formData.stock || parseInt(formData.stock, 10) < 0) {
+      toast.error("O estoque é obrigatório e não pode ser negativo");
+      return;
+    }
+
     const priceInCents = Math.round(parseFloat(formData.price) * 100);
-    const discountPriceInCents = formData.discountPrice
+    const discountPriceInCents = formData.discountPrice && parseFloat(formData.discountPrice) > 0
       ? Math.round(parseFloat(formData.discountPrice) * 100)
       : null;
     const stock = parseInt(formData.stock, 10);
@@ -166,8 +185,8 @@ export function ProductVariationsModal({
       updateMutation.mutate({
         id: editingVariation,
         data: {
-          color: formData.color,
-          size: formData.size,
+          color: formData.color || "Padrão",
+          size: formData.size || "Único",
           price: priceInCents,
           stock,
           discountPrice: discountPriceInCents,
@@ -187,9 +206,9 @@ export function ProductVariationsModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <div className="bg-background border border-border rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4">
-        <div className="sticky top-0 bg-background border-b border-border p-6 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+      <div className="bg-background border border-border rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4" style={{ backgroundColor: 'hsl(var(--background))' }}>
+        <div className="sticky top-0 border-b border-border p-6 flex items-center justify-between" style={{ backgroundColor: 'hsl(var(--background))' }}>
           <h2 className="text-2xl font-bold">Gerenciar Variações</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />

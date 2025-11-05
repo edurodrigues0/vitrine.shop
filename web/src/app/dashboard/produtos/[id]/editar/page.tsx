@@ -6,10 +6,10 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useParams } from "next/navigation";
 import { productsService } from "@/services/products-service";
-import { storesService } from "@/services/stores-service";
 import { categoriesService } from "@/services/categories-service";
-import { useAuth } from "@/hooks/use-auth";
+import { useSelectedStore } from "@/hooks/use-selected-store";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Field,
   FieldGroup,
@@ -17,9 +17,10 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft, Save, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ProductVariationsModal } from "@/components/product-variations-modal";
+import Link from "next/link";
 
 const productSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -35,7 +36,7 @@ export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
   const productId = params.id as string;
-  const { user } = useAuth();
+  const { selectedStore } = useSelectedStore();
   const queryClient = useQueryClient();
   const [isVariationsModalOpen, setIsVariationsModalOpen] = useState(false);
 
@@ -45,17 +46,6 @@ export default function EditProductPage() {
     queryFn: () => productsService.findById(productId),
     enabled: !!productId,
   });
-
-  // Get user's store
-  const { data: storesData } = useQuery({
-    queryKey: ["stores", "user", user?.id],
-    queryFn: () => storesService.findAll(),
-    enabled: !!user,
-  });
-
-  const userStore = storesData?.stores.find(
-    (store) => store.ownerId === user?.id,
-  );
 
   // Get categories
   const { data: categoriesData } = useQuery({
@@ -147,7 +137,7 @@ export default function EditProductPage() {
     );
   }
 
-  if (!userStore) {
+  if (!selectedStore) {
     return (
       <div>
         <h1 className="text-3xl font-bold mb-8">Editar Produto</h1>
@@ -164,122 +154,157 @@ export default function EditProductPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Editar Produto</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Editar Produto</h1>
+          <p className="text-muted-foreground">
+            Atualize as informações do produto
+          </p>
+        </div>
         <Button
           variant="outline"
           onClick={() => setIsVariationsModalOpen(true)}
+          size="lg"
         >
           Gerenciar Variações
         </Button>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl space-y-6">
-        <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="name">Nome do Produto *</FieldLabel>
-            <Input
-              id="name"
-              {...register("name")}
-              aria-invalid={errors.name ? "true" : "false"}
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive mt-1">
-                {errors.name.message}
-              </p>
-            )}
-          </Field>
+      {/* Form Card */}
+      <Card className="p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <FieldGroup>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Field>
+                <FieldLabel htmlFor="name">Nome do Produto *</FieldLabel>
+                <Input
+                  id="name"
+                  {...register("name")}
+                  aria-invalid={errors.name ? "true" : "false"}
+                  className="h-11"
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.name.message}
+                  </p>
+                )}
+              </Field>
 
-          <Field>
-            <FieldLabel htmlFor="description">Descrição</FieldLabel>
-            <Input
-              id="description"
-              {...register("description")}
-              aria-invalid={errors.description ? "true" : "false"}
-            />
-            {errors.description && (
-              <p className="text-sm text-destructive mt-1">
-                {errors.description.message}
-              </p>
-            )}
-          </Field>
+              <Field>
+                <FieldLabel htmlFor="categoryId">Categoria *</FieldLabel>
+                <select
+                  id="categoryId"
+                  {...register("categoryId")}
+                  className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Selecione uma categoria</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.categoryId && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.categoryId.message}
+                  </p>
+                )}
+              </Field>
+            </div>
 
-          <Field>
-            <FieldLabel htmlFor="categoryId">Categoria *</FieldLabel>
-            <select
-              id="categoryId"
-              {...register("categoryId")}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="">Selecione uma categoria</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {errors.categoryId && (
-              <p className="text-sm text-destructive mt-1">
-                {errors.categoryId.message}
-              </p>
-            )}
-          </Field>
+            <Field>
+              <FieldLabel htmlFor="description">Descrição</FieldLabel>
+              <textarea
+                id="description"
+                {...register("description")}
+                aria-invalid={errors.description ? "true" : "false"}
+                rows={4}
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                placeholder="Descreva o produto..."
+              />
+              {errors.description && (
+                <p className="text-sm text-destructive mt-1">
+                  {errors.description.message}
+                </p>
+              )}
+            </Field>
 
-          <Field>
-            <FieldLabel htmlFor="price">Preço (R$)</FieldLabel>
-            <Input
-              id="price"
-              type="number"
-              step="0.01"
-              min="0"
-              {...register("price", { valueAsNumber: true })}
-              aria-invalid={errors.price ? "true" : "false"}
-              placeholder="0.00"
-            />
-            {errors.price && (
-              <p className="text-sm text-destructive mt-1">
-                {errors.price.message}
-              </p>
-            )}
-          </Field>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Field>
+                <FieldLabel htmlFor="price">Preço (R$)</FieldLabel>
+                <Input
+                  id="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  {...register("price", { valueAsNumber: true })}
+                  aria-invalid={errors.price ? "true" : "false"}
+                  placeholder="0.00"
+                  className="h-11"
+                />
+                {errors.price && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.price.message}
+                  </p>
+                )}
+              </Field>
 
-          <Field>
-            <FieldLabel htmlFor="quantity">Quantidade em Estoque</FieldLabel>
-            <Input
-              id="quantity"
-              type="number"
-              min="0"
-              {...register("quantity", { valueAsNumber: true })}
-              aria-invalid={errors.quantity ? "true" : "false"}
-              placeholder="0"
-            />
-            {errors.quantity && (
-              <p className="text-sm text-destructive mt-1">
-                {errors.quantity.message}
-              </p>
-            )}
-          </Field>
+              <Field>
+                <FieldLabel htmlFor="quantity">Quantidade em Estoque</FieldLabel>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="0"
+                  {...register("quantity", { valueAsNumber: true })}
+                  aria-invalid={errors.quantity ? "true" : "false"}
+                  placeholder="0"
+                  className="h-11"
+                />
+                {errors.quantity && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.quantity.message}
+                  </p>
+                )}
+              </Field>
+            </div>
 
-          <Field>
-            <div className="flex gap-2">
+            <div className="flex gap-3 pt-4 border-t">
               <Button
                 type="submit"
                 disabled={updateMutation.isPending}
+                size="lg"
+                className="flex-1"
               >
-                {updateMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                {updateMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Salvar Alterações
+                  </>
+                )}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.push("/dashboard/produtos")}
+                size="lg"
+                asChild
               >
-                Cancelar
+                <Link href="/dashboard/produtos">
+                  <X className="h-4 w-4 mr-2" />
+                  Cancelar
+                </Link>
               </Button>
             </div>
-          </Field>
-        </FieldGroup>
-      </form>
+          </FieldGroup>
+        </form>
+      </Card>
 
       {isVariationsModalOpen && product && (
         <ProductVariationsModal

@@ -86,9 +86,9 @@ export default function RegisterPage() {
       <div className="relative min-h-screen grid lg:grid-cols-2">
         {/* Left Side - Form */}
         <div className="flex flex-col items-center justify-center p-6 md:p-10 lg:p-12 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 dark:from-blue-950/20 dark:via-purple-950/10 dark:to-pink-950/20 relative z-10">
-          <div className="w-full max-w-md space-y-8">
+          <div className="w-full max-w-md space-y-6">
             {/* Logo/Brand */}
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-3">
               <Link href="/" className="inline-flex items-center gap-2.5 font-bold text-2xl group">
                 <div className="relative">
                   <div className="absolute inset-0 bg-primary/30 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100 animate-pulse" />
@@ -108,19 +108,12 @@ export default function RegisterPage() {
             </div>
 
             {/* Form Card */}
-            <div className="bg-background/80 backdrop-blur-xl border border-border/60 rounded-2xl shadow-2xl shadow-primary/5 p-8 space-y-6">
-              <div className="flex flex-col items-center gap-1 text-center mb-2">
-                <h1 className="text-2xl font-bold">Criar conta</h1>
-                <p className="text-muted-foreground text-sm text-balance">
-                  Preencha os dados abaixo para criar sua conta
-                </p>
-              </div>
-
+            <div className="bg-background/80 backdrop-blur-xl border border-border/60 rounded-2xl shadow-2xl shadow-primary/5 p-8">
               <form
-                className="flex flex-col gap-6"
+                className="flex flex-col"
                 onSubmit={handleSubmit(onSubmit)}
               >
-                <FieldGroup>
+                <FieldGroup className="space-y-5">
                   <Field>
                     <FieldLabel htmlFor="name">Nome completo</FieldLabel>
                     <Input
@@ -132,11 +125,12 @@ export default function RegisterPage() {
                       className="transition-all focus:ring-2 focus:ring-primary/50"
                     />
                     {errors.name && (
-                      <p className="text-sm text-destructive mt-1">
+                      <p className="text-sm text-destructive mt-1.5">
                         {errors.name.message}
                       </p>
                     )}
                   </Field>
+                  
                   <Field>
                     <FieldLabel htmlFor="email">E-mail</FieldLabel>
                     <Input
@@ -148,11 +142,12 @@ export default function RegisterPage() {
                       className="transition-all focus:ring-2 focus:ring-primary/50"
                     />
                     {errors.email && (
-                      <p className="text-sm text-destructive mt-1">
+                      <p className="text-sm text-destructive mt-1.5">
                         {errors.email.message}
                       </p>
                     )}
                   </Field>
+                  
                   <Field>
                     <FieldLabel htmlFor="password">Senha</FieldLabel>
                     <Input
@@ -164,11 +159,12 @@ export default function RegisterPage() {
                       className="transition-all focus:ring-2 focus:ring-primary/50"
                     />
                     {errors.password && (
-                      <p className="text-sm text-destructive mt-1">
+                      <p className="text-sm text-destructive mt-1.5">
                         {errors.password.message}
                       </p>
                     )}
                   </Field>
+                  
                   <Field>
                     <FieldLabel htmlFor="confirmPassword">
                       Confirmar senha
@@ -182,11 +178,12 @@ export default function RegisterPage() {
                       className="transition-all focus:ring-2 focus:ring-primary/50"
                     />
                     {errors.confirmPassword && (
-                      <p className="text-sm text-destructive mt-1">
+                      <p className="text-sm text-destructive mt-1.5">
                         {errors.confirmPassword.message}
                       </p>
                     )}
                   </Field>
+                  
                   <Field>
                     <Button
                       type="submit"
@@ -199,7 +196,8 @@ export default function RegisterPage() {
                       <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                     </Button>
                   </Field>
-                  <FieldDescription className="text-center">
+                  
+                  <FieldDescription className="text-center mt-4">
                     Já tem uma conta?{" "}
                     <Link
                       href="/login"
@@ -213,7 +211,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Additional Info */}
-            <div className="text-center space-y-2">
+            <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 Ao criar uma conta, você concorda com nossos{" "}
                 <Link href="/termos" className="text-primary hover:underline font-medium">

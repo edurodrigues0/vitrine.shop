@@ -20,7 +20,12 @@ const updateStoreBodySchema = z.object({
 		.min(11, "CNPJ/CPF deve ter pelo menos 11 caracteres")
 		.max(14, "CNPJ/CPF deve ter no máximo 14 caracteres")
 		.optional(),
-	logoUrl: z.string().url("Logo URL deve ser uma URL válida").optional(),
+	logoUrl: z
+		.string()
+		.url("Logo URL deve ser uma URL válida")
+		.or(z.literal(""))
+		.optional()
+		.transform((val) => (val === "" ? undefined : val)),
 	whatsapp: z
 		.string()
 		.min(10, "WhatsApp deve ter pelo menos 10 caracteres")
@@ -31,9 +36,24 @@ const updateStoreBodySchema = z.object({
 		.min(1, "Slug é obrigatório")
 		.max(120, "Slug deve ter no máximo 120 caracteres")
 		.optional(),
-	instagramUrl: z.url("Instagram URL deve ser uma URL válida").optional(),
-	facebookUrl: z.url("Facebook URL deve ser uma URL válida").optional(),
-	bannerUrl: z.url("Banner URL deve ser uma URL válida").optional(),
+	instagramUrl: z
+		.string()
+		.url("Instagram URL deve ser uma URL válida")
+		.or(z.literal(""))
+		.optional()
+		.transform((val) => (val === "" ? undefined : val)),
+	facebookUrl: z
+		.string()
+		.url("Facebook URL deve ser uma URL válida")
+		.or(z.literal(""))
+		.optional()
+		.transform((val) => (val === "" ? undefined : val)),
+	bannerUrl: z
+		.string()
+		.url("Banner URL deve ser uma URL válida")
+		.or(z.literal(""))
+		.optional()
+		.transform((val) => (val === "" ? undefined : val)),
 	theme: z
 		.object({
 			primaryColor: z.string().min(1, "Cor primária é obrigatória"),
