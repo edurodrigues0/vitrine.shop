@@ -5,34 +5,41 @@ import { storesService } from "@/services/stores-service";
 import { productsService } from "@/services/products-service";
 import { useAuth } from "@/hooks/use-auth";
 import { Card } from "@/components/ui/card";
-import { Store, Package, TrendingUp, Users } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Store, Package, TrendingUp, Users, Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, isLoading: isLoadingUser } = useAuth();
 
   // Get user's store
-  const { data: storesData } = useQuery({
+  const { data: storesData, isLoading: isLoadingStores } = useQuery({
     queryKey: ["stores", "user", user?.id],
     queryFn: () =>
       storesService.findAll({
         // We'll need to filter by ownerId in the future
       }),
-    enabled: !!user,
+    enabled: !!user?.id,
   });
 
-  const userStore = storesData?.stores.find(
+  const userStore = storesData?.stores?.find(
     (store) => store.ownerId === user?.id,
   );
 
   // Get products for user's store
-  const { data: productsData } = useQuery({
+  const { data: productsData, isLoading: isLoadingProducts } = useQuery({
     queryKey: ["products", "store", userStore?.id],
-    queryFn: () => productsService.findByStoreId(userStore!.id),
+    queryFn: () => {
+      if (!userStore?.id) {
+        return Promise.resolve([]);
+      }
+      return productsService.findByStoreId(userStore.id);
+    },
     enabled: !!userStore?.id,
   });
 
-  const products = productsData || [];
+  // Ensure products is always an array
+  const products = Array.isArray(productsData) ? productsData : [];
+
+  const isLoading = isLoadingUser || isLoadingStores || isLoadingProducts;
 
   const stats = [
     {
@@ -43,7 +50,7 @@ export default function DashboardPage() {
     },
     {
       label: "Produtos",
-      value: products.length.toString(),
+      value: isLoadingProducts ? "..." : products.length.toString(),
       icon: Package,
       color: "text-green-600",
     },
@@ -60,6 +67,14 @@ export default function DashboardPage() {
       color: "text-orange-600",
     },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div>

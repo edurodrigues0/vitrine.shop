@@ -47,5 +47,6 @@ export interface AuthUserResponse {
   email: string;
   role: string;
   storeId: string | null;
+  createdAt: string;
 }
 

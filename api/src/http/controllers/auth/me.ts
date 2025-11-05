@@ -1,5 +1,6 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "~/http/middleware/authenticate";
+import { makeFindUserByIdUseCase } from "~/use-cases/@factories/users/make-find-user-by-id-use-case";
 
 /**
  * @swagger
@@ -30,6 +31,13 @@ import type { AuthenticatedRequest } from "~/http/middleware/authenticate";
  *                       type: string
  *                     role:
  *                       type: string
+ *                     storeId:
+ *                       type: string
+ *                       format: uuid
+ *                       nullable: true
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
  *       401:
  *         description: Usuário não autenticado
  *         content:
@@ -54,10 +62,34 @@ export async function meController(
 			});
 		}
 
-		return response.status(200).json({
-			user: request.user,
+		const findUserByIdUseCase = makeFindUserByIdUseCase();
+		const { user } = await findUserByIdUseCase.execute({
+			id: request.user.id,
 		});
-	} catch (_error) {
+
+		// Return user data without password
+		const { passwordHash: _, ...userWithoutPassword } = user;
+
+		return response.status(200).json({
+			user: {
+				id: userWithoutPassword.id,
+				name: userWithoutPassword.name,
+				email: userWithoutPassword.email,
+				role: userWithoutPassword.role,
+				storeId: userWithoutPassword.storeId,
+				createdAt: userWithoutPassword.createdAt.toISOString(),
+			},
+		});
+	} catch (error) {
+		console.error("Error in meController:", error);
+		
+		// If user not found, return 404
+		if (error instanceof Error && error.message.includes("not found")) {
+			return response.status(404).json({
+				error: "User not found",
+			});
+		}
+
 		return response.status(500).json({
 			error: "Internal server error",
 		});

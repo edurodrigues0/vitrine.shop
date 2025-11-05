@@ -8,5 +8,5 @@ export const citiesRoutes = Router();
 
 citiesRoutes.post("/cities", authenticateMiddleware, createCityController);
 // citiesRoutes.get("/cities/name-and-state", findCityByNameAndStateController);
-citiesRoutes.get("/cities", authenticateMiddleware, findAllCitiesController);
+citiesRoutes.get("/cities", findAllCitiesController);
 citiesRoutes.put("/cities/:id", authenticateMiddleware, updateCityController);
