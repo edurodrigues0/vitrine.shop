@@ -4,53 +4,86 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { storesService } from "@/services/stores-service";
 import { productsService } from "@/services/products-service";
-import { useCity } from "@/contexts/city-context";
+import { citiesService } from "@/services/cities-service";
 import { Store } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
+import { slugToText } from "@/lib/slug";
 
 export default function CityPage() {
   const params = useParams();
-  const { selectedCity } = useCity();
   const citySlug = params.city as string;
+  const cityName = slugToText(citySlug);
 
-  // Find city by name (slug) - for now we'll use selectedCity or search
-  const cityName = citySlug.replace(/-/g, " ");
-
-  const { data: storesData, isLoading: isLoadingStores } = useQuery({
-    queryKey: ["stores", "city", citySlug],
-    queryFn: () =>
-      storesService.findAll({
-        // We'll need to find cityId first, for now using city name search
-        name: cityName,
-      }),
-    enabled: !!citySlug,
+  // Buscar cidade por nome para obter o cityId
+  const { data: citiesData } = useQuery({
+    queryKey: ["cities"],
+    queryFn: () => citiesService.findAll(),
+    staleTime: 1000 * 60 * 60, // 1 hour
   });
 
+  // Encontrar a cidade pelo slug
+  const city = citiesData?.cities.find((c) => {
+    const citySlugFromName = c.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-");
+    return citySlugFromName === citySlug.toLowerCase();
+  });
+
+  // Buscar lojas da cidade
+  const { data: storesData, isLoading: isLoadingStores } = useQuery({
+    queryKey: ["stores", "city", city?.id],
+    queryFn: () => {
+      if (!city?.id) {
+        return Promise.resolve({ stores: [], pagination: { totalItems: 0, totalPages: 0, currentPage: 1, perPage: 10 } });
+      }
+      // Buscar todas as lojas e filtrar por cityId no frontend
+      // (assumindo que o backend não tem filtro por cityId ainda)
+      return storesService.findAll({ limit: 100 });
+    },
+    enabled: !!city,
+    select: (data) => {
+      // Filtrar lojas por cityId se a cidade foi encontrada
+      if (!city?.id) return { stores: [], pagination: data.pagination };
+      return {
+        stores: data.stores.filter((store) => store.cityId === city.id),
+        pagination: data.pagination,
+      };
+    },
+  });
+
+  // Buscar produtos das lojas da cidade
   const { data: productsData, isLoading: isLoadingProducts } = useQuery({
-    queryKey: ["products", "city", citySlug],
-    queryFn: () =>
-      productsService.findAll({
-        // We'll need cityId for proper filtering
-        limit: 12,
-      }),
-    enabled: !!citySlug,
+    queryKey: ["products", "city", city?.id],
+    queryFn: () => productsService.findAll({ limit: 12 }),
+    enabled: !!city,
   });
 
   const stores = storesData?.stores || [];
   const products = productsData?.products || [];
 
+  if (!city && citiesData) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold mb-4">Cidade não encontrada</h1>
+          <p className="text-muted-foreground mb-4">
+            A cidade que você está procurando não existe.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">
-          Lojas em {cityName}
+          Lojas em {city?.name || cityName}
         </h1>
         <p className="text-muted-foreground">
-          Descubra lojas e produtos da sua cidade
+          {city?.state && `${city.state} - `}Descubra lojas e produtos da sua cidade
         </p>
       </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { citiesService } from "@/services/cities-service";
 import { useCity } from "@/contexts/city-context";
@@ -13,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createSlug } from "@/lib/slug";
 import type { City } from "@/dtos/city";
 
 interface CitySelectorProps {
@@ -21,6 +23,7 @@ interface CitySelectorProps {
 }
 
 export function CitySelector({ className, onCitySelect }: CitySelectorProps) {
+  const router = useRouter();
   const { selectedCity, setSelectedCity, isLoading: contextLoading } = useCity();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,6 +48,11 @@ export function CitySelector({ className, onCitySelect }: CitySelectorProps) {
     setSelectedCity(city);
     setIsOpen(false);
     setSearchTerm("");
+    
+    // Navegar para a página da cidade
+    const citySlug = createSlug(city.name);
+    router.push(`/cidade/${citySlug}`);
+    
     onCitySelect?.(city);
   };
 

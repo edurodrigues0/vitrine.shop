@@ -12,13 +12,25 @@ export interface AuthenticatedRequest extends Request {
 	};
 }
 
+/**
+ * Extrai o token Bearer do header Authorization
+ */
+function getBearerToken(request: Request): string | undefined {
+	const authHeader = request.headers.authorization;
+	if (authHeader?.startsWith("Bearer ")) {
+		return authHeader.substring(7);
+	}
+	return undefined;
+}
+
 export async function authenticateMiddleware(
 	request: AuthenticatedRequest,
 	response: Response,
 	next: NextFunction,
 ) {
 	try {
-		const token = getAuthCookie(request);
+		// Prioridade: cookie primeiro, depois Bearer token
+		const token = getAuthCookie(request) || getBearerToken(request);
 
 		if (!token) {
 			return response.status(401).json({
