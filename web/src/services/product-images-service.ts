@@ -8,10 +8,20 @@ import type {
 
 export const productImagesService = {
   create: async (
-    data: CreateProductImageRequest,
+    file: File,
+    productVariationId: string,
   ): Promise<ProductImage> => {
-    const response = await api.post<ProductImage>("/product-images", data);
-    return response;
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("productVariationId", productVariationId);
+
+    const response = await api.post<{ productImage: ProductImage }>(
+      "/product-images",
+      formData,
+      undefined,
+      true, // isFormData
+    );
+    return response.productImage;
   },
 
   findByProductVariationId: async (

@@ -55,7 +55,7 @@ export default function StoreDashboardPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Minha Loja</h1>
         <Button asChild>
-          <Link href="/dashboard/loja/cadastro">
+          <Link href={`/dashboard/loja/cadastro?id=${userStore.id}`}>
             <Edit className="h-4 w-4 mr-2" />
             Editar
           </Link>

@@ -29,6 +29,7 @@ export interface FindAllStoresParams {
 		whatsapp?: string;
 		slug?: string;
 		cityName?: string;
+		cityId?: string;
 		ownerId?: string;
 		isPaid?: boolean;
 		createdAt?: Date;

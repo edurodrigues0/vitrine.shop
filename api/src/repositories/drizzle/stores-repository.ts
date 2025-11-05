@@ -133,6 +133,10 @@ export class DrizzleStoresRepository implements StoresRepository {
 			conditions.push(eq(stores.ownerId, filters.ownerId));
 		}
 
+		if (filters.cityId) {
+			conditions.push(eq(stores.cityId, filters.cityId));
+		}
+
 		if (filters.isPaid !== undefined) {
 			conditions.push(eq(stores.isPaid, filters.isPaid));
 		}

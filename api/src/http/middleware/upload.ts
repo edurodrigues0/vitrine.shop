@@ -9,7 +9,7 @@ const fileFilter = (
 	cb: multer.FileFilterCallback,
 ) => {
 	// Aceita apenas imagens
-	if (file.mimetype.startsWith("image/*")) {
+	if (file.mimetype.startsWith("image/")) {
 		cb(null, true);
 	} else {
 		cb(new Error("Only images are allowed"));

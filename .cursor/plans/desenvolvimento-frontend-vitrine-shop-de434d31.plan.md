@@ -1,306 +1,300 @@
-<!-- de434d31-8f10-461f-8f02-b6efdb65fcfd 5a7eb885-291c-4cfb-a3a5-5c3dccc9de51 -->
-# Plano de Desenvolvimento Frontend - Vitrine.shop
+<!-- de434d31-8f10-461f-8f02-b6efdb65fcfd 9f11c2f4-9e05-469f-9806-15678d661237 -->
+# Completar e Robustecer Plataforma Vitrine.shop
 
-## Contexto e Situação Atual
+## Estado Atual - O que já existe
 
-### Backend (API)
+### Backend
 
-- API REST completa em Express + TypeScript
-- Endpoints: Auth, Users, Stores, Products, Product Variations, Product Images, Categories, Cities
-- Autenticação JWT (Bearer Token + Cookie)
-- Documentação Swagger disponível
+- API REST completa com Express + TypeScript
+- Autenticação JWT (Bearer + Cookie)
+- CRUD completo: Users, Stores, Products, Variations, Images, Categories, Cities
+- Schema de subscriptions (banco de dados)
+- Upload de imagens (Firebase Storage)
+- Documentação Swagger
+- Testes unitários
 
-### Frontend Atual
+### Frontend
 
-- Next.js 16 com App Router
-- Páginas: Home (landing page), Login
-- Componentes: Header, Footer, LoginForm, ThemeToggle
-- UI: shadcn/ui components básicos
-- React Query instalado mas não configurado
-- React Hook Form + Zod instalados mas não configurados
-- Sem integração com API backend
+- Landing page completa
+- Autenticação (login/registro)
+- Navegação por cidade
+- Visualização de lojas e produtos
+- Carrinho de compras
+- Checkout via WhatsApp
+- Dashboard básico (dashboard, produtos, loja)
+- Header/footer condicionais
 
-## Estrutura de Desenvolvimento
+## Funcionalidades Críticas Faltantes
 
-### 1. Configuração Base e Infraestrutura
+### 1. Sistema de Pedidos/Encomendas (Backend + Frontend)
 
-#### 1.1 Configuração React Query
+**Prioridade: ALTA**
 
-- Criar `src/lib/react-query.ts` com QueryClient configurado
-- Wrapper Provider no layout.tsx
-- Configurar cache e retry policies
+**Backend:**
 
-#### 1.2 API Client
+- Criar schema `orders` (id, storeId, customerName, customerPhone, customerEmail, items, total, status, createdAt)
+- Criar schema `order_items` (id, orderId, productVariationId, quantity, price)
+- Use cases: create-order, find-orders-by-store, update-order-status
+- Endpoints: POST /api/orders, GET /api/orders, GET /api/orders/:id, PUT /api/orders/:id/status
 
-- Criar `src/lib/api-client.ts` com função fetch wrapper
-- Configurar baseURL, interceptors para auth
-- Tratamento de erros padronizado
-- Suporte para Bearer Token e Cookie auth
+**Frontend:**
 
-#### 1.3 DTOs e Tipos
+- Dashboard: página de pedidos (`/dashboard/pedidos`)
+- Lista de pedidos com status (PENDENTE, CONFIRMADO, PREPARANDO, ENVIADO, ENTREGUE, CANCELADO)
+- Filtros por status e data
+- Detalhes do pedido com informações do cliente
+- Atualização de status do pedido
 
-- Criar `src/dtos/` com tipos TypeScript
-- Mapear tipos do backend (User, Store, Product, ProductVariation, etc.)
-- Tipos para requests e responses
+**Impacto:** Sem isso, não há rastreamento de vendas nem controle de estoque automático.
 
-#### 1.4 Hooks e Services
+### 2. Atualização Automática de Estoque
 
-- Criar `src/hooks/` para custom hooks
-- Criar `src/services/` para funções de API
-- Usar React Query para queries e mutations
+**Prioridade: ALTA**
 
-#### 1.5 Auth Layout e Proteção
+**Backend:**
 
-- Criar `src/components/auth-layout.tsx` para páginas protegidas
-- Middleware/guards para rotas autenticadas
-- Contexto de autenticação com React Context ou Zustand
+- Ao criar pedido, reduzir estoque das variações
+- Validação de estoque disponível antes de criar pedido
+- Endpoint para atualizar estoque manualmente (dashboard)
 
-### 2. Autenticação e Usuário
+**Frontend:**
 
-#### 2.1 Página de Registro
+- Validação de estoque no checkout
+- Alertas quando estoque está baixo
+- Dashboard: gerenciamento de estoque
 
-- Criar `src/app/register/page.tsx`
-- Formulário com React Hook Form + Zod
-- Integração com POST /api/users
-- Validação de campos (nome, email, senha, role)
-- Redirecionamento após registro
+**Impacto:** Evita vender produtos sem estoque disponível.
 
-#### 2.2 Melhorar Login
+### 3. Página de Cadastro/Edição de Loja
 
-- Integrar `src/components/login-form.tsx` com API
-- POST /api/auth/login
-- Armazenar token (cookie/localStorage)
-- Redirecionamento após login
+**Prioridade: MÉDIA**
 
-#### 2.3 Perfil do Usuário
+**Frontend:**
 
-- Criar `src/app/profile/page.tsx`
-- GET /api/auth/me para dados do usuário
-- Edição de perfil (PUT /api/users/:id)
+- Criar `/dashboard/loja/cadastro` (criar/editar)
+- Formulário completo com todos os campos
+- Upload de logo e banner
+- Seleção de cidade
+- Validação de CNPJ/CPF
+- Preview da loja
 
-### 3. Seleção de Cidade e Navegação
+**Impacto:** Lojistas não conseguem criar/editar lojas pela interface.
 
-#### 3.1 Seletor de Cidade
+### 4. Dashboard - Estatísticas
 
-- Criar `src/components/city-selector.tsx`
-- Listar cidades (GET /api/cities)
-- Context/State para cidade selecionada
-- Persistir seleção (localStorage)
+**Prioridade: MÉDIA**
 
-#### 3.2 Página de Cidade
+**Frontend:**
 
-- Criar `src/app/cidade/[city]/page.tsx`
-- Dynamic route para slug da cidade
-- Exibir lojas da cidade (GET /api/stores com filtro)
-- Lista de produtos da cidade (GET /api/products)
+- Criar `/dashboard/estatisticas`
+- Gráficos de vendas (últimos 30 dias, 7 dias)
+- Total de pedidos, receita, produtos mais vendidos
+- Estatísticas de visualizações (futuro)
+- Usar biblioteca de gráficos (recharts ou chart.js)
 
-### 4. Lojas (Stores)
+**Backend:**
 
-#### 4.1 Listagem de Lojas
+- Endpoint GET /api/stores/:id/statistics
+- Agregar dados de pedidos e produtos
 
-- Componente `src/components/store-list.tsx`
-- Cards de lojas com informações
-- Filtros e busca
-- Paginação
+### 5. Dashboard - Configurações
 
-#### 4.2 Página da Loja
+**Prioridade: BAIXA**
 
-- Criar `src/app/cidade/[city]/loja/[slug]/page.tsx`
-- GET /api/stores/:slug para dados da loja
-- Exibir informações: nome, descrição, logo, contato
-- Lista de produtos da loja (GET /api/products com storeId)
+**Frontend:**
 
-#### 4.3 Dashboard da Loja (Proprietário)
+- Criar `/dashboard/configuracoes`
+- Editar perfil do usuário
+- Alterar senha
+- Configurações de notificações
+- Preferências de tema
 
-- Criar `src/app/dashboard/loja/page.tsx` (protegida)
-- GET /api/stores/:id para dados da loja
-- Estatísticas e informações
-- Ações rápidas
+### 6. Melhorias no Filtro de Lojas por Cidade
 
-#### 4.4 Cadastro/Edição de Loja
+**Prioridade: MÉDIA**
 
-- Criar `src/app/dashboard/loja/cadastro/page.tsx`
-- Formulário com React Hook Form + Zod
-- POST /api/stores (criar)
-- PUT /api/stores/:id (editar)
-- Upload de logo e banner (se disponível)
+**Backend:**
 
-### 5. Produtos
+- Adicionar filtro `cityId` no `findAllStores`
+- Otimizar query com JOIN adequado
 
-#### 5.1 Listagem de Produtos
+**Frontend:**
 
-- Componente `src/components/product-list.tsx`
-- Cards de produtos com imagens
-- Filtros: categoria, preço, busca
-- Paginação (GET /api/products)
+- Usar filtro do backend ao invés de filtrar no cliente
 
-#### 5.2 Página do Produto
+### 7. Sistema de Upload de Imagens no Frontend
 
-- Criar `src/app/cidade/[city]/produto/[id]/page.tsx`
-- GET /api/products/:id
-- GET /api/product-variations/:productId para variações
-- GET /api/product-images/:productVariationId para imagens
-- Seleção de variação (tamanho, cor)
-- Informações: preço, estoque, descrição
+**Prioridade: MÉDIA**
 
-#### 5.3 Cadastro/Edição de Produto (Dashboard)
+**Frontend:**
 
-- Criar `src/app/dashboard/produtos/page.tsx` (lista)
-- Criar `src/app/dashboard/produtos/cadastro/page.tsx`
-- Criar `src/app/dashboard/produtos/[id]/editar/page.tsx`
-- Formulário com React Hook Form + Zod
-- POST /api/products
-- PUT /api/products/:id
-- Upload de imagens (se disponível)
+- Componente de upload de imagens
+- Preview antes de enviar
+- Upload múltiplo para produtos
+- Integração com endpoint POST /api/product-images
+- Tratamento de erros e loading states
 
-#### 5.4 Variações de Produto
+### 8. Validação de Estoque no Carrinho
 
-- Componente para gerenciar variações
-- POST /api/product-variations
-- PUT /api/product-variations/:id
-- DELETE /api/product-variations/:id
-- Campos: tamanho, cor, preço, estoque, peso, dimensões
+**Prioridade: ALTA**
 
-#### 5.5 Imagens de Produto
+**Frontend:**
 
-- Componente para upload/gerenciar imagens
-- POST /api/product-images
-- DELETE /api/product-images/:id
-- Marcar imagem principal
+- Verificar estoque disponível antes de adicionar ao carrinho
+- Validar quantidade disponível vs solicitada
+- Atualizar estoque em tempo real (quando possível)
+- Alertas quando produto fica sem estoque
 
-### 6. Carrinho de Compras
+### 9. Busca e Filtros Avançados
 
-#### 6.1 Context/Hook de Carrinho
+**Prioridade: MÉDIA**
 
-- Criar `src/contexts/cart-context.tsx` ou hook
-- Estado: itens, loja selecionada
-- Validação: não misturar itens de lojas diferentes
-- Persistência (localStorage)
+**Frontend:**
 
-#### 6.2 Componente de Carrinho
+- Barra de busca global na landing page
+- Filtros por categoria, preço, cidade
+- Ordenação (preço, nome, mais recente)
+- Filtros de lojas (status, cidade)
 
-- Criar `src/components/cart.tsx` ou drawer
-- Lista de itens
-- Cálculo de total
-- Botão finalizar
+**Backend:**
 
-#### 6.3 Finalização do Pedido
+- Melhorar queries de busca com índices
+- Filtro por range de preço
+- Filtro por categoria (já existe, melhorar)
 
-- Criar `src/app/cidade/[city]/checkout/page.tsx`
-- Resumo do pedido
-- Geração de mensagem WhatsApp
-- Formato: lista de produtos + total
-- Link direto para WhatsApp Web/App
+### 10. Sistema de Assinaturas/Pagamento
 
-### 7. Categorias
+**Prioridade: BAIXA (futuro)**
 
-#### 7.1 Navegação por Categoria
+**Backend:**
 
-- Componente `src/components/category-nav.tsx`
-- GET /api/categories
-- Filtro de produtos por categoria
-- Breadcrumbs
+- Integração com gateway de pagamento (Stripe, Mercado Pago)
+- Webhooks para atualizar status de assinatura
+- Endpoints para gerenciar assinaturas
 
-#### 7.2 Página de Categoria
+**Frontend:**
 
-- Criar `src/app/cidade/[city]/categoria/[slug]/page.tsx`
-- GET /api/categories/:slug
-- Lista de produtos da categoria
+- Página de planos e preços
+- Checkout de assinatura
+- Gerenciamento de assinatura no dashboard
 
-### 8. Dashboard e Gestão
+### 11. Melhorias de UX e Performance
 
-#### 8.1 Layout do Dashboard
+**Prioridade: MÉDIA**
 
-- Criar `src/app/dashboard/layout.tsx`
-- Sidebar de navegação
-- Menu: Loja, Produtos, Pedidos, Estatísticas
-- Usar auth-layout.tsx
+**Frontend:**
 
-#### 8.2 Páginas do Dashboard
-
-- Dashboard home: estatísticas gerais
-- Gestão de produtos: CRUD completo
-- Gestão de loja: edição de informações
-- Gestão de usuários (se admin): GET /api/users
-
-### 9. Melhorias e Features Adicionais
-
-#### 9.1 Busca e Filtros
-
-- Componente de busca global
-- Filtros avançados (preço, categoria, loja)
-- URL params para compartilhamento
-
-#### 9.2 Favoritos
-
-- Sistema de favoritos (localStorage ou API se disponível)
-- Salvar produtos/lojas favoritas
-
-#### 9.3 Notificações
-
-- Toast notifications (sonner já instalado)
-- Feedback de ações (sucesso/erro)
-
-#### 9.4 Loading States
-
-- Skeleton loaders para listas
-- Loading spinners
-- Estados vazios
-
-#### 9.5 Tratamento de Erros
-
-- Páginas de erro (404, 500)
+- Paginação em listas de produtos/lojas
+- Lazy loading de imagens
+- Skeleton loaders
+- Toast notifications melhoradas
 - Error boundaries
-- Mensagens de erro amigáveis
+- SEO melhorado (meta tags dinâmicas)
+- Compressão de imagens
 
-### 10. Otimizações e Performance
+### 12. Segurança e Validações
 
-#### 10.1 Imagens
+**Prioridade: ALTA**
 
-- Otimização com next/image
-- Lazy loading
-- Placeholders
+**Backend:**
 
-#### 10.2 Cache
+- Rate limiting nas rotas
+- Validação de permissões (owner só edita própria loja)
+- Sanitização de inputs
+- Validação de uploads (tipo, tamanho)
+- Logs de auditoria
 
-- Configurar cache do React Query
-- Cache de dados estáticos
-- Revalidação estratégica
+**Frontend:**
 
-#### 10.3 SEO
+- Validação de formulários robusta
+- Proteção CSRF
+- Sanitização de dados antes de enviar
 
-- Metadata dinâmica por página
-- Open Graph tags
-- Structured data (JSON-LD)
+### 13. Testes
 
-## Ordem de Implementação Recomendada
+**Prioridade: MÉDIA**
 
-1. **Fase 1 - Fundação**: Configuração base (React Query, API Client, Auth, DTOs)
-2. **Fase 2 - Autenticação**: Login, Registro, Perfil
-3. **Fase 3 - Navegação**: Seletor de cidade, listagem de lojas
-4. **Fase 4 - Produtos**: Visualização, busca, filtros
-5. **Fase 5 - Carrinho**: Context, componente, finalização WhatsApp
-6. **Fase 6 - Dashboard**: Gestão de loja e produtos
-7. **Fase 7 - Polimento**: Otimizações, UX, tratamento de erros
+**Frontend:**
 
-## Observações Técnicas
+- Testes unitários de componentes
+- Testes de integração de fluxos críticos
+- Testes E2E (Playwright/Cypress)
 
-- Seguir padrões das diretrizes: kebab-case, componentes organizados, React Hook Form + Zod
-- Manter App Router (Next.js 16) - adaptar diretrizes se necessário
-- Usar fetch nativo ou adicionar axios conforme preferência
-- Considerar migração de fontes (Playfair_Display + Poppins) conforme diretrizes
-- Todas as páginas protegidas devem usar auth-layout.tsx
-- API routes em `src/app/api/` (App Router) ou `src/pages/api/` (se migrar para Page Router)
+### 14. Documentação
+
+**Prioridade: BAIXA**
+
+- README completo
+- Guia de instalação
+- Documentação de API (já existe Swagger)
+- Guia de deploy
+
+### 15. Funcionalidades Adicionais
+
+**Prioridade: BAIXA (futuro)**
+
+- Favoritos/wishlist
+- Avaliações de produtos
+- Notificações push
+- Chat integrado
+- Histórico de pedidos do cliente
+- Cupons de desconto
+- Relatórios avançados
+
+## Priorização Recomendada
+
+### Fase 1 - Essencial (Sprint 1-2)
+
+1. Sistema de Pedidos (backend + frontend)
+2. Atualização automática de estoque
+3. Validação de estoque no carrinho
+4. Página de cadastro/edição de loja
+
+### Fase 2 - Importante (Sprint 3-4)
+
+5. Dashboard de estatísticas
+6. Melhorias no filtro por cidade
+7. Upload de imagens no frontend
+8. Busca e filtros avançados
+
+### Fase 3 - Melhorias (Sprint 5-6)
+
+9. Dashboard de configurações
+10. Melhorias de UX e performance
+11. Segurança e validações
+12. Testes
+
+### Fase 4 - Futuro
+
+13. Sistema de assinaturas/pagamento
+14. Funcionalidades adicionais
+15. Documentação completa
+
+## Arquivos que Precisam ser Criados
+
+### Backend
+
+- `api/src/database/schema/orders.ts`
+- `api/src/database/schema/order-items.ts`
+- `api/src/use-cases/orders/*`
+- `api/src/http/controllers/orders/*`
+- `api/src/http/middleware/rate-limit.ts`
+- `api/src/http/middleware/permissions.ts`
+
+### Frontend
+
+- `web/src/app/dashboard/pedidos/page.tsx`
+- `web/src/app/dashboard/loja/cadastro/page.tsx`
+- `web/src/app/dashboard/estatisticas/page.tsx`
+- `web/src/app/dashboard/configuracoes/page.tsx`
+- `web/src/components/image-upload.tsx`
+- `web/src/services/orders-service.ts`
+- `web/src/dtos/order.ts`
 
 ### To-dos
 
-- [ ] Configurar React Query, API Client, DTOs e estrutura base de hooks/services
-- [ ] Implementar sistema de autenticação completo (login, registro, contexto, auth-layout)
-- [ ] Criar seletor de cidade e sistema de navegação por cidade
-- [ ] Implementar páginas de listagem e detalhes de lojas
-- [ ] Implementar páginas de listagem e detalhes de produtos com variações
-- [ ] Implementar sistema de carrinho com validação de loja única e integração WhatsApp
-- [ ] Criar dashboard completo com gestão de loja e produtos
-- [ ] Implementar CRUD completo de produtos, variações e imagens no dashboard
-- [ ] Implementar navegação e filtros por categorias
-- [ ] Adicionar loading states, error handling, busca, filtros avançados e otimizações
+- [ ] Corrigir login.ts - adicionar 'role' ao tipo de retorno do AuthenticateUseCase
+- [ ] Corrigir find-all.ts - Product não tem campos de variação (price, stock, etc)
+- [ ] Corrigir import incorreto em make-find-product-images-by-product-id-use-case.ts
+- [ ] Corrigir imports de CreateProductVariationParams e UpdateProductVariationParams em products-repository.ts
+- [ ] Corrigir stores-repository.ts - problema com theme nullable

@@ -1,18 +1,25 @@
 "use client";
 
-import { Store, Menu, X, Sparkles } from "lucide-react";
+import { Store, Menu, X, Sparkles, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { Cart } from "./cart";
 import { CitySelector } from "./city-selector";
-import { useState, useEffect } from "react";
+import { SearchBar } from "./search-bar";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function Header() {
   const { isAuthenticated, user, logout } = useAuth();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSobreMenuOpen, setIsSobreMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const sobreMenuRef = useRef<HTMLDivElement>(null);
+
+  const isHomePage = pathname === "/";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,12 +29,30 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "#sobre", label: "Sobre" },
+  // Fechar menu ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sobreMenuRef.current &&
+        !sobreMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsSobreMenuOpen(false);
+      }
+    };
+
+    if (isSobreMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSobreMenuOpen]);
+
+  const sobreSubmenuItems = [
     { href: "#como-funciona", label: "Como funciona" },
     { href: "#precos", label: "Preços" },
-    { href: "#lojas-parceiras", label: "Lojas Parceiras" },
+    { href: "#lojas-parceiras", label: "Lojas parceiras" },
   ];
 
   return (
@@ -62,24 +87,56 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link, index) => (
+          {/* Desktop Navigation - Only on Home Page */}
+          {isHomePage && (
+            <div className="hidden md:flex items-center gap-1">
               <Link
-                key={link.href}
-                href={link.href}
+                href="/"
                 className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 rounded-md hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 group"
-                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <span className="relative z-10">{link.label}</span>
-                {/* Underline animation */}
+                <span className="relative z-10">Home</span>
                 <span className="absolute bottom-1 left-1/2 w-0 h-0.5 bg-gradient-to-r from-primary to-purple-600 group-hover:w-3/4 group-hover:left-[12.5%] transition-all duration-300 rounded-full" />
               </Link>
-            ))}
-          </div>
+
+              {/* Sobre with Submenu */}
+              <div className="relative" ref={sobreMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsSobreMenuOpen(!isSobreMenuOpen)}
+                  className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 rounded-md hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 group flex items-center gap-1"
+                >
+                  <span className="relative z-10">Sobre</span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform duration-300 ${
+                      isSobreMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Submenu Dropdown */}
+                {isSobreMenuOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-background/98 backdrop-blur-xl border border-border/60 rounded-lg shadow-lg py-2 animate-in slide-in-from-top-2 duration-200 z-50">
+                    {sobreSubmenuItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 transition-colors"
+                        onClick={() => setIsSobreMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-2.5">
+            <div className="hidden lg:block">
+              <SearchBar />
+            </div>
             <CitySelector className="hidden md:block" />
             <Cart citySlug={undefined} />
             <ThemeToggle />
@@ -104,14 +161,16 @@ export function Header() {
               </>
             ) : (
               <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  className="hidden sm:flex hover:scale-105 transition-transform duration-200 font-medium"
-                >
-                  <Link href="/login">Entrar</Link>
-                </Button>
+                {isHomePage && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    asChild
+                    className="hidden sm:flex hover:scale-105 transition-transform duration-200 font-medium"
+                  >
+                    <Link href="/login">Entrar</Link>
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   asChild
@@ -148,26 +207,68 @@ export function Header() {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-border/50 py-4 space-y-2 animate-in slide-in-from-top-2 duration-300 bg-background/98 backdrop-blur-xl">
-            {navLinks.map((link, index) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="block px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 rounded-md transition-all duration-200 hover:translate-x-1"
-                onClick={() => setIsMenuOpen(false)}
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {isHomePage && (
+              <>
+                <Link
+                  href="/"
+                  className="block px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 rounded-md transition-all duration-200 hover:translate-x-1"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Home
+                </Link>
+                <div className="px-4 py-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsSobreMenuOpen(!isSobreMenuOpen)}
+                    className="flex items-center justify-between w-full text-sm font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    <span>Sobre</span>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform duration-300 ${
+                        isSobreMenuOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  {isSobreMenuOpen && (
+                    <div className="mt-2 ml-4 space-y-1">
+                      {sobreSubmenuItems.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 rounded-md transition-colors"
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            setIsSobreMenuOpen(false);
+                          }}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
             <div className="px-4 pt-2 border-t border-border/50">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                asChild 
-                className="w-full justify-start hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5"
+              {!isAuthenticated && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="w-full justify-start hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 mb-2"
+                >
+                  <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                    Entrar
+                  </Link>
+                </Button>
+              )}
+              <Button
+                size="sm"
+                asChild
+                className="w-full bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary/90 hover:via-purple-700 hover:to-pink-700 text-white"
               >
-                <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                  Entrar
+                <Link href="/register" onClick={() => setIsMenuOpen(false)}>
+                  Criar minha loja
                 </Link>
               </Button>
             </div>

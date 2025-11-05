@@ -15,8 +15,8 @@ productsRoutes.post(
 	createProductController,
 );
 productsRoutes.get("/products", findAllProductsController);
-productsRoutes.get("/products/:id", findProductByIdController);
 productsRoutes.get("/products/store/:storeId", findProductsByStoreIdController);
+productsRoutes.get("/products/:id", findProductByIdController);
 productsRoutes.put(
 	"/products/:id",
 	authenticateMiddleware,

@@ -1,22 +1,28 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { storesService } from "@/services/stores-service";
 import { productsService } from "@/services/products-service";
 import { citiesService } from "@/services/cities-service";
-import { Store } from "lucide-react";
+import { categoriesService } from "@/services/categories-service";
+import { Store, Search, Filter } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { slugToText } from "@/lib/slug";
+import { useState, useMemo } from "react";
 
 export default function CityPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const citySlug = params.city as string;
   const cityName = slugToText(citySlug);
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   // Buscar cidade por nome para obter o cityId
   const { data: citiesData } = useQuery({
@@ -40,28 +46,55 @@ export default function CityPage() {
       }
       // Buscar todas as lojas e filtrar por cityId no frontend
       // (assumindo que o backend não tem filtro por cityId ainda)
-      return storesService.findAll({ limit: 100 });
+      return storesService.findAll({ limit: 100, cityId: city.id });
     },
     enabled: !!city,
-    select: (data) => {
-      // Filtrar lojas por cityId se a cidade foi encontrada
-      if (!city?.id) return { stores: [], pagination: data.pagination };
-      return {
-        stores: data.stores.filter((store) => store.cityId === city.id),
-        pagination: data.pagination,
-      };
-    },
   });
+
+  // Buscar categorias
+  const { data: categoriesData } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => categoriesService.findAll(),
+  });
+
+  const categories = categoriesData?.categories || [];
 
   // Buscar produtos das lojas da cidade
   const { data: productsData, isLoading: isLoadingProducts } = useQuery({
-    queryKey: ["products", "city", city?.id],
-    queryFn: () => productsService.findAll({ limit: 12 }),
+    queryKey: ["products", "city", city?.id, searchTerm],
+    queryFn: () => productsService.findAll({ limit: 100 }),
     enabled: !!city,
   });
 
   const stores = storesData?.stores || [];
-  const products = productsData?.products || [];
+  const allProducts = productsData?.products || [];
+
+  // Filtrar produtos
+  const filteredProducts = useMemo(() => {
+    let filtered = allProducts;
+
+    // Filtrar por termo de busca
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.description?.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
+
+    // Filtrar por categoria
+    if (selectedCategory) {
+      filtered = filtered.filter(
+        (product) => product.categoryId === selectedCategory,
+      );
+    }
+
+    // Filtrar apenas produtos das lojas da cidade
+    const storeIds = stores.map((store) => store.id);
+    filtered = filtered.filter((product) => storeIds.includes(product.storeId));
+
+    return filtered;
+  }, [allProducts, searchTerm, selectedCategory, stores]);
 
   if (!city && citiesData) {
     return (
@@ -82,9 +115,38 @@ export default function CityPage() {
         <h1 className="text-3xl font-bold mb-2">
           Lojas em {city?.name || cityName}
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mb-6">
           {city?.state && `${city.state} - `}Descubra lojas e produtos da sua cidade
         </p>
+
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Buscar produtos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="flex h-10 w-full md:w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="">Todas as categorias</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Stores Section */}
@@ -150,20 +212,38 @@ export default function CityPage() {
 
       {/* Products Section */}
       <section>
-        <h2 className="text-2xl font-semibold mb-4">Produtos em Destaque</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-semibold">
+            Produtos {searchTerm || selectedCategory ? "Filtrados" : "em Destaque"}
+          </h2>
+          {(searchTerm || selectedCategory) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCategory("");
+              }}
+            >
+              Limpar filtros
+            </Button>
+          )}
+        </div>
         {isLoadingProducts ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">
-              Nenhum produto encontrado nesta cidade
+              {searchTerm || selectedCategory
+                ? "Nenhum produto encontrado com os filtros aplicados"
+                : "Nenhum produto encontrado nesta cidade"}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.slice(0, 8).map((product) => (
+            {filteredProducts.slice(0, 12).map((product) => (
               <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <Link href={`/cidade/${citySlug}/produto/${product.id}`}>
                   <div className="p-4">

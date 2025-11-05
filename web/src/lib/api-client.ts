@@ -3,6 +3,7 @@ type RequestConfig = {
   headers?: Record<string, string>;
   body?: unknown;
   params?: Record<string, string | number | boolean>;
+  isFormData?: boolean;
 };
 
 class ApiError extends Error {
@@ -23,7 +24,7 @@ async function apiClient<T>(
   endpoint: string,
   config: RequestConfig = {},
 ): Promise<T> {
-  const { method = "GET", headers = {}, body, params } = config;
+  const { method = "GET", headers = {}, body, params, isFormData = false } = config;
 
   // Build URL with query params
   const url = new URL(`${API_BASE_URL}${endpoint}`);
@@ -40,9 +41,13 @@ async function apiClient<T>(
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
   const requestHeaders: HeadersInit = {
-    "Content-Type": "application/json",
     ...headers,
   };
+
+  // Only set Content-Type for JSON, not for FormData
+  if (!isFormData) {
+    requestHeaders["Content-Type"] = "application/json";
+  }
 
   if (token) {
     requestHeaders.Authorization = `Bearer ${token}`;
@@ -55,7 +60,11 @@ async function apiClient<T>(
   };
 
   if (body && method !== "GET") {
-    requestConfig.body = JSON.stringify(body);
+    if (isFormData) {
+      requestConfig.body = body as FormData;
+    } else {
+      requestConfig.body = JSON.stringify(body);
+    }
   }
 
   try {
@@ -93,14 +102,29 @@ export const api = {
   get: <T>(endpoint: string, params?: RequestConfig["params"]) =>
     apiClient<T>(endpoint, { method: "GET", params }),
 
-  post: <T>(endpoint: string, body?: unknown, params?: RequestConfig["params"]) =>
-    apiClient<T>(endpoint, { method: "POST", body, params }),
+  post: <T>(
+    endpoint: string,
+    body?: unknown,
+    params?: RequestConfig["params"],
+    isFormData?: boolean,
+  ) =>
+    apiClient<T>(endpoint, { method: "POST", body, params, isFormData }),
 
-  put: <T>(endpoint: string, body?: unknown, params?: RequestConfig["params"]) =>
-    apiClient<T>(endpoint, { method: "PUT", body, params }),
+  put: <T>(
+    endpoint: string,
+    body?: unknown,
+    params?: RequestConfig["params"],
+    isFormData?: boolean,
+  ) =>
+    apiClient<T>(endpoint, { method: "PUT", body, params, isFormData }),
 
-  patch: <T>(endpoint: string, body?: unknown, params?: RequestConfig["params"]) =>
-    apiClient<T>(endpoint, { method: "PATCH", body, params }),
+  patch: <T>(
+    endpoint: string,
+    body?: unknown,
+    params?: RequestConfig["params"],
+    isFormData?: boolean,
+  ) =>
+    apiClient<T>(endpoint, { method: "PATCH", body, params, isFormData }),
 
   delete: <T>(endpoint: string, params?: RequestConfig["params"]) =>
     apiClient<T>(endpoint, { method: "DELETE", params }),

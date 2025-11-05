@@ -19,13 +19,20 @@ export const productsService = {
   },
 
   findById: async (id: string): Promise<Product> => {
-    const response = await api.get<Product>(`/products/${id}`);
-    return response;
+    const response = await api.get<{ product: Product }>(`/products/${id}`);
+    return response.product;
   },
 
   findByStoreId: async (storeId: string): Promise<Product[]> => {
-    const response = await api.get<Product[]>(`/products/store/${storeId}`);
-    return response;
+    try {
+      console.log("Fetching products for storeId:", storeId);
+      const response = await api.get<{ products: Product[] }>(`/products/store/${storeId}`);
+      console.log("Products response:", response);
+      return response.products || [];
+    } catch (error) {
+      console.error("Error in findByStoreId:", error);
+      throw error;
+    }
   },
 
   update: async (

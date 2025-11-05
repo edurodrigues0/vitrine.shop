@@ -9,6 +9,7 @@ const findAllStoresQuerySchema = z.object({
 	description: z.string().optional(),
 	slug: z.string().optional(),
 	ownerId: z.string().uuid().optional(),
+	cityId: z.string().uuid().optional(),
 	isPaid: z.coerce.boolean().optional(),
 });
 
@@ -149,7 +150,7 @@ export async function findAllStoresController(
 	response: Response,
 ) {
 	try {
-		const { page, limit, name, description, slug, ownerId, isPaid } =
+		const { page, limit, name, description, slug, ownerId, cityId, isPaid } =
 			findAllStoresQuerySchema.parse(request.query);
 
 		const findAllStoresUseCase = makeFindAllStoresUseCase();
@@ -162,6 +163,7 @@ export async function findAllStoresController(
 				description,
 				slug,
 				ownerId,
+				cityId,
 				isPaid,
 			},
 		});

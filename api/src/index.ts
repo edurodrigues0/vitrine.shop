@@ -7,6 +7,7 @@ import { logger } from "~/utils/logger";
 import { authRoutes } from "./http/controllers/auth/_routes";
 import { categoriesRoutes } from "./http/controllers/categories/_routes";
 import { citiesRoutes } from "./http/controllers/cities/_routes";
+import { ordersRoutes } from "./http/controllers/orders/_routes";
 import { productImagesRoutes } from "./http/controllers/product-images/_routes";
 import { productsRoutes } from "./http/controllers/products/_routes";
 import { storesRoutes } from "./http/controllers/stores/_routes";
@@ -64,6 +65,7 @@ app.use("/api", productImagesRoutes);
 app.use("/api", storesRoutes);
 app.use("/api", usersRoutes);
 app.use("/api", authRoutes);
+app.use("/api", ordersRoutes);
 
 app.get("/api/health", (_req: Request, res: Response) => {
 	res.json({

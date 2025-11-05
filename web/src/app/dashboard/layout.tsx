@@ -11,6 +11,7 @@ import {
   Settings,
   LogOut,
   LayoutDashboard,
+  ShoppingCart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ const menuItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/loja", label: "Minha Loja", icon: Store },
   { href: "/dashboard/produtos", label: "Produtos", icon: Package },
+  { href: "/dashboard/pedidos", label: "Pedidos", icon: ShoppingCart },
   { href: "/dashboard/estatisticas", label: "Estatísticas", icon: BarChart3 },
   { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings },
 ];

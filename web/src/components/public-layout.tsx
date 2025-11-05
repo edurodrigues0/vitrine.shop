@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
+import { usePathname } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Loader2 } from "lucide-react";
@@ -14,6 +15,8 @@ interface PublicLayoutProps {
  */
 export function PublicLayout({ children }: PublicLayoutProps) {
   const { isAuthenticated, isLoading } = useAuth();
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
 
   // Mostrar loading enquanto verifica autenticação
   if (isLoading) {
@@ -30,10 +33,14 @@ export function PublicLayout({ children }: PublicLayoutProps) {
   }
 
   // Usuário não autenticado - mostrar header e footer da landing page
+  // Adicionar espaçamento entre header e conteúdo, e entre conteúdo e footer
+  // (apenas para páginas fora da home)
   return (
     <>
       <Header />
-      {children}
+      <main className={isHomePage ? "" : "pt-24 pb-12 min-h-screen"}>
+        {children}
+      </main>
       <Footer />
     </>
   );

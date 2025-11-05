@@ -81,6 +81,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       );
     }
 
+    // Validar estoque disponível
+    if (variation.stock === 0) {
+      throw new Error("Produto fora de estoque");
+    }
+
     setStoreId(product.storeId);
 
     setItems((prevItems) => {
@@ -89,14 +94,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
       );
 
       if (existingItem) {
+        const newQuantity = existingItem.quantity + quantity;
+        // Validar se a nova quantidade não excede o estoque
+        if (newQuantity > variation.stock) {
+          throw new Error(
+            `Estoque insuficiente. Disponível: ${variation.stock}, Tentando adicionar: ${newQuantity}`,
+          );
+        }
         // Update quantity if item already exists
         return prevItems.map((item) =>
           item.variation.id === variation.id
             ? {
                 ...item,
-                quantity: item.quantity + quantity,
+                quantity: newQuantity,
               }
             : item,
+        );
+      }
+
+      // Validar quantidade inicial
+      if (quantity > variation.stock) {
+        throw new Error(
+          `Estoque insuficiente. Disponível: ${variation.stock}, Tentando adicionar: ${quantity}`,
         );
       }
 
@@ -131,13 +150,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setItems((prevItems) =>
-      prevItems.map((item) =>
+    setItems((prevItems) => {
+      const item = prevItems.find((item) => item.variation.id === variationId);
+      if (!item) return prevItems;
+
+      // Validar estoque disponível
+      if (quantity > item.variation.stock) {
+        throw new Error(
+          `Estoque insuficiente. Disponível: ${item.variation.stock}, Tentando atualizar para: ${quantity}`,
+        );
+      }
+
+      return prevItems.map((item) =>
         item.variation.id === variationId
           ? { ...item, quantity }
           : item,
-      ),
-    );
+      );
+    });
   };
 
   const clearCart = () => {
