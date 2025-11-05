@@ -94,7 +94,10 @@ export function CitySelector({ className, onCitySelect }: CitySelectorProps) {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-2 z-50 w-full min-w-[300px] bg-background border border-border rounded-lg shadow-lg">
+          <div 
+            style={{ backgroundColor: 'hsl(var(--background))' }}
+            className="absolute top-full left-0 mt-2 z-50 w-full min-w-[300px] border border-border rounded-lg shadow-lg"
+          >
             <div className="p-3 border-b border-border">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

@@ -15,6 +15,13 @@
       "when": 1762305306481,
       "tag": "0001_flat_praxagora",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762347672226,
+      "tag": "0002_dusty_dexter_bennett",
+      "breakpoints": true
     }
   ]
 }

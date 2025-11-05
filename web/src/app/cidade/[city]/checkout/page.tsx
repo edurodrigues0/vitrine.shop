@@ -1,18 +1,40 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCart } from "@/contexts/cart-context";
 import { storesService } from "@/services/stores-service";
+import { ordersService } from "@/services/orders-service";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Loader2, MessageCircle, Trash2 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+const customerDataSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  whatsapp: z.string().min(1, "WhatsApp é obrigatório"),
+});
+
+type CustomerDataForm = z.infer<typeof customerDataSchema>;
 
 export default function CheckoutPage() {
   const params = useParams();
+  const router = useRouter();
   const citySlug = params.city as string;
   const { items, storeId, getTotal, clearCart } = useCart();
+  const queryClient = useQueryClient();
+  const [step, setStep] = useState<"customer" | "confirm">("customer");
 
   const { data: store, isLoading: isLoadingStore } = useQuery({
     queryKey: ["store", storeId],
@@ -22,8 +44,44 @@ export default function CheckoutPage() {
 
   const total = getTotal();
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm<CustomerDataForm>({
+    resolver: zodResolver(customerDataSchema),
+  });
+
+  const customerData = watch();
+
+  const createOrderMutation = useMutation({
+    mutationFn: async (data: CustomerDataForm) => {
+      if (!storeId) throw new Error("Loja não encontrada");
+
+      return await ordersService.create({
+        storeId,
+        customerName: data.name,
+        customerPhone: data.whatsapp,
+        items: items.map((item) => ({
+          productVariationId: item.variation.id,
+          quantity: item.quantity,
+        })),
+      });
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["statistics"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      setStep("confirm");
+      toast.success("Pedido criado com sucesso!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Erro ao criar pedido");
+    },
+  });
+
   const whatsappMessage = useMemo(() => {
-    if (!store || items.length === 0) return "";
+    if (!store || items.length === 0 || !customerData.name) return "";
 
     const itemsText = items
       .map(
@@ -32,8 +90,8 @@ export default function CheckoutPage() {
       )
       .join("\n");
 
-    return `Olá! Gostaria de fazer um pedido:\n\n${itemsText}\n\nTotal: R$ ${(total / 100).toFixed(2).replace(".", ",")}`;
-  }, [store, items, total]);
+    return `Olá! Gostaria de fazer um pedido:\n\nCliente: ${customerData.name}\nWhatsApp: ${customerData.whatsapp}\n\nItens:\n${itemsText}\n\nTotal: R$ ${(total / 100).toFixed(2).replace(".", ",")}`;
+  }, [store, items, total, customerData]);
 
   const whatsappUrl = useMemo(() => {
     if (!store) return "";
@@ -142,37 +200,101 @@ export default function CheckoutPage() {
 
         {/* Checkout Actions */}
         <div className="space-y-4">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Finalizar</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Ao finalizar, você será redirecionado para o WhatsApp da loja
-              com o pedido pronto para enviar.
-            </p>
-            <div className="space-y-2">
-              <Button
-                className="w-full"
-                size="lg"
-                asChild
+          {step === "customer" ? (
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Dados do Cliente</h2>
+              <form
+                onSubmit={handleSubmit((data) => {
+                  createOrderMutation.mutate(data);
+                })}
+                className="space-y-4"
               >
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="name">Nome *</FieldLabel>
+                    <Input
+                      id="name"
+                      {...register("name")}
+                      aria-invalid={errors.name ? "true" : "false"}
+                      placeholder="Seu nome completo"
+                    />
+                    {errors.name && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.name.message}
+                      </p>
+                    )}
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="whatsapp">WhatsApp *</FieldLabel>
+                    <Input
+                      id="whatsapp"
+                      {...register("whatsapp")}
+                      aria-invalid={errors.whatsapp ? "true" : "false"}
+                      placeholder="(00) 00000-0000"
+                    />
+                    {errors.whatsapp && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.whatsapp.message}
+                      </p>
+                    )}
+                  </Field>
+
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    size="lg"
+                    disabled={createOrderMutation.isPending}
+                  >
+                    {createOrderMutation.isPending
+                      ? "Processando..."
+                      : "Prosseguir com a solicitação"}
+                  </Button>
+                </FieldGroup>
+              </form>
+            </Card>
+          ) : (
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Finalizar Pedido</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Seu pedido foi registrado! Clique no botão abaixo para enviar
+                a mensagem para o WhatsApp da loja.
+              </p>
+              <div className="space-y-2">
+                <Button
+                  className="w-full"
+                  size="lg"
+                  asChild
                 >
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  Finalizar no WhatsApp
-                </a>
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={clearCart}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Limpar carrinho
-              </Button>
-            </div>
-          </Card>
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      clearCart();
+                      setTimeout(() => {
+                        router.push(`/cidade/${citySlug}`);
+                      }, 1000);
+                    }}
+                  >
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    Realizar pedido no WhatsApp
+                  </a>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    clearCart();
+                    router.push(`/cidade/${citySlug}`);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Limpar carrinho
+                </Button>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </div>

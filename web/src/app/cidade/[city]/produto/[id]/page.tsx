@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import type { ProductVariation } from "@/dtos/product-variation";
 import type { ProductImage } from "@/dtos/product-image";
+import { SkeletonText } from "@/components/skeleton-loader";
 
 export default function ProductPage() {
   const params = useParams();
@@ -92,18 +93,36 @@ export default function ProductPage() {
     }
   }, [variations, selectedVariation]);
 
-  // Reset quantity when variation changes
+  // Reset quantity when variation changes or when product changes
+  // Usar valores estáveis para garantir que o array de dependências tenha tamanho constante
+  const variationId = selectedVariation?.id ?? null;
+  const currentProductId = product?.id ?? null;
+  
   useEffect(() => {
-    if (selectedVariation) {
+    if (currentProductId) {
       setQuantity(1);
     }
-  }, [selectedVariation?.id]);
+  }, [variationId, currentProductId]);
 
   if (isLoadingProduct || isLoadingVariations) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            <Card className="aspect-square bg-muted animate-pulse" />
+            <div className="space-y-6">
+              <SkeletonText lines={2} />
+              <div className="h-12 bg-muted rounded animate-pulse w-1/3" />
+              <SkeletonText lines={3} />
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i} className="p-4">
+                    <div className="h-20 bg-muted rounded animate-pulse" />
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -129,24 +148,33 @@ export default function ProductPage() {
     );
   }
 
+  // Determinar preço - usar variação se disponível, senão usar produto base
   const price = selectedVariation
     ? selectedVariation.discountPrice || selectedVariation.price
-    : null;
+    : product.price
+      ? product.price
+      : null;
+  
   const originalPrice = selectedVariation
     ? selectedVariation.discountPrice
       ? selectedVariation.price
       : null
     : null;
+  
   const discountPercentage = originalPrice && price
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
 
-  const maxQuantity = selectedVariation
-    ? Math.min(selectedVariation.stock, 10)
-    : 1;
+  // Determinar estoque - usar variação se disponível, senão usar produto base
+  const availableStock = selectedVariation
+    ? selectedVariation.stock
+    : product.quantity ?? 0;
+  
+  const maxQuantity = Math.min(availableStock, 10);
+  const isAvailable = availableStock > 0;
 
   const handleAddToCart = () => {
-    if (!selectedVariation || !product) return;
+    if (!product) return;
 
     if (!canAddItem(product.storeId)) {
       toast.error(
@@ -155,13 +183,47 @@ export default function ProductPage() {
       return;
     }
 
-    if (selectedVariation.stock === 0) {
+    if (!isAvailable) {
       toast.error("Produto fora de estoque");
       return;
     }
 
-    if (quantity > selectedVariation.stock) {
-      toast.error(`Quantidade disponível: ${selectedVariation.stock} unidades`);
+    if (quantity > availableStock) {
+      toast.error(`Quantidade disponível: ${availableStock} unidades`);
+      return;
+    }
+
+    // Se não há variações, criar uma variação padrão para o carrinho
+    if (!selectedVariation && variations.length === 0) {
+      // Criar variação temporária para adicionar ao carrinho
+      const defaultVariation: ProductVariation = {
+        id: `default-${product.id}`,
+        productId: product.id,
+        price: product.price || 0,
+        stock: product.quantity || 0,
+        color: "Padrão",
+        size: "Único",
+        discountPrice: null,
+      };
+      
+      try {
+        addItem(product, defaultVariation, quantity);
+        toast.success(
+          `${quantity} ${quantity === 1 ? "produto" : "produtos"} adicionado${quantity === 1 ? "" : "s"} ao carrinho!`,
+        );
+        setQuantity(1);
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Erro ao adicionar ao carrinho",
+        );
+      }
+      return;
+    }
+
+    if (!selectedVariation) {
+      toast.error("Selecione uma variação do produto");
       return;
     }
 
@@ -300,36 +362,43 @@ export default function ProductPage() {
             </div>
 
             {/* Price */}
-            {price && (
-              <div className="space-y-2">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-4xl font-bold">
-                    R$ {(price / 100).toFixed(2).replace(".", ",")}
-                  </span>
+            <div className="space-y-2 pb-4 border-b">
+              {price ? (
+                <>
+                  <div className="flex items-baseline gap-3 flex-wrap">
+                    <span className="text-4xl font-bold text-primary">
+                      R$ {(price / 100).toFixed(2).replace(".", ",")}
+                    </span>
+                    {originalPrice && (
+                      <>
+                        <span className="text-xl text-muted-foreground line-through">
+                          R$ {(originalPrice / 100).toFixed(2).replace(".", ",")}
+                        </span>
+                        <Badge variant="destructive" className="text-sm px-2 py-1">
+                          -{discountPercentage}%
+                        </Badge>
+                      </>
+                    )}
+                  </div>
                   {originalPrice && (
-                    <>
-                      <span className="text-xl text-muted-foreground line-through">
-                        R$ {(originalPrice / 100).toFixed(2).replace(".", ",")}
-                      </span>
-                      <Badge variant="destructive" className="text-sm px-2 py-1">
-                        -{discountPercentage}%
-                      </Badge>
-                    </>
+                    <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                      Economize R$ {((originalPrice - price) / 100).toFixed(2).replace(".", ",")}
+                    </p>
                   )}
+                </>
+              ) : (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Package className="h-5 w-5" />
+                  <span className="text-lg">Preço não disponível</span>
                 </div>
-                {originalPrice && (
-                  <p className="text-sm text-muted-foreground">
-                    Economize R$ {((originalPrice - price) / 100).toFixed(2).replace(".", ",")}
-                  </p>
-                )}
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Variations */}
-            {variations.length > 0 && (
+            {variations.length > 0 ? (
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold mb-3 text-lg">Variações disponíveis:</h3>
+                  <h3 className="font-semibold mb-3 text-lg">Selecione a variação:</h3>
                   <div className="grid grid-cols-1 gap-3">
                     {variations.map((variation) => {
                       const isSelected = selectedVariation?.id === variation.id;
@@ -380,7 +449,7 @@ export default function ProductPage() {
                             </div>
                             <div className="text-right ml-4">
                               <div className="flex items-baseline gap-2">
-                                <span className="text-xl font-bold">
+                                <span className="text-xl font-bold text-primary">
                                   R${" "}
                                   {(variationPrice / 100)
                                     .toFixed(2)
@@ -403,85 +472,107 @@ export default function ProductPage() {
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Quantity & Stock Info */}
-            {selectedVariation && (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium mb-2">Quantidade:</p>
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="text-lg font-semibold w-12 text-center">
-                      {quantity}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() =>
-                        setQuantity(Math.min(maxQuantity, quantity + 1))
-                      }
-                      disabled={quantity >= maxQuantity}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm text-muted-foreground ml-2">
-                      (máx. {maxQuantity})
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {selectedVariation.stock > 0 ? (
-                    <>
-                      <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                      <p className="text-sm">
-                        <span className="font-medium">{selectedVariation.stock}</span>{" "}
-                        {selectedVariation.stock === 1
-                          ? "unidade disponível"
-                          : "unidades disponíveis"}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-5 w-5 text-destructive" />
-                      <p className="text-sm text-destructive font-medium">
-                        Produto fora de estoque
-                      </p>
-                    </>
-                  )}
-                </div>
+            ) : (
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  Este produto não possui variações disponíveis.
+                </p>
               </div>
             )}
 
+            {/* Quantity & Stock Info */}
+            <div className="space-y-4 pt-4 border-t">
+              <div>
+                <p className="text-sm font-semibold mb-3">Quantidade:</p>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1 || !isAvailable}
+                    className="h-10 w-10"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <div className="flex items-center justify-center w-16 h-10 border-2 border-border rounded-md bg-background">
+                    <span className="text-lg font-semibold">
+                      {quantity}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() =>
+                      setQuantity(Math.min(maxQuantity, quantity + 1))
+                    }
+                    disabled={quantity >= maxQuantity || !isAvailable}
+                    className="h-10 w-10"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  {isAvailable && (
+                    <span className="text-sm text-muted-foreground ml-2">
+                      (máx. {maxQuantity})
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                isAvailable 
+                  ? "bg-green-500/10 border border-green-500/20" 
+                  : "bg-red-500/10 border border-red-500/20"
+              }`}>
+                {isAvailable ? (
+                  <>
+                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <p className="text-sm">
+                      <span className="font-semibold text-green-600 dark:text-green-400">
+                        {availableStock}
+                      </span>{" "}
+                      <span className="text-muted-foreground">
+                        {availableStock === 1
+                          ? "unidade disponível em estoque"
+                          : "unidades disponíveis em estoque"}
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                      Produto indisponível no momento
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
             {/* Add to Cart Button */}
-            <div className="space-y-3 pt-4">
+            <div className="space-y-3 pt-4 border-t">
               <Button
                 size="lg"
-                className="w-full text-lg h-14"
-                disabled={
-                  !selectedVariation || selectedVariation.stock === 0
-                }
+                className="w-full text-lg h-14 font-semibold"
+                disabled={!isAvailable || (variations.length > 0 && !selectedVariation)}
                 onClick={handleAddToCart}
               >
                 <ShoppingCart className="h-5 w-5 mr-2" />
-                {selectedVariation && selectedVariation.stock > 0
-                  ? `Adicionar ${quantity} ${quantity === 1 ? "ao" : "ao"} carrinho`
+                {isAvailable 
+                  ? variations.length > 0 && !selectedVariation
+                    ? "Selecione uma variação"
+                    : `Adicionar ${quantity} ${quantity === 1 ? "produto" : "produtos"} ao carrinho`
                   : "Produto indisponível"}
               </Button>
 
-              {selectedVariation && selectedVariation.stock > 0 && (
-                <p className="text-sm text-center text-muted-foreground">
-                  Total: R${" "}
-                  {((price! * quantity) / 100).toFixed(2).replace(".", ",")}
-                </p>
+              {isAvailable && price && (
+                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Total:
+                  </span>
+                  <span className="text-2xl font-bold text-primary">
+                    R$ {((price * quantity) / 100).toFixed(2).replace(".", ",")}
+                  </span>
+                </div>
               )}
             </div>
           </div>

@@ -107,6 +107,8 @@ export class InMemoryProductsRepository implements ProductsRespository {
 			...currentProduct,
 			name: data.name ?? currentProduct.name,
 			description: data.description ?? currentProduct.description,
+			price: data.price ?? currentProduct.price,
+			quantity: data.quantity ?? currentProduct.quantity,
 		};
 
 		this.items[productIndex] = updatedProduct;

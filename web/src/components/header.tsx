@@ -57,10 +57,11 @@ export function Header() {
 
   return (
     <header
+      style={{ backgroundColor: 'hsl(var(--background))' }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-background/98 backdrop-blur-xl border-b border-border/60 shadow-lg shadow-primary/5"
-          : "bg-background/90 backdrop-blur-lg"
+          ? "border-b border-border shadow-lg"
+          : ""
       }`}
     >
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -71,16 +72,12 @@ export function Header() {
             className="flex items-center gap-2.5 font-bold text-xl group relative"
           >
             <div className="relative">
-              {/* Glow effect */}
-              <div className="absolute inset-0 bg-primary/30 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100 animate-pulse" />
-              {/* Animated gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-purple-500/40 to-pink-500/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm" />
               {/* Icon container */}
-              <div className="relative z-10 p-1.5 rounded-lg bg-gradient-to-br from-primary/10 to-purple-500/10 group-hover:from-primary/20 group-hover:to-purple-500/20 transition-all duration-300">
+              <div className="relative z-10 p-1.5 rounded-lg bg-muted group-hover:bg-muted transition-all duration-300">
                 <Store className="h-5 w-5 text-primary group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300 group-hover:scale-110 transform" />
               </div>
               {/* Sparkle effect */}
-              <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse" />
+              <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
             <span className="font-bold bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent bg-[length:200%_auto] group-hover:bg-[length:100%_auto] transition-all duration-500">
               Vitrine.shop
@@ -92,7 +89,7 @@ export function Header() {
             <div className="hidden md:flex items-center gap-1">
               <Link
                 href="/"
-                className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 rounded-md hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 group"
+                className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 rounded-md hover:bg-accent group"
               >
                 <span className="relative z-10">Home</span>
                 <span className="absolute bottom-1 left-1/2 w-0 h-0.5 bg-gradient-to-r from-primary to-purple-600 group-hover:w-3/4 group-hover:left-[12.5%] transition-all duration-300 rounded-full" />
@@ -103,7 +100,7 @@ export function Header() {
                 <button
                   type="button"
                   onClick={() => setIsSobreMenuOpen(!isSobreMenuOpen)}
-                  className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 rounded-md hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 group flex items-center gap-1"
+                  className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 rounded-md hover:bg-accent group flex items-center gap-1"
                 >
                   <span className="relative z-10">Sobre</span>
                   <ChevronDown
@@ -115,12 +112,15 @@ export function Header() {
 
                 {/* Submenu Dropdown */}
                 {isSobreMenuOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-background/98 backdrop-blur-xl border border-border/60 rounded-lg shadow-lg py-2 animate-in slide-in-from-top-2 duration-200 z-50">
+                  <div 
+                    style={{ backgroundColor: 'hsl(var(--background))' }}
+                    className="absolute top-full left-0 mt-2 w-48 border border-border rounded-lg shadow-lg py-2 animate-in slide-in-from-top-2 duration-200 z-50"
+                  >
                     {sobreSubmenuItems.map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
-                        className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 transition-colors"
+                        className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                         onClick={() => setIsSobreMenuOpen(false)}
                       >
                         {item.label}
@@ -174,12 +174,10 @@ export function Header() {
                 <Button
                   size="sm"
                   asChild
-                  className="bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary/90 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-105 relative overflow-hidden group font-semibold"
+                  className="bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary hover:via-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 relative overflow-hidden group font-semibold"
                 >
                   <Link href="/register" className="relative z-10">
                     <span className="relative z-10">Criar minha loja</span>
-                    {/* Shine effect */}
-                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                   </Link>
                 </Button>
               </>
@@ -206,12 +204,15 @@ export function Header() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-border/50 py-4 space-y-2 animate-in slide-in-from-top-2 duration-300 bg-background/98 backdrop-blur-xl">
+          <div 
+            style={{ backgroundColor: 'hsl(var(--background))' }}
+            className="md:hidden border-t border-border py-4 space-y-2 animate-in slide-in-from-top-2 duration-300"
+          >
             {isHomePage && (
               <>
                 <Link
                   href="/"
-                  className="block px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 rounded-md transition-all duration-200 hover:translate-x-1"
+                  className="block px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-all duration-200 hover:translate-x-1"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Home
@@ -235,7 +236,7 @@ export function Header() {
                         <Link
                           key={item.href}
                           href={item.href}
-                          className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 rounded-md transition-colors"
+                          className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
                           onClick={() => {
                             setIsMenuOpen(false);
                             setIsSobreMenuOpen(false);
@@ -249,13 +250,13 @@ export function Header() {
                 </div>
               </>
             )}
-            <div className="px-4 pt-2 border-t border-border/50">
+            <div className="px-4 pt-2 border-t border-border">
               {!isAuthenticated && (
                 <Button
                   variant="ghost"
                   size="sm"
                   asChild
-                  className="w-full justify-start hover:bg-gradient-to-r hover:from-primary/5 hover:to-purple-500/5 mb-2"
+                  className="w-full justify-start mb-2"
                 >
                   <Link href="/login" onClick={() => setIsMenuOpen(false)}>
                     Entrar
@@ -265,7 +266,7 @@ export function Header() {
               <Button
                 size="sm"
                 asChild
-                className="w-full bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary/90 hover:via-purple-700 hover:to-pink-700 text-white"
+                className="w-full bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary hover:via-purple-700 hover:to-pink-700 text-white"
               >
                 <Link href="/register" onClick={() => setIsMenuOpen(false)}>
                   Criar minha loja

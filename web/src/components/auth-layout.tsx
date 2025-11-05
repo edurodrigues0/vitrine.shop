@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -11,13 +11,27 @@ interface AuthLayoutProps {
 export function AuthLayout({ children }: AuthLayoutProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Garantir que só renderizamos após a montagem no cliente
+  // Isso evita problemas de hidratação
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (isMounted && !isLoading && !isAuthenticated) {
       router.push("/login");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isMounted, isAuthenticated, isLoading, router]);
 
+  // Durante a renderização inicial (SSR), sempre mostrar o conteúdo
+  // para evitar diferenças entre servidor e cliente
+  if (!isMounted) {
+    return <>{children}</>;
+  }
+
+  // Após a montagem, aplicar a lógica condicional
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">

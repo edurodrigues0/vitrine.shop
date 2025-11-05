@@ -7,6 +7,8 @@ const findOrdersByStoreQuerySchema = z.object({
 	page: z.coerce.number().min(1).default(1),
 	limit: z.coerce.number().min(1).max(100).default(10),
 	status: z.string().optional(),
+	customerName: z.string().optional(),
+	customerPhone: z.string().optional(),
 });
 
 /**
@@ -73,6 +75,8 @@ export async function findOrdersByStoreController(
 			page: query.page,
 			limit: query.limit,
 			status: query.status,
+			customerName: query.customerName,
+			customerPhone: query.customerPhone,
 		});
 
 		return response.status(200).json(result);

@@ -13,5 +13,8 @@ export interface StoreStatistics {
     ENTREGUE: number;
     CANCELADO: number;
   };
+  totalVisits?: number;
+  visitsLast7Days?: number;
+  visitsLast30Days?: number;
 }
 

@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { authenticateMiddleware } from "~/http/middleware/authenticate";
+import { publicRateLimit, authenticatedRateLimit } from "~/http/middleware/rate-limit";
+import { requireProductOwner } from "~/http/middleware/permissions";
 import { createProductController } from "./create";
 import { deleteProductController } from "./delete";
 import { findAllProductsController } from "./find-all";
@@ -11,19 +13,24 @@ export const productsRoutes = Router();
 
 productsRoutes.post(
 	"/products",
+	authenticatedRateLimit,
 	authenticateMiddleware,
 	createProductController,
 );
-productsRoutes.get("/products", findAllProductsController);
-productsRoutes.get("/products/store/:storeId", findProductsByStoreIdController);
-productsRoutes.get("/products/:id", findProductByIdController);
+productsRoutes.get("/products", publicRateLimit, findAllProductsController);
+productsRoutes.get("/products/store/:storeId", publicRateLimit, findProductsByStoreIdController);
+productsRoutes.get("/products/:id", publicRateLimit, findProductByIdController);
 productsRoutes.put(
 	"/products/:id",
+	authenticatedRateLimit,
 	authenticateMiddleware,
+	requireProductOwner,
 	updateProductController,
 );
 productsRoutes.delete(
 	"/products/:id",
+	authenticatedRateLimit,
 	authenticateMiddleware,
+	requireProductOwner,
 	deleteProductController,
 );

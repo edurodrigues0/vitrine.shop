@@ -24,6 +24,11 @@ export const productsService = {
   },
 
   findByStoreId: async (storeId: string): Promise<Product[]> => {
+    if (!storeId) {
+      console.warn("findByStoreId called without storeId");
+      return [];
+    }
+    
     try {
       console.log("Fetching products for storeId:", storeId);
       const response = await api.get<{ products: Product[] }>(`/products/store/${storeId}`);
@@ -31,6 +36,11 @@ export const productsService = {
       return response.products || [];
     } catch (error) {
       console.error("Error in findByStoreId:", error);
+      // Se o erro for de conexão, retornar array vazio em vez de quebrar a UI
+      if (error instanceof Error && error.message.includes("conexão")) {
+        console.warn("API não está acessível, retornando array vazio");
+        return [];
+      }
       throw error;
     }
   },

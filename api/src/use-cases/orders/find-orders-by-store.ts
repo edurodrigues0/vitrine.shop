@@ -7,6 +7,8 @@ interface FindOrdersByStoreUseCaseRequest {
 	page?: number;
 	limit?: number;
 	status?: string;
+	customerName?: string;
+	customerPhone?: string;
 }
 
 interface FindOrdersByStoreUseCaseResponse {
@@ -22,6 +24,8 @@ export class FindOrdersByStoreUseCase {
 		page = 1,
 		limit = 10,
 		status,
+		customerName,
+		customerPhone,
 	}: FindOrdersByStoreUseCaseRequest): Promise<FindOrdersByStoreUseCaseResponse> {
 		const result = await this.ordersRepository.findAll({
 			page,
@@ -29,6 +33,8 @@ export class FindOrdersByStoreUseCase {
 			filters: {
 				storeId,
 				status,
+				customerName,
+				customerPhone,
 			},
 		});
 

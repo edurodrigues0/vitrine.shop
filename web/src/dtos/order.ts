@@ -50,5 +50,7 @@ export interface FindOrdersParams {
   limit?: number;
   status?: string;
   storeId?: string;
+  customerName?: string;
+  customerPhone?: string;
 }
 

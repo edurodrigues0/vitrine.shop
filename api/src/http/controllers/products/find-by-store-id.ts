@@ -87,6 +87,8 @@ export async function findProductsByStoreIdController(
 				description: product.description,
 				categoryId: product.categoryId,
 				storeId: product.storeId,
+				price: product.price,
+				quantity: product.quantity,
 				createdAt: product.createdAt,
 			})),
 		});

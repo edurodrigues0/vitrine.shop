@@ -4,6 +4,8 @@ export interface Product {
   description: string | null;
   categoryId: string;
   storeId: string;
+  price: number | null; // Preço em centavos
+  quantity: number; // Quantidade em estoque
   createdAt: string;
 }
 
@@ -12,12 +14,16 @@ export interface CreateProductRequest {
   description?: string;
   categoryId: string;
   storeId: string;
+  price?: number; // Preço em centavos
+  quantity?: number; // Quantidade em estoque
 }
 
 export interface UpdateProductRequest {
   name?: string;
   description?: string;
   categoryId?: string;
+  price?: number; // Preço em centavos
+  quantity?: number; // Quantidade em estoque
 }
 
 export interface FindAllProductsParams {

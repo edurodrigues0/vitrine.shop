@@ -57,7 +57,10 @@ export function Cart({ citySlug }: CartProps) {
               className="fixed inset-0 z-40"
               onClick={() => setIsOpen(false)}
             />
-            <div className="absolute right-0 top-full mt-2 z-50 w-96 bg-background border border-border rounded-lg shadow-lg p-4">
+            <div 
+              style={{ backgroundColor: 'hsl(var(--background))' }}
+              className="absolute right-0 top-full mt-2 z-50 w-96 border border-border rounded-lg shadow-lg p-4"
+            >
               <div className="text-center py-8">
                 <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">Carrinho vazio</p>
@@ -91,7 +94,10 @@ export function Cart({ citySlug }: CartProps) {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 top-full mt-2 z-50 w-96 max-h-[600px] bg-background border border-border rounded-lg shadow-lg flex flex-col">
+          <div 
+            style={{ backgroundColor: 'hsl(var(--background))' }}
+            className="absolute right-0 top-full mt-2 z-50 w-96 max-h-[600px] border border-border rounded-lg shadow-lg flex flex-col"
+          >
             <div className="p-4 border-b border-border flex items-center justify-between">
               <h3 className="font-semibold">Carrinho ({itemCount})</h3>
               <button

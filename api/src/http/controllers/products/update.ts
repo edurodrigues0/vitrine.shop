@@ -14,33 +14,15 @@ const updateProductBodySchema = z.object({
 	description: z.string().optional(),
 	price: z
 		.number()
-		.positive("Preço deve ser um valor positivo")
-		.max(999999.99, "Preço deve ser menor que 1.000.000")
+		.int("Preço deve ser um número inteiro (em centavos)")
+		.min(0, "Preço não pode ser negativo")
 		.optional(),
-	discountPrice: z
+	quantity: z
 		.number()
-		.positive("Preço de desconto deve ser um valor positivo")
-		.max(999999.99, "Preço de desconto deve ser menor que 1.000.000")
+		.int("Quantidade deve ser um número inteiro")
+		.min(0, "Quantidade não pode ser negativa")
 		.optional(),
-	stock: z
-		.number()
-		.int("Estoque deve ser um número inteiro")
-		.min(0, "Estoque não pode ser negativo")
-		.optional(),
-	colors: z
-		.array(z.string().min(1, "Cor não pode ser vazia"))
-		.min(1, "Pelo menos uma cor deve ser fornecida")
-		.optional(),
-	size: z
-		.string()
-		.max(100, "Tamanho deve ter no máximo 100 caracteres")
-		.optional(),
-	weight: z
-		.number()
-		.positive("Peso deve ser um valor positivo")
-		.max(999.99, "Peso deve ser menor que 1000")
-		.optional(),
-	dimensions: z.record(z.any(), z.any()).optional(),
+	categoryId: z.string().uuid("ID da categoria deve ser um UUID válido").optional(),
 });
 
 /**
@@ -212,6 +194,8 @@ export async function updateProductController(
 				description: product.description,
 				categoryId: product.categoryId,
 				storeId: product.storeId,
+				price: product.price,
+				quantity: product.quantity,
 				createdAt: product.createdAt,
 			},
 		});

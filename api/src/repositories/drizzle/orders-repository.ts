@@ -1,4 +1,4 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, ilike } from "drizzle-orm";
 import type { DrizzleORM } from "~/database/connection";
 import { type Order, type OrderItem, orderItems, orders } from "~/database/schema";
 import type {
@@ -72,6 +72,14 @@ export class DrizzleOrdersRepository implements OrdersRepository {
 
 		if (filters.status) {
 			conditions.push(eq(orders.status, filters.status as any));
+		}
+
+		if (filters.customerName) {
+			conditions.push(ilike(orders.customerName, `%${filters.customerName}%`));
+		}
+
+		if (filters.customerPhone) {
+			conditions.push(ilike(orders.customerPhone, `%${filters.customerPhone}%`));
 		}
 
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

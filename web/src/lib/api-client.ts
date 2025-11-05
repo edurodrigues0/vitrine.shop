@@ -92,6 +92,12 @@ async function apiClient<T>(
     }
 
     // Network or other errors
+    if (error instanceof TypeError && error.message === "Failed to fetch") {
+      throw new Error(
+        `Erro de conexão com a API. Verifique se o servidor está rodando em ${API_BASE_URL}`,
+      );
+    }
+
     throw new Error(
       error instanceof Error ? error.message : "An unknown error occurred",
     );

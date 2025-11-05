@@ -5,6 +5,7 @@ import { eq, and, gte, sql } from "drizzle-orm";
 import { orders, stores } from "~/database/schema";
 import { StoreNotFoundError } from "~/use-cases/@errors/stores/store-not-found-error";
 import { makeFindStoreByIdUseCase } from "~/use-cases/@factories/stores/make-find-store-by-id-use-case";
+import { DrizzleStoreVisitsRepository } from "~/repositories/drizzle/store-visits-repository";
 
 /**
  * @swagger
@@ -143,6 +144,20 @@ export async function getStoreStatisticsController(
 			{} as Record<string, number>,
 		);
 
+		// Contar visitas
+		const storeVisitsRepository = new DrizzleStoreVisitsRepository(DrizzleORM);
+		const totalVisits = await storeVisitsRepository.countByStoreId({ storeId: id });
+		const visitsLast7Days = await storeVisitsRepository.countByStoreIdAndPeriod({
+			storeId: id,
+			startDate: sevenDaysAgo,
+			endDate: now,
+		});
+		const visitsLast30Days = await storeVisitsRepository.countByStoreIdAndPeriod({
+			storeId: id,
+			startDate: thirtyDaysAgo,
+			endDate: now,
+		});
+
 		return response.status(200).json({
 			statistics: {
 				totalOrders,
@@ -159,6 +174,9 @@ export async function getStoreStatisticsController(
 					ENTREGUE: statusCounts.ENTREGUE || 0,
 					CANCELADO: statusCounts.CANCELADO || 0,
 				},
+				totalVisits,
+				visitsLast7Days,
+				visitsLast30Days,
 			},
 		});
 	} catch (error) {

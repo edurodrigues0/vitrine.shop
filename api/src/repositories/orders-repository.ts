@@ -21,6 +21,8 @@ export interface FindAllOrdersParams {
 	filters: {
 		storeId?: string;
 		status?: string;
+		customerName?: string;
+		customerPhone?: string;
 	};
 }
 

@@ -13,8 +13,11 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
+import { SkeletonStoreCard, SkeletonCard } from "@/components/skeleton-loader";
+import { Pagination } from "@/components/pagination";
 import { slugToText } from "@/lib/slug";
 import { useState, useMemo } from "react";
+import { StoreCard } from "@/components/store-card";
 
 export default function CityPage() {
   const params = useParams();
@@ -23,6 +26,9 @@ export default function CityPage() {
   const cityName = slugToText(citySlug);
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [storesPage, setStoresPage] = useState(1);
+  const [productsPage, setProductsPage] = useState(1);
+  const itemsPerPage = 12;
 
   // Buscar cidade por nome para obter o cityId
   const { data: citiesData } = useQuery({
@@ -69,6 +75,15 @@ export default function CityPage() {
   const stores = storesData?.stores || [];
   const allProducts = productsData?.products || [];
 
+  // Buscar quantidade de produtos por loja
+  const storeProductCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    stores.forEach((store) => {
+      counts[store.id] = allProducts.filter((p) => p.storeId === store.id).length;
+    });
+    return counts;
+  }, [stores, allProducts]);
+
   // Filtrar produtos
   const filteredProducts = useMemo(() => {
     let filtered = allProducts;
@@ -95,6 +110,20 @@ export default function CityPage() {
 
     return filtered;
   }, [allProducts, searchTerm, selectedCategory, stores]);
+
+  // Paginação de lojas
+  const storesTotalPages = Math.ceil(stores.length / itemsPerPage);
+  const paginatedStores = stores.slice(
+    (storesPage - 1) * itemsPerPage,
+    storesPage * itemsPerPage
+  );
+  
+  // Paginação de produtos
+  const productsTotalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice(
+    (productsPage - 1) * itemsPerPage,
+    productsPage * itemsPerPage
+  );
 
   if (!city && citiesData) {
     return (
@@ -153,8 +182,10 @@ export default function CityPage() {
       <section className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">Lojas</h2>
         {isLoadingStores ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonStoreCard key={i} />
+            ))}
           </div>
         ) : stores.length === 0 ? (
           <div className="text-center py-12">
@@ -164,49 +195,23 @@ export default function CityPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {stores.map((store) => (
-              <Card key={store.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <Link href={`/cidade/${citySlug}/loja/${store.slug}`}>
-                  {store.bannerUrl ? (
-                    <div className="relative h-32 w-full">
-                      <Image
-                        src={store.bannerUrl}
-                        alt={store.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="h-32 w-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
-                      <Store className="h-12 w-12 text-primary" />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    {store.logoUrl && (
-                      <div className="relative h-16 w-16 mb-3">
-                        <Image
-                          src={store.logoUrl}
-                          alt={store.name}
-                          fill
-                          className="object-contain rounded"
-                        />
-                      </div>
-                    )}
-                    <h3 className="font-semibold text-lg mb-1">{store.name}</h3>
-                    {store.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                        {store.description}
-                      </p>
-                    )}
-                    <Button variant="outline" className="w-full">
-                      Ver loja
-                    </Button>
-                  </div>
-                </Link>
-              </Card>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedStores.map((store) => {
+                const storeCity = citiesData?.cities.find((c) => c.id === store.cityId);
+                return (
+                  <StoreCard
+                    key={store.id}
+                    store={store}
+                    cityName={storeCity?.name}
+                    cityState={storeCity?.state}
+                    productCount={storeProductCounts[store.id]}
+                    citySlug={citySlug}
+                  />
+                );
+              })}
+            </div>
+          </>
         )}
       </section>
 
@@ -223,6 +228,7 @@ export default function CityPage() {
               onClick={() => {
                 setSearchTerm("");
                 setSelectedCategory("");
+                setProductsPage(1);
               }}
             >
               Limpar filtros
@@ -230,8 +236,10 @@ export default function CityPage() {
           )}
         </div>
         {isLoadingProducts ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="text-center py-12">
@@ -242,8 +250,9 @@ export default function CityPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredProducts.slice(0, 12).map((product) => (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {paginatedProducts.map((product) => (
               <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <Link href={`/cidade/${citySlug}/produto/${product.id}`}>
                   <div className="p-4">
@@ -256,8 +265,18 @@ export default function CityPage() {
                   </div>
                 </Link>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+            {productsTotalPages > 1 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={productsPage}
+                  totalPages={productsTotalPages}
+                  onPageChange={setProductsPage}
+                />
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

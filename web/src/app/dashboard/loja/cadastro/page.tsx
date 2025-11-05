@@ -20,6 +20,7 @@ import { createSlug } from "@/lib/slug";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useEffect } from "react";
 
 const storeSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(120, "Nome muito longo"),
@@ -69,31 +70,47 @@ export default function StoreFormPage() {
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<StoreFormData>({
     resolver: zodResolver(storeSchema),
-    defaultValues: storeData
-      ? {
-          name: storeData.name,
-          description: storeData.description || "",
-          slug: storeData.slug,
-          cnpjcpf: storeData.cnpjcpf,
-          whatsapp: storeData.whatsapp,
-          instagramUrl: storeData.instagramUrl || "",
-          facebookUrl: storeData.facebookUrl || "",
-          logoUrl: storeData.logoUrl || "",
-          bannerUrl: storeData.bannerUrl || "",
-          cityId: storeData.cityId,
-          primaryColor: storeData.theme.primaryColor,
-          secondaryColor: storeData.theme.secondaryColor,
-          tertiaryColor: storeData.theme.tertiaryColor,
-        }
-      : {
-          primaryColor: "#000000",
-          secondaryColor: "#FFFFFF",
-          tertiaryColor: "#808080",
-        },
+    defaultValues: {
+      name: "",
+      description: "",
+      slug: "",
+      cnpjcpf: "",
+      whatsapp: "",
+      instagramUrl: "",
+      facebookUrl: "",
+      logoUrl: "",
+      bannerUrl: "",
+      cityId: "",
+      primaryColor: "#000000",
+      secondaryColor: "#FFFFFF",
+      tertiaryColor: "#808080",
+    },
   });
+
+  // Atualizar valores do formulário quando storeData for carregado
+  useEffect(() => {
+    if (storeData && isEditing) {
+      reset({
+        name: storeData.name,
+        description: storeData.description || "",
+        slug: storeData.slug,
+        cnpjcpf: storeData.cnpjcpf || "",
+        whatsapp: storeData.whatsapp || "",
+        instagramUrl: storeData.instagramUrl || "",
+        facebookUrl: storeData.facebookUrl || "",
+        logoUrl: storeData.logoUrl || "",
+        bannerUrl: storeData.bannerUrl || "",
+        cityId: storeData.cityId,
+        primaryColor: storeData.theme?.primaryColor || "#000000",
+        secondaryColor: storeData.theme?.secondaryColor || "#FFFFFF",
+        tertiaryColor: storeData.theme?.tertiaryColor || "#808080",
+      });
+    }
+  }, [storeData, isEditing, reset]);
 
   const watchedName = watch("name");
 
@@ -168,10 +185,18 @@ export default function StoreFormPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">
-        {isEditing ? "Editar Loja" : "Criar Loja"}
-      </h1>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-4xl font-bold mb-2">
+          {isEditing ? "Editar Loja" : "Criar Loja"}
+        </h1>
+        <p className="text-muted-foreground">
+          {isEditing 
+            ? "Atualize as informações da sua loja" 
+            : "Configure sua loja para começar a vender"}
+        </p>
+      </div>
 
       <Card className="p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

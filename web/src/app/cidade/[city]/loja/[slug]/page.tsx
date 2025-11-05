@@ -26,6 +26,12 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Product } from "@/dtos/product";
 import { citiesService } from "@/services/cities-service";
+import { SkeletonStoreCard } from "@/components/skeleton-loader";
+import { Pagination } from "@/components/pagination";
+import { useState, useEffect, useMemo } from "react";
+import { Input } from "@/components/ui/input";
+import { Search, Filter } from "lucide-react";
+import { categoriesService } from "@/services/categories-service";
 
 export default function StorePage() {
   const params = useParams();
@@ -71,11 +77,83 @@ export default function StorePage() {
 
   const products = Array.isArray(productsData) ? productsData : [];
 
+  // Buscar categorias para filtro
+  const { data: categoriesData } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => categoriesService.findAll(),
+  });
+
+  const categories = categoriesData?.categories || [];
+
+  // Filtros
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+
+  // Filtrar produtos
+  const filteredProducts = useMemo(() => {
+    let filtered = products;
+
+    // Filtro por nome
+    if (searchTerm) {
+      filtered = filtered.filter((product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtro por categoria
+    if (selectedCategoryId) {
+      filtered = filtered.filter(
+        (product) => product.categoryId === selectedCategoryId
+      );
+    }
+
+    return filtered;
+  }, [products, searchTerm, selectedCategoryId]);
+  
+  // Paginação de produtos
+  const [productsPage, setProductsPage] = useState(1);
+  const itemsPerPage = 12;
+  const productsTotalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice(
+    (productsPage - 1) * itemsPerPage,
+    productsPage * itemsPerPage
+  );
+
+  // Resetar página quando filtros mudarem
+  useEffect(() => {
+    setProductsPage(1);
+  }, [searchTerm, selectedCategoryId]);
+
+  // Registrar visita quando a página carregar
+  useEffect(() => {
+    if (store?.id) {
+      storesService.trackVisit(store.id).catch((error) => {
+        console.error("Erro ao registrar visita:", error);
+      });
+    }
+  }, [store?.id]);
+
   if (isLoadingStore) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <Card className="p-8">
+              <div className="flex items-center gap-6">
+                <div className="h-32 w-32 bg-muted rounded-2xl animate-pulse" />
+                <div className="flex-1 space-y-4">
+                  <div className="h-8 bg-muted rounded animate-pulse w-3/4" />
+                  <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
+                  <div className="h-4 bg-muted rounded animate-pulse w-full" />
+                </div>
+              </div>
+            </Card>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonStoreCard key={i} />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -269,20 +347,73 @@ export default function StorePage() {
 
       {/* Products Section */}
       <div className="container mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
             <h2 className="text-3xl font-bold mb-2">Produtos</h2>
             <p className="text-muted-foreground">
-              {products.length > 0
-                ? `${products.length} ${products.length === 1 ? "produto disponível" : "produtos disponíveis"}`
+              {filteredProducts.length > 0
+                ? `${filteredProducts.length} ${filteredProducts.length === 1 ? "produto encontrado" : "produtos encontrados"}`
+                : products.length > 0
+                ? "Nenhum produto encontrado com os filtros aplicados"
                 : "Navegue pelos nossos produtos"}
             </p>
           </div>
         </div>
 
+        {/* Filtros */}
+        {products.length > 0 && (
+          <Card className="p-4 mb-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Busca por nome */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar produtos por nome..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {/* Filtro por categoria */}
+              <div className="md:w-64">
+                <select
+                  value={selectedCategoryId}
+                  onChange={(e) => setSelectedCategoryId(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Todas as categorias</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Botão limpar filtros */}
+              {(searchTerm || selectedCategoryId) && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedCategoryId("");
+                  }}
+                >
+                  Limpar filtros
+                </Button>
+              )}
+            </div>
+          </Card>
+        )}
+
         {isLoadingProducts ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonStoreCard key={i} />
+            ))}
           </div>
         ) : productsError ? (
           <Card className="p-12 text-center">
@@ -303,16 +434,46 @@ export default function StorePage() {
               Esta loja ainda não possui produtos cadastrados.
             </p>
           </Card>
+        ) : filteredProducts.length === 0 ? (
+          <Card className="p-12 text-center">
+            <div className="bg-muted rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Nenhum produto encontrado</h3>
+            <p className="text-muted-foreground mb-4">
+              Não há produtos que correspondam aos filtros aplicados.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCategoryId("");
+              }}
+            >
+              Limpar filtros
+            </Button>
+          </Card>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                citySlug={citySlug}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {paginatedProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  citySlug={citySlug}
+                />
+              ))}
+            </div>
+            {productsTotalPages > 1 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={productsPage}
+                  totalPages={productsTotalPages}
+                  onPageChange={setProductsPage}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -360,7 +521,7 @@ function ProductCard({
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group border-2 hover:border-primary/50 bg-card">
       <Link href={`/cidade/${citySlug}/produto/${product.id}`}>
         {/* Imagem do produto */}
-        <div className="relative aspect-square w-full bg-muted overflow-hidden">
+        <div className="relative aspect-[4/3] w-full bg-muted overflow-hidden">
           {mainImage ? (
             <Image
               src={mainImage.url}
@@ -370,7 +531,7 @@ function ProductCard({
             />
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-primary/10 to-purple-500/10 flex items-center justify-center">
-              <ShoppingCart className="h-16 w-16 text-muted-foreground/50" />
+              <ShoppingCart className="h-12 w-12 text-muted-foreground/50" />
             </div>
           )}
           {hasDiscount && (
@@ -400,11 +561,11 @@ function ProductCard({
           </div>
 
           {/* Preço */}
-          {hasVariation && minPrice && (
-            <div className="flex items-baseline gap-2">
-              {minPrice === maxPrice ? (
+          <div className="flex items-baseline gap-2">
+            {hasVariation && minPrice ? (
+              minPrice === maxPrice ? (
                 <>
-                  <span className="text-2xl font-bold">
+                  <span className="text-2xl font-bold text-primary">
                     R$ {(minPrice / 100).toFixed(2).replace(".", ",")}
                   </span>
                   {variations[0]?.discountPrice && (
@@ -414,12 +575,20 @@ function ProductCard({
                   )}
                 </>
               ) : (
-                <span className="text-lg font-bold">
+                <span className="text-lg font-bold text-primary">
                   A partir de R$ {(minPrice / 100).toFixed(2).replace(".", ",")}
                 </span>
-              )}
-            </div>
-          )}
+              )
+            ) : product.price ? (
+              <span className="text-2xl font-bold text-primary">
+                R$ {(product.price / 100).toFixed(2).replace(".", ",")}
+              </span>
+            ) : (
+              <span className="text-sm text-muted-foreground">
+                Preço não disponível
+              </span>
+            )}
+          </div>
 
           {/* Botão */}
           <Button

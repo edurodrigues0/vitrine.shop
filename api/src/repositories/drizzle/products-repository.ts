@@ -117,6 +117,8 @@ export class DrizzleProductsRepository implements ProductsRespository {
 				description: products.description,
 				categoryId: products.categoryId,
 				storeId: products.storeId,
+				price: products.price,
+				quantity: products.quantity,
 				createdAt: products.createdAt,
 			})
 			.from(products)
@@ -152,6 +154,8 @@ export class DrizzleProductsRepository implements ProductsRespository {
 		if (data.name !== undefined) updateData.name = data.name;
 		if (data.description !== undefined)
 			updateData.description = data.description;
+		if (data.price !== undefined) updateData.price = data.price;
+		if (data.quantity !== undefined) updateData.quantity = data.quantity;
 
 		const [updatedProduct] = await this.drizzle
 			.update(products)

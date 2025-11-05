@@ -45,5 +45,9 @@ export const storesService = {
     );
     return response.statistics;
   },
+
+  trackVisit: async (id: string): Promise<void> => {
+    await api.post(`/stores/${id}/visit`);
+  },
 };
 
