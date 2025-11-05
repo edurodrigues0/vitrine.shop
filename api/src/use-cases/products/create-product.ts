@@ -6,6 +6,9 @@ interface CreateProductUseCaseRequest {
 	description?: string | null;
 	categoryId: string;
 	storeId: string;
+	price?: number;
+	quantity?: number;
+	color?: string;
 }
 
 interface CreateProductUseCaseResponse {
@@ -20,12 +23,18 @@ export class CreateProductUseCase {
 		description,
 		categoryId,
 		storeId,
+		price,
+		quantity,
+		color,
 	}: CreateProductUseCaseRequest): Promise<CreateProductUseCaseResponse> {
 		const product = await this.productsRepository.create({
 			name,
 			description,
 			categoryId,
 			storeId,
+			price,
+			quantity,
+			color,
 		});
 
 		return { product };

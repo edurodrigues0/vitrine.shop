@@ -6,6 +6,9 @@ export interface CreateProductParams {
 	description?: string | null;
 	categoryId: string;
 	storeId: string;
+	price?: number;
+	quantity?: number;
+	color?: string;
 }
 
 export interface FindAllProductsParams {
@@ -26,6 +29,8 @@ export interface UpdateProductParams {
 		description?: string;
 		price?: number;
 		quantity?: number;
+		categoryId?: string;
+		color?: string;
 	};
 }
 
@@ -35,6 +40,9 @@ export interface ProductsRespository {
 		description,
 		categoryId,
 		storeId,
+		price,
+		quantity,
+		color,
 	}: CreateProductParams): Promise<Product>;
 
 	findById({ id }: { id: string }): Promise<Product | null>;

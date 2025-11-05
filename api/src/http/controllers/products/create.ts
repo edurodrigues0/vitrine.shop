@@ -11,31 +11,18 @@ const createProductBodySchema = z.object({
 	description: z.string().optional(),
 	price: z
 		.number()
-		.positive("Preço deve ser um valor positivo")
-		.max(999999.99, "Preço deve ser menor que 1.000.000"),
-	discountPrice: z
-		.number()
-		.positive("Preço de desconto deve ser um valor positivo")
-		.max(999999.99, "Preço de desconto deve ser menor que 1.000.000")
+		.int("Preço deve ser um número inteiro (em centavos)")
+		.min(0, "Preço não pode ser negativo")
 		.optional(),
-	stock: z
+	quantity: z
 		.number()
-		.int("Estoque deve ser um número inteiro")
-		.min(0, "Estoque não pode ser negativo")
-		.default(0),
-	colors: z
-		.array(z.string().min(1, "Cor não pode ser vazia"))
-		.min(1, "Pelo menos uma cor deve ser fornecida"),
-	size: z
+		.int("Quantidade deve ser um número inteiro")
+		.min(0, "Quantidade não pode ser negativa")
+		.optional(),
+	color: z
 		.string()
-		.max(100, "Tamanho deve ter no máximo 100 caracteres")
+		.max(50, "Cor deve ter no máximo 50 caracteres")
 		.optional(),
-	weight: z
-		.number()
-		.positive("Peso deve ser um valor positivo")
-		.max(999.99, "Peso deve ser menor que 1000")
-		.optional(),
-	dimensions: z.record(z.any(), z.any()).optional(),
 	categoryId: z.uuid("ID da categoria deve ser um UUID válido"),
 	storeId: z.uuid("ID da loja deve ser um UUID válido"),
 });
@@ -174,7 +161,10 @@ export async function createProductController(
 			categoryId: body.categoryId,
 			description: body.description,
 			name: body.name,
-			storeId: request.body.storeId,
+			storeId: body.storeId,
+			price: body.price,
+			quantity: body.quantity,
+			color: body.color,
 		});
 
 		return response.status(201).json({
@@ -184,6 +174,9 @@ export async function createProductController(
 				description: product.description,
 				categoryId: product.categoryId,
 				storeId: product.storeId,
+				price: product.price,
+				quantity: product.quantity,
+				color: product.color,
 				createdAt: product.createdAt,
 			},
 		});

@@ -17,6 +17,9 @@ export class InMemoryProductsRepository implements ProductsRespository {
 		description,
 		categoryId,
 		storeId,
+		price,
+		quantity,
+		color,
 	}: CreateProductParams): Promise<Product> {
 		const id = crypto.randomUUID();
 
@@ -26,6 +29,9 @@ export class InMemoryProductsRepository implements ProductsRespository {
 			description: description ?? null,
 			categoryId,
 			storeId,
+			price: price ?? null,
+			quantity: quantity ?? 0,
+			color: color ?? null,
 			createdAt: new Date(),
 		};
 
@@ -109,6 +115,8 @@ export class InMemoryProductsRepository implements ProductsRespository {
 			description: data.description ?? currentProduct.description,
 			price: data.price ?? currentProduct.price,
 			quantity: data.quantity ?? currentProduct.quantity,
+			categoryId: data.categoryId ?? currentProduct.categoryId,
+			color: data.color ?? currentProduct.color,
 		};
 
 		this.items[productIndex] = updatedProduct;

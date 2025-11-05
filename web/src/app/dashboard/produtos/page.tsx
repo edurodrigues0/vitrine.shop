@@ -361,7 +361,7 @@ function ProductCard({ product }: { product: any }) {
       <div className="space-y-4">
         {/* Product Image */}
         {mainImage ? (
-          <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-muted">
+          <div className="relative h-32 w-full rounded-lg overflow-hidden bg-muted">
             <Image
               src={mainImage.url}
               alt={product.name}
@@ -371,8 +371,8 @@ function ProductCard({ product }: { product: any }) {
             />
           </div>
         ) : (
-          <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
-            <ImageIcon className="h-12 w-12 text-muted-foreground opacity-50" />
+          <div className="relative h-32 w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+            <ImageIcon className="h-8 w-8 text-muted-foreground opacity-50" />
           </div>
         )}
 

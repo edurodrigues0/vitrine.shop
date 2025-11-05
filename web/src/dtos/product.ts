@@ -6,6 +6,7 @@ export interface Product {
   storeId: string;
   price: number | null; // Preço em centavos
   quantity: number; // Quantidade em estoque
+  color: string | null; // Cor do produto
   createdAt: string;
 }
 
@@ -16,6 +17,7 @@ export interface CreateProductRequest {
   storeId: string;
   price?: number; // Preço em centavos
   quantity?: number; // Quantidade em estoque
+  color?: string; // Cor do produto
 }
 
 export interface UpdateProductRequest {
@@ -24,6 +26,7 @@ export interface UpdateProductRequest {
   categoryId?: string;
   price?: number; // Preço em centavos
   quantity?: number; // Quantidade em estoque
+  color?: string; // Cor do produto
 }
 
 export interface FindAllProductsParams {

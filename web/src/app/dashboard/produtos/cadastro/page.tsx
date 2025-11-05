@@ -29,6 +29,7 @@ const productSchema = z.object({
   categoryId: z.string().uuid("Categoria é obrigatória"),
   price: z.number().min(0, "Preço não pode ser negativo").optional(),
   quantity: z.number().int("Quantidade deve ser um número inteiro").min(0, "Quantidade não pode ser negativa").optional(),
+  color: z.string().max(50, "Cor deve ter no máximo 50 caracteres").optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -75,6 +76,10 @@ export default function CreateProductPage() {
 
       if (data.quantity !== undefined) {
         createData.quantity = data.quantity;
+      }
+
+      if (data.color !== undefined && data.color !== "") {
+        createData.color = data.color;
       }
 
       const productResult = await productsService.create(createData);
@@ -249,6 +254,21 @@ export default function CreateProductPage() {
             {errors.quantity && (
               <p className="text-sm text-destructive mt-1">
                 {errors.quantity.message}
+              </p>
+            )}
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="color">Cor</FieldLabel>
+            <Input
+              id="color"
+              {...register("color")}
+              aria-invalid={errors.color ? "true" : "false"}
+              placeholder="Ex: Azul, Vermelho, Preto"
+            />
+            {errors.color && (
+              <p className="text-sm text-destructive mt-1">
+                {errors.color.message}
               </p>
             )}
           </Field>

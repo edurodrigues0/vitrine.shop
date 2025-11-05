@@ -6,7 +6,7 @@ import { useSelectedStore } from "@/hooks/use-selected-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Package, Phone, Mail, Calendar, CheckCircle2, Clock, Truck, XCircle, Search } from "lucide-react";
+import { Loader2, Package, Phone, Mail, Calendar, CheckCircle2, Clock, Truck, XCircle, Search, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -235,12 +235,27 @@ export default function OrdersPage() {
                         <p className="text-xs text-muted-foreground mb-1">Contato</p>
                         <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-semibold">{order.customerPhone}</span>
+                          <a
+                            href={`https://wa.me/${order.customerPhone.replace(/\D/g, "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 transition-colors flex items-center gap-1"
+                            title="Abrir WhatsApp com o cliente"
+                          >
+                            {order.customerPhone}
+                            <MessageCircle className="h-3 w-3" />
+                          </a>
                         </div>
                         {order.customerEmail && (
                           <div className="flex items-center gap-2 mt-1">
                             <Mail className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{order.customerEmail}</span>
+                            <a
+                              href={`mailto:${order.customerEmail}`}
+                              className="text-sm text-primary hover:underline"
+                              title="Enviar e-mail para o cliente"
+                            >
+                              {order.customerEmail}
+                            </a>
                           </div>
                         )}
                       </div>
@@ -300,20 +315,35 @@ export default function OrdersPage() {
 
                     {/* Status Selector */}
                     <div>
-                      <p className="text-xs text-muted-foreground mb-2">Alterar Status</p>
-                      <select
-                        value={order.status}
-                        onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                        disabled={updateStatusMutation.isPending}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <option value="PENDENTE">Pendente</option>
-                        <option value="CONFIRMADO">Confirmado</option>
-                        <option value="PREPARANDO">Preparando</option>
-                        <option value="ENVIADO">Enviado</option>
-                        <option value="ENTREGUE">Entregue</option>
-                        <option value="CANCELADO">Cancelado</option>
-                      </select>
+                      <p className="text-xs text-muted-foreground mb-3 font-semibold">Alterar Status</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(statusLabels).map(([status, label]) => {
+                          const isSelected = order.status === status;
+                          const StatusIcon = statusIcons[status] || Package;
+                          const statusColor = statusColors[status] || statusColors.PENDENTE;
+                          
+                          return (
+                            <Button
+                              key={status}
+                              variant={isSelected ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleStatusChange(order.id, status)}
+                              disabled={updateStatusMutation.isPending || isSelected}
+                              className={`${isSelected ? "" : "hover:bg-accent"} transition-all`}
+                              title={isSelected ? "Status atual" : `Alterar para ${label}`}
+                            >
+                              <StatusIcon className="h-3 w-3 mr-1" />
+                              <span className="text-xs">{label}</span>
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      {updateStatusMutation.isPending && (
+                        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <span>Atualizando...</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -14,6 +14,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { CheckoutModal } from "@/components/checkout-modal";
 
 interface CartProps {
   citySlug?: string;
@@ -30,6 +31,7 @@ export function Cart({ citySlug }: CartProps) {
     getItemCount,
   } = useCart();
   const [isOpen, setIsOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const total = getTotal();
   const itemCount = getItemCount();
@@ -190,24 +192,24 @@ export function Cart({ citySlug }: CartProps) {
                 </Button>
                 <Button
                   className="flex-1"
-                  asChild
+                  onClick={() => {
+                    setIsOpen(false);
+                    setIsCheckoutOpen(true);
+                  }}
                 >
-                  <Link
-                    href={
-                      citySlug
-                        ? `/cidade/${citySlug}/checkout`
-                        : "/checkout"
-                    }
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Finalizar
-                  </Link>
+                  Finalizar
                 </Button>
               </div>
             </div>
           </div>
         </>
       )}
+      
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        citySlug={citySlug}
+      />
     </div>
   );
 }

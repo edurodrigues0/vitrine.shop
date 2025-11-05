@@ -95,6 +95,7 @@ export async function findProductByIdController(
 				storeId: product.storeId,
 				price: product.price,
 				quantity: product.quantity,
+				color: product.color,
 				createdAt: product.createdAt,
 			},
 		});

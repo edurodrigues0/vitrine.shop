@@ -27,6 +27,7 @@ export const products = pgTable("products", {
 		.notNull(),
 	price: integer("price"), // Preço base do produto (em centavos)
 	quantity: integer("quantity").default(0).notNull(), // Quantidade total em estoque
+	color: varchar("color", { length: 50 }), // Cor do produto
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -330,7 +330,22 @@ export default function ProductPage() {
                   <Button variant="outline" size="icon" className="shrink-0">
                     <Heart className="h-5 w-5" />
                   </Button>
-                  <Button variant="outline" size="icon" className="shrink-0">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={async () => {
+                      try {
+                        const productUrl = window.location.href;
+                        await navigator.clipboard.writeText(productUrl);
+                        toast.success("Link copiado para área de transferência!");
+                      } catch (error) {
+                        console.error("Erro ao copiar link:", error);
+                        toast.error("Erro ao copiar link");
+                      }
+                    }}
+                    title="Compartilhar produto"
+                  >
                     <Share2 className="h-5 w-5" />
                   </Button>
                 </div>

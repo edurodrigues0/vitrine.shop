@@ -15,7 +15,8 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
-		"db:seed": "tsx --env-file=.env src/database/run-seed.ts"
+		"db:seed": "tsx --env-file=.env src/database/run-seed.ts",
+		"db:add-color": "tsx --env-file=.env src/database/add-color-column.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.7",
