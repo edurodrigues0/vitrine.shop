@@ -144,22 +144,26 @@ export class InMemoryAddressesRepository implements AddressesRepository {
 			return null;
 		}
 
+		// Helper para verificar se uma propriedade foi explicitamente passada
+		const hasProperty = (key: keyof typeof data) => key in data;
+
 		const updatedAddress: Address = {
 			...currentAddress,
 			street: data.street ?? currentAddress.street,
 			number: data.number ?? currentAddress.number,
-			complement:
-				data.complement !== undefined
-					? data.complement
-					: currentAddress.complement,
+			complement: hasProperty("complement")
+				? data.complement ?? null
+				: currentAddress.complement,
 			neighborhood: data.neighborhood ?? currentAddress.neighborhood,
 			cityId: data.cityId ?? currentAddress.cityId,
 			zipCode: data.zipCode ?? currentAddress.zipCode,
 			country: data.country ?? currentAddress.country,
-			branchId:
-				data.branchId !== undefined ? data.branchId : currentAddress.branchId,
-			storeId:
-				data.storeId !== undefined ? data.storeId : currentAddress.storeId,
+			branchId: hasProperty("branchId")
+				? data.branchId ?? null
+				: currentAddress.branchId,
+			storeId: hasProperty("storeId")
+				? data.storeId ?? null
+				: currentAddress.storeId,
 			isMain: data.isMain !== undefined ? data.isMain : currentAddress.isMain,
 		};
 
