@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Store, Instagram, MessageCircle, Package } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { LazyImage } from "@/components/lazy-image";
 import { useRouter } from "next/navigation";
 import type { Store as StoreType } from "@/dtos/store";
 
@@ -34,12 +35,13 @@ export function StoreCard({
       <div className="cursor-pointer" onClick={handleCardClick}>
         {store.bannerUrl ? (
           <div className="relative h-32 w-full">
-            <Image
+            <LazyImage
               src={store.bannerUrl}
               alt={store.name}
               fill
               className="object-cover"
               unoptimized
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
         ) : (
@@ -50,11 +52,12 @@ export function StoreCard({
         <div className="p-4">
           {store.logoUrl && (
             <div className="relative h-16 w-16 mb-3">
-              <Image
+              <LazyImage
                 src={store.logoUrl}
                 alt={store.name}
                 fill
                 className="object-contain rounded"
+                sizes="64px"
               />
             </div>
           )}

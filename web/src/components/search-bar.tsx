@@ -112,7 +112,7 @@ export function SearchBar() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Buscar produtos, lojas..."
+            placeholder="Buscar por nome da loja"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onFocus={() => {
@@ -139,8 +139,7 @@ export function SearchBar() {
       {/* Dropdown de resultados */}
       {isDropdownOpen && searchTerm.length >= 2 && (
         <div 
-          style={{ backgroundColor: 'hsl(var(--background))' }}
-          className="absolute top-full left-0 right-0 mt-2 border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+          className="absolute top-full left-0 right-0 mt-2 border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto bg-background"
         >
           {isLoadingStores ? (
             <div className="flex items-center justify-center py-8">

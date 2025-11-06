@@ -25,13 +25,14 @@ import {
   Store,
 } from "lucide-react";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useCart } from "@/contexts/cart-context";
 import { toast } from "sonner";
 import Link from "next/link";
 import type { ProductVariation } from "@/dtos/product-variation";
 import type { ProductImage } from "@/dtos/product-image";
 import { SkeletonText } from "@/components/skeleton-loader";
+import { ProductGallery } from "@/components/product-gallery";
 
 export default function ProductPage() {
   const params = useParams();
@@ -274,49 +275,12 @@ export default function ProductPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Product Images */}
           <div className="space-y-4">
-            {/* Main Image */}
-            <Card className="aspect-square relative overflow-hidden rounded-xl border-2 bg-muted">
-              {isLoadingImages ? (
-                <div className="h-full w-full flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : displayedImages[selectedImageIndex] ? (
-                <Image
-                  src={displayedImages[selectedImageIndex].url}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center">
-                  <ShoppingCart className="h-24 w-24 text-muted-foreground/50" />
-                </div>
-              )}
-            </Card>
-
-            {/* Thumbnail Images */}
-            {displayedImages.length > 1 && (
-              <div className="grid grid-cols-4 gap-4">
-                {displayedImages.map((image, index) => (
-                  <Card
-                    key={image.id}
-                    className={`aspect-square relative overflow-hidden rounded-lg border-2 cursor-pointer transition-all ${
-                      index === selectedImageIndex
-                        ? "border-primary ring-2 ring-primary/20"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                    onClick={() => setSelectedImageIndex(index)}
-                  >
-                    <Image
-                      src={image.url}
-                      alt={`${product.name} - Imagem ${index + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </Card>
-                ))}
-              </div>
+            {isLoadingImages ? (
+              <Card className="aspect-square relative overflow-hidden rounded-xl border-2 bg-muted flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </Card>
+            ) : (
+              <ProductGallery images={displayedImages} productName={product.name} />
             )}
           </div>
 
@@ -430,7 +394,6 @@ export default function ProductPage() {
                           }`}
                           onClick={() => {
                             setSelectedVariation(variation);
-                            setSelectedImageIndex(0);
                           }}
                         >
                           <div className="flex justify-between items-center">
@@ -592,6 +555,164 @@ export default function ProductPage() {
             </div>
           </div>
         </div>
+
+        {/* Related Products */}
+        <RelatedProducts 
+          currentProductId={product.id}
+          categoryId={product.categoryId}
+          storeId={product.storeId}
+          citySlug={citySlug}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Componente de Produtos Relacionados
+function RelatedProducts({
+  currentProductId,
+  categoryId,
+  storeId,
+  citySlug,
+}: {
+  currentProductId: string;
+  categoryId: string;
+  storeId: string;
+  citySlug: string;
+}) {
+  // Buscar produtos da mesma categoria e loja
+  const { data: relatedProductsData, isLoading } = useQuery({
+    queryKey: ["products", "related", storeId, categoryId],
+    queryFn: async () => {
+      const response = await productsService.findByStoreId(storeId);
+      // Filtrar produtos da mesma categoria, excluindo o produto atual
+      return response.filter(
+        (p) => p.categoryId === categoryId && p.id !== currentProductId
+      );
+    },
+    enabled: !!storeId && !!categoryId,
+  });
+
+  const relatedProducts = useMemo(() => {
+    return (relatedProductsData || []).slice(0, 4); // Limitar a 4 produtos
+  }, [relatedProductsData]);
+
+  // Buscar imagens e variações para cada produto relacionado
+  const { data: variationsData } = useQuery({
+    queryKey: ["product-variations", "related", relatedProducts.map(p => p.id)],
+    queryFn: async () => {
+      const variationsMap: Record<string, any[]> = {};
+      for (const product of relatedProducts) {
+        try {
+          const variations = await productVariationsService.findByProductId(product.id);
+          variationsMap[product.id] = variations.productVariations || [];
+        } catch (error) {
+          console.error(`Error fetching variations for product ${product.id}:`, error);
+          variationsMap[product.id] = [];
+        }
+      }
+      return variationsMap;
+    },
+    enabled: relatedProducts.length > 0,
+  });
+
+  const { data: imagesData } = useQuery({
+    queryKey: ["product-images", "related", relatedProducts.map(p => p.id), variationsData],
+    queryFn: async () => {
+      const imagesMap: Record<string, any[]> = {};
+      for (const product of relatedProducts) {
+        const variations = variationsData?.[product.id] || [];
+        if (variations.length > 0) {
+          try {
+            const images = await productImagesService.findByProductVariationId(variations[0].id);
+            imagesMap[product.id] = images.productImages || [];
+          } catch (error: any) {
+            // 404 significa que não há imagens, o que é válido - não é um erro crítico
+            if (error?.status === 404) {
+              imagesMap[product.id] = [];
+            } else {
+              // Outros erros são logados mas não quebram a UI
+              console.warn(`No images found for product ${product.id} (variation ${variations[0].id}):`, error);
+              imagesMap[product.id] = [];
+            }
+          }
+        } else {
+          // Sem variações, sem imagens
+          imagesMap[product.id] = [];
+        }
+      }
+      return imagesMap;
+    },
+    enabled: relatedProducts.length > 0 && !!variationsData,
+    retry: false, // Não tentar novamente em caso de 404
+  });
+
+  if (isLoading) {
+    return (
+      <div className="mt-16">
+        <h2 className="text-2xl font-bold mb-6">Produtos Relacionados</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="aspect-square bg-muted animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (relatedProducts.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-16">
+      <h2 className="text-2xl font-bold mb-6">Produtos Relacionados</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {relatedProducts.map((product) => {
+          const variations = variationsData?.[product.id] || [];
+          const images = imagesData?.[product.id] || [];
+          const mainImage = images.find((img: any) => img.isMain) || images[0];
+          const firstVariation = variations[0];
+          const price = firstVariation
+            ? firstVariation.discountPrice || firstVariation.price
+            : product.price;
+
+          return (
+            <Link
+              key={product.id}
+              href={`/cidade/${citySlug}/produto/${product.id}`}
+            >
+              <Card className="overflow-hidden hover:shadow-lg transition-all group">
+                <div className="relative aspect-square bg-muted overflow-hidden">
+                  {mainImage ? (
+                    <Image
+                      src={mainImage.url}
+                      alt={product.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <Package className="h-12 w-12 text-muted-foreground/50" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                    {product.name}
+                  </h3>
+                  {price && (
+                    <p className="text-lg font-bold text-primary">
+                      R$ {(price / 100).toFixed(2).replace(".", ",")}
+                    </p>
+                  )}
+                </div>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

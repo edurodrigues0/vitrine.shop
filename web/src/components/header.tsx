@@ -69,17 +69,17 @@ export function Header() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 font-bold text-xl group relative"
+            className="flex items-center gap-3 font-bold text-xl group relative"
           >
             <div className="relative">
-              {/* Icon container */}
-              <div className="relative z-10 p-1.5 rounded-lg bg-muted group-hover:bg-muted transition-all duration-300">
-                <Store className="h-5 w-5 text-primary group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300 group-hover:scale-110 transform" />
+              {/* Icon container - maior e mais destacado */}
+              <div className="relative z-10 p-2.5 rounded-xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 group-hover:from-blue-700 group-hover:via-purple-700 group-hover:to-pink-700 transition-all duration-300 shadow-lg group-hover:shadow-xl group-hover:scale-105 transform">
+                <Store className="h-6 w-6 text-white transition-colors duration-300" />
               </div>
               {/* Sparkle effect */}
-              <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse" />
             </div>
-            <span className="font-bold bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent bg-[length:200%_auto] group-hover:bg-[length:100%_auto] transition-all duration-500">
+            <span className="font-bold text-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300">
               Vitrine.shop
             </span>
           </Link>
@@ -113,8 +113,7 @@ export function Header() {
                 {/* Submenu Dropdown */}
                 {isSobreMenuOpen && (
                   <div 
-                    style={{ backgroundColor: 'hsl(var(--background))' }}
-                    className="absolute top-full left-0 mt-2 w-48 border border-border rounded-lg shadow-lg py-2 animate-in slide-in-from-top-2 duration-200 z-50"
+                    className="absolute top-full left-0 mt-2 w-48 border border-border rounded-lg shadow-lg py-2 animate-in slide-in-from-top-2 duration-200 z-50 bg-background"
                   >
                     {sobreSubmenuItems.map((item) => (
                       <Link
@@ -205,8 +204,7 @@ export function Header() {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div 
-            style={{ backgroundColor: 'hsl(var(--background))' }}
-            className="md:hidden border-t border-border py-4 space-y-2 animate-in slide-in-from-top-2 duration-300"
+            className="md:hidden border-t border-border py-4 space-y-2 animate-in slide-in-from-top-2 duration-300 bg-background"
           >
             {isHomePage && (
               <>

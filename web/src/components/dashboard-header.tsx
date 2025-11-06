@@ -3,11 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { StoreSelector } from "@/components/store-selector";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 
 export function DashboardHeader() {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
 
   return (
     <header 
@@ -31,6 +34,7 @@ export function DashboardHeader() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {isAuthenticated && <NotificationBell />}
             <ThemeToggle />
           </div>
         </div>

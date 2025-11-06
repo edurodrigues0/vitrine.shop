@@ -24,11 +24,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { LazyImage } from "@/components/lazy-image";
 import type { Product } from "@/dtos/product";
 import { citiesService } from "@/services/cities-service";
 import { SkeletonStoreCard } from "@/components/skeleton-loader";
 import { Pagination } from "@/components/pagination";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Filter } from "lucide-react";
 import { categoriesService } from "@/services/categories-service";
@@ -230,6 +231,7 @@ export default function StorePage() {
               className="object-cover"
               priority
               unoptimized
+              sizes="100vw"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-transparent" />
           </div>
@@ -258,6 +260,8 @@ export default function StorePage() {
                     fill
                     className="object-cover"
                     unoptimized
+                    priority
+                    sizes="128px"
                   />
                 </div>
               ) : (
@@ -483,7 +487,7 @@ export default function StorePage() {
 }
 
 // Componente para exibir card de produto com variações e imagens
-function ProductCard({
+const ProductCard = memo(function ProductCard({
   product,
   citySlug,
 }: {
@@ -525,11 +529,12 @@ function ProductCard({
         {/* Imagem do produto */}
         <div className="relative aspect-[4/3] w-full bg-muted overflow-hidden">
           {mainImage ? (
-            <Image
+            <LazyImage
               src={mainImage.url}
               alt={product.name}
               fill
               className="object-cover group-hover:scale-110 transition-transform duration-500"
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             />
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-primary/10 to-purple-500/10 flex items-center justify-center">
@@ -614,4 +619,4 @@ function ProductCard({
       </Link>
     </Card>
   );
-}
+});

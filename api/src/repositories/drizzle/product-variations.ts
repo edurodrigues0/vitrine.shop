@@ -22,16 +22,22 @@ export class DrizzleProductVariationsRepository
 		price,
 		stock,
 	}: CreateProductVariationParams): Promise<ProductVariation> {
+		// Converter preços de reais para centavos (integer)
+		const priceInCents = Math.round(price * 100);
+		const discountPriceInCents = discountPrice
+			? Math.round(discountPrice * 100)
+			: null;
+
 		const [variation] = await this.drizzle
 			.insert(productsVariations)
 			.values({
 				productId,
 				size,
 				color,
-				weight,
-				dimensions,
-				discountPrice,
-				price,
+				weight: weight ?? null,
+				dimensions: dimensions ?? null,
+				discountPrice: discountPriceInCents,
+				price: priceInCents,
 				stock,
 			})
 			.returning();
@@ -71,9 +77,32 @@ export class DrizzleProductVariationsRepository
 		id,
 		data,
 	}: UpdateProductVariationParams): Promise<ProductVariation | null> {
+		const updateData: Record<string, unknown> = {};
+
+		// Converter preços de reais para centavos se fornecidos
+		if (data.price !== undefined) {
+			updateData.price = Math.round(data.price * 100);
+		}
+		if (data.discountPrice !== undefined) {
+			updateData.discountPrice = data.discountPrice
+				? Math.round(data.discountPrice * 100)
+				: null;
+		}
+
+		// Adicionar outros campos
+		if (data.size !== undefined) updateData.size = data.size;
+		if (data.color !== undefined) updateData.color = data.color;
+		if (data.weight !== undefined) updateData.weight = data.weight ?? null;
+		if (data.dimensions !== undefined)
+			updateData.dimensions = data.dimensions ?? null;
+		if (data.stock !== undefined) updateData.stock = data.stock;
+
+		// Atualizar updatedAt
+		updateData.updatedAt = new Date();
+
 		const [variation] = await this.drizzle
 			.update(productsVariations)
-			.set(data)
+			.set(updateData)
 			.where(eq(productsVariations.id, id))
 			.returning();
 

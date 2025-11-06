@@ -96,8 +96,8 @@ export function StoreSelector() {
       {isOpen && (
         <div
           ref={dropdownRef}
+          className="absolute top-full left-0 mt-1 w-[300px] border border-border rounded-md shadow-lg z-50 overflow-hidden bg-background"
           style={{ backgroundColor: 'hsl(var(--background))' }}
-          className="absolute top-full left-0 mt-1 w-[300px] border border-border rounded-md shadow-lg z-50 overflow-hidden"
         >
           <div className="p-2">
             <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">

@@ -152,6 +152,10 @@ export async function createProductVariationsController(
 		});
 	} catch (error) {
 		console.error("Error creating product variation:", error);
+		console.error("Error details:", {
+			message: error instanceof Error ? error.message : String(error),
+			stack: error instanceof Error ? error.stack : undefined,
+		});
 
 		if (error instanceof ZodError) {
 			return response.status(400).json({
@@ -173,7 +177,11 @@ export async function createProductVariationsController(
 		}
 
 		return response.status(500).json({
-			message: "Internal server error",
+			message:
+				error instanceof Error
+					? error.message
+					: "Internal server error",
+			details: process.env.NODE_ENV === "development" ? String(error) : undefined,
 		});
 	}
 }

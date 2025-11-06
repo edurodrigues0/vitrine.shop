@@ -38,7 +38,7 @@ export async function findOrderItemsController(
 
 		const orderItemsRepository = new DrizzleOrderItemsRepository(DrizzleORM);
 
-		const items = await orderItemsRepository.findByOrderId({ orderId: id });
+		const items = await orderItemsRepository.findByOrderIdWithDetails({ orderId: id });
 
 		return response.status(200).json({
 			items,

@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import z, { ZodError } from "zod";
 import { FirebaseStorageService } from "~/services/storage/firestore-storage-service";
+import { LocalStorageService } from "~/services/storage/local-storage-service";
 import { FailedToCreateProductImageError } from "~/use-cases/@errors/product-images/failed-to-create-product-image-error";
 import { ProductVariationNotFoundError } from "~/use-cases/@errors/product-variations/product-variation-not-found-error";
 import { makeCreateProductImageUseCase } from "~/use-cases/@factories/product-images/make-create-product-image-use-case";
@@ -94,14 +95,24 @@ export async function createProductImageController(
 			});
 		}
 
-		const fileExtension = request.file.mimetype.split(".").pop();
+		const fileExtension = request.file.mimetype.split("/").pop() || "jpg";
 		const fileName = `${body.productVariationId}-${Date.now()}.${fileExtension}`;
 
-		const storageService = new FirebaseStorageService();
-		const imageUrl = await storageService.uploadImage(
-			request.file.buffer,
-			fileName,
-		);
+		// Usar Firebase se estiver configurado, caso contrário usar armazenamento local
+		let imageUrl: string;
+		if (FirebaseStorageService.isConfigured()) {
+			const storageService = new FirebaseStorageService();
+			imageUrl = await storageService.uploadImage(
+				request.file.buffer,
+				fileName,
+			);
+		} else {
+			const storageService = new LocalStorageService();
+			imageUrl = await storageService.uploadImage(
+				request.file.buffer,
+				fileName,
+			);
+		}
 
 		const createProductImageUseCase = makeCreateProductImageUseCase();
 
