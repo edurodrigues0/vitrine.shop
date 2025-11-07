@@ -1,6 +1,6 @@
 import { DrizzleORM } from "~/database/connection";
 import { DrizzleProductImagesRepository } from "~/repositories/drizzle/product-images";
-import { DeleteProductImageUseCase } from "~/use-cases/product-images/delete-product-image-use-cae";
+import { DeleteProductImageUseCase } from "~/use-cases/product-images/delete-product-image-use-case";
 
 export function makeDeleteProductImageUseCase() {
 	const productImagesRepository = new DrizzleProductImagesRepository(

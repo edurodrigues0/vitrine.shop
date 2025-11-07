@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { ActivityTimeline } from "@/components/activity-timeline";
 
 export default function DashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
@@ -255,6 +256,9 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      {/* Activity Timeline */}
+      <ActivityTimeline defaultLimit={10} defaultDays={7} showFilters={true} />
     </div>
   );
 }

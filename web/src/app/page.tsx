@@ -125,11 +125,13 @@ export default function Home() {
                 </Button>
                 <Button
                   size="lg"
-                  variant="outline"
                   asChild
-                  className="text-lg px-8 py-6 h-auto border-2 border-foreground/20 hover:bg-foreground/5 hover:border-foreground/40 bg-background/80 backdrop-blur-sm font-medium"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl text-lg px-8 py-6 h-auto group font-semibold border-0"
                 >
-                  <Link href="#como-funciona" className="text-foreground">Ver como funciona</Link>
+                  <Link href="/lojas" className="flex items-center gap-2 text-white">
+                    Ver todas as lojas
+                    <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
                 </Button>
               </div>
 

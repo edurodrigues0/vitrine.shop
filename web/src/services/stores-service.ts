@@ -49,5 +49,31 @@ export const storesService = {
   trackVisit: async (id: string): Promise<void> => {
     await api.post(`/stores/${id}/visit`);
   },
+
+  getRecentActivities: async (
+    id: string,
+    params?: { limit?: number; days?: number },
+  ): Promise<{
+    activities: Array<{
+      id: string;
+      type: "ORDER" | "PRODUCT" | "VISIT";
+      title: string;
+      description: string;
+      createdAt: string;
+      relatedId?: string;
+    }>;
+  }> => {
+    const response = await api.get<{
+      activities: Array<{
+        id: string;
+        type: "ORDER" | "PRODUCT" | "VISIT";
+        title: string;
+        description: string;
+        createdAt: string;
+        relatedId?: string;
+      }>;
+    }>(`/stores/${id}/activities`, params);
+    return response;
+  },
 };
 

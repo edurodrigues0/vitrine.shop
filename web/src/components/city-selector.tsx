@@ -95,8 +95,7 @@ export function CitySelector({ className, onCitySelect }: CitySelectorProps) {
             onClick={() => setIsOpen(false)}
           />
           <div 
-            style={{ backgroundColor: 'hsl(var(--background))' }}
-            className="absolute top-full left-0 mt-2 z-50 w-full min-w-[300px] border border-border rounded-lg shadow-lg"
+            className="absolute top-full left-0 mt-2 z-50 w-full min-w-[300px] border border-border rounded-lg shadow-lg bg-background"
           >
             <div className="p-3 border-b border-border">
               <div className="relative">

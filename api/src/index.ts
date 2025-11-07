@@ -15,6 +15,7 @@ import { productsRoutes } from "./http/controllers/products/_routes";
 import { productVariationsRoutes } from "./http/controllers/product-variations.ts/_routes";
 import { storesRoutes } from "./http/controllers/stores/_routes";
 import { usersRoutes } from "./http/controllers/users/_routes";
+import { notificationsRoutes } from "./http/controllers/notifications/_routes";
 
 dotenv.config();
 
@@ -57,6 +58,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Servir arquivos estáticos (uploads)
+app.use("/uploads", express.static(join(process.cwd(), "uploads")));
+
 // Swagger Documentation
 setupSwagger(app);
 
@@ -73,6 +77,7 @@ app.use("/api", storesRoutes);
 app.use("/api", usersRoutes);
 app.use("/api", authRoutes);
 app.use("/api", ordersRoutes);
+app.use("/api", notificationsRoutes);
 app.use("/api", addressesRoutes);
 
 app.get("/api/health", (_req: Request, res: Response) => {

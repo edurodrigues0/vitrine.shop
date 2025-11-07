@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Package, Phone, Mail, Calendar, CheckCircle2, Clock, Truck, XCircle, Search, MessageCircle } from "lucide-react";
+import { OrderStatusTimeline } from "@/components/order-status-timeline";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -273,13 +274,26 @@ export default function OrdersPage() {
                             <Card key={index} className="p-4 bg-muted/50">
                               <div className="flex justify-between items-start">
                                 <div className="flex-1">
-                                  <p className="text-sm font-medium mb-1">
-                                    Variação: {item.productVariationId?.slice(0, 8).toUpperCase() || "N/A"}
+                                  <p className="text-sm font-semibold mb-1">
+                                    {item.productName || "Produto"}
                                   </p>
+                                  {item.productVariation && (
+                                    <p className="text-xs text-muted-foreground mb-2">
+                                      {item.productVariation.color && item.productVariation.size
+                                        ? `${item.productVariation.color} / ${item.productVariation.size}`
+                                        : item.productVariation.color || item.productVariation.size || ""}
+                                    </p>
+                                  )}
                                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                     <span>Qtd: {item.quantity}</span>
                                     <span>•</span>
                                     <span>R$ {(item.price / 100).toFixed(2).replace(".", ",")} un.</span>
+                                    {item.productVariationId && (
+                                      <>
+                                        <span>•</span>
+                                        <span className="text-xs">ID: {item.productVariationId.slice(0, 8).toUpperCase()}</span>
+                                      </>
+                                    )}
                                   </div>
                                 </div>
                                 <div className="text-right">
@@ -304,7 +318,7 @@ export default function OrdersPage() {
                   </div>
 
                   {/* Sidebar */}
-                  <div className="lg:w-64 space-y-4">
+                  <div className="lg:w-80 space-y-4">
                     {/* Total */}
                     <Card className="p-4 bg-primary/5 border-primary/20">
                       <p className="text-xs text-muted-foreground mb-1">Total do Pedido</p>
@@ -313,8 +327,17 @@ export default function OrdersPage() {
                       </p>
                     </Card>
 
+                    {/* Status Timeline */}
+                    <Card className="p-4">
+                      <OrderStatusTimeline
+                        currentStatus={order.status}
+                        createdAt={order.createdAt}
+                        updatedAt={order.updatedAt}
+                      />
+                    </Card>
+
                     {/* Status Selector */}
-                    <div>
+                    <Card className="p-4">
                       <p className="text-xs text-muted-foreground mb-3 font-semibold">Alterar Status</p>
                       <div className="grid grid-cols-2 gap-2">
                         {Object.entries(statusLabels).map(([status, label]) => {
@@ -344,7 +367,7 @@ export default function OrdersPage() {
                           <span>Atualizando...</span>
                         </div>
                       )}
-                    </div>
+                    </Card>
                   </div>
                 </div>
               </Card>

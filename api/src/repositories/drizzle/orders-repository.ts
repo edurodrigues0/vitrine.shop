@@ -1,6 +1,6 @@
 import { and, count, desc, eq, ilike } from "drizzle-orm";
 import type { DrizzleORM } from "~/database/connection";
-import { type Order, type OrderItem, orderItems, orders } from "~/database/schema";
+import { type Order, type OrderItem, orderItems, orders, productsVariations, products } from "~/database/schema";
 import type {
 	CreateOrderParams,
 	FindAllOrdersParams,
@@ -164,6 +164,43 @@ export class DrizzleOrderItemsRepository implements OrderItemsRepository {
 			.where(eq(orderItems.orderId, orderId));
 
 		return items;
+	}
+
+	async findByOrderIdWithDetails({ orderId }: { orderId: string }): Promise<Array<OrderItem & {
+		productName: string;
+		productVariation: {
+			color: string;
+			size: string;
+		} | null;
+	}>> {
+		const items = await this.drizzle
+			.select({
+				id: orderItems.id,
+				orderId: orderItems.orderId,
+				productVariationId: orderItems.productVariationId,
+				quantity: orderItems.quantity,
+				price: orderItems.price,
+				productName: products.name,
+				variationColor: productsVariations.color,
+				variationSize: productsVariations.size,
+			})
+			.from(orderItems)
+			.innerJoin(productsVariations, eq(orderItems.productVariationId, productsVariations.id))
+			.innerJoin(products, eq(productsVariations.productId, products.id))
+			.where(eq(orderItems.orderId, orderId));
+
+		return items.map((item) => ({
+			id: item.id,
+			orderId: item.orderId,
+			productVariationId: item.productVariationId,
+			quantity: item.quantity,
+			price: item.price,
+			productName: item.productName,
+			productVariation: {
+				color: item.variationColor,
+				size: item.variationSize,
+			},
+		}));
 	}
 }
 
