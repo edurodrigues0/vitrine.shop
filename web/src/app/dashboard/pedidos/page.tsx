@@ -128,6 +128,7 @@ export default function OrdersPage() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="flex h-10 w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}
           >
             <option value="">Todos os status</option>
             <option value="PENDENTE">Pendente</option>

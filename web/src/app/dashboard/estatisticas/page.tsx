@@ -210,6 +210,7 @@ export default function StatisticsPage() {
               value={groupBy}
               onChange={(e) => setGroupBy(e.target.value as GroupBy)}
               className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+              style={{ backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}
             >
               <option value="day">Dia</option>
               <option value="week">Semana</option>

@@ -308,6 +308,17 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* Select and Option styles for dark mode */
+select {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+select option {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
 /* Smooth scroll offset for fixed header */
 :target {
   scroll-margin-top: 80px;

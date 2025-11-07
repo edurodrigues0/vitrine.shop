@@ -154,6 +154,7 @@ function PopoverContent({
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
+        backgroundColor: 'hsl(var(--popover))',
       }}
       {...props}
     >

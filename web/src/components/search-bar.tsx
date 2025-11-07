@@ -140,6 +140,7 @@ export function SearchBar() {
       {isDropdownOpen && searchTerm.length >= 2 && (
         <div 
           className="absolute top-full left-0 right-0 mt-2 border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto bg-background"
+          style={{ backgroundColor: 'hsl(var(--popover))' }}
         >
           {isLoadingStores ? (
             <div className="flex items-center justify-center py-8">

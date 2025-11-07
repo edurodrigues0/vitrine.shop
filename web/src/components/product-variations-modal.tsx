@@ -196,9 +196,15 @@ export function ProductVariationsModal({
       />
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-        <div className="bg-background border border-border rounded-lg shadow-lg w-full max-w-5xl max-h-[90vh] overflow-hidden m-4 flex flex-col pointer-events-auto">
+        <div 
+          className="bg-background border border-border rounded-lg shadow-lg w-full max-w-5xl max-h-[90vh] overflow-hidden m-4 flex flex-col pointer-events-auto"
+          style={{ backgroundColor: 'hsl(var(--background))' }}
+        >
         {/* Header */}
-        <div className="sticky top-0 border-b border-border p-6 flex items-center justify-between bg-background z-10">
+        <div 
+          className="sticky top-0 border-b border-border p-6 flex items-center justify-between bg-background z-10"
+          style={{ backgroundColor: 'hsl(var(--background))' }}
+        >
           <div>
             <h2 className="text-2xl font-bold">Gerenciar Variações do Produto</h2>
             <p className="text-sm text-muted-foreground mt-1">

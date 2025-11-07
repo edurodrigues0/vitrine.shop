@@ -23,7 +23,6 @@ productImagesRoutes.delete(
 
 productImagesRoutes.get(
 	"/product-images/variation/:productVariationId",
-	authenticateMiddleware,
 	findProductImagesByProductVariationIdController,
 );
 

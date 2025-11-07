@@ -61,6 +61,7 @@ export function Cart({ citySlug }: CartProps) {
             />
             <div 
               className="absolute right-0 top-full mt-2 z-50 w-96 border border-border rounded-lg shadow-lg p-4 bg-background"
+              style={{ backgroundColor: 'hsl(var(--popover))' }}
             >
               <div className="text-center py-8">
                 <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -97,6 +98,7 @@ export function Cart({ citySlug }: CartProps) {
           />
           <div 
             className="absolute right-0 top-full mt-2 z-50 w-96 max-h-[600px] border border-border rounded-lg shadow-lg flex flex-col bg-background"
+            style={{ backgroundColor: 'hsl(var(--popover))' }}
           >
             <div className="p-4 border-b border-border flex items-center justify-between">
               <h3 className="font-semibold">Carrinho ({itemCount})</h3>
