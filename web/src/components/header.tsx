@@ -114,6 +114,7 @@ export function Header() {
                 {isSobreMenuOpen && (
                   <div 
                     className="absolute top-full left-0 mt-2 w-48 border border-border rounded-lg shadow-lg py-2 animate-in slide-in-from-top-2 duration-200 z-50 bg-background"
+                    style={{ backgroundColor: 'hsl(var(--popover))' }}
                   >
                     {sobreSubmenuItems.map((item) => (
                       <Link

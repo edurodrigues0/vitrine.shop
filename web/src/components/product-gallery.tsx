@@ -57,7 +57,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-background hover:bg-background opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ backgroundColor: 'hsl(var(--background))' }}
                 onClick={handlePrevious}
               >
                 <ChevronLeft className="h-5 w-5" />
@@ -65,7 +66,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-background hover:bg-background opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ backgroundColor: 'hsl(var(--background))' }}
                 onClick={handleNext}
               >
                 <ChevronRight className="h-5 w-5" />
@@ -77,7 +79,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute bottom-2 right-2 bg-background/80 hover:bg-background opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute bottom-2 right-2 bg-background hover:bg-background opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ backgroundColor: 'hsl(var(--background))' }}
             onClick={() => setIsZoomed(true)}
           >
             <ZoomIn className="h-5 w-5" />
@@ -85,7 +88,10 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
 
           {/* Image Counter */}
           {images.length > 1 && (
-            <div className="absolute bottom-2 left-2 bg-background/80 px-2 py-1 rounded text-xs font-medium">
+            <div 
+              className="absolute bottom-2 left-2 bg-background px-2 py-1 rounded text-xs font-medium"
+              style={{ backgroundColor: 'hsl(var(--background))' }}
+            >
               {selectedIndex + 1} / {images.length}
             </div>
           )}
@@ -126,11 +132,15 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             onClick={() => setIsZoomed(false)}
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-            <div className="relative max-w-7xl max-h-[90vh] w-full h-full pointer-events-auto">
+            <div 
+              className="relative max-w-7xl max-h-[90vh] w-full h-full pointer-events-auto"
+              style={{ backgroundColor: 'transparent' }}
+            >
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-4 right-4 z-10 bg-background/80 hover:bg-background"
+                className="absolute top-4 right-4 z-10 bg-background hover:bg-background"
+                style={{ backgroundColor: 'hsl(var(--background))' }}
                 onClick={() => setIsZoomed(false)}
               >
                 <X className="h-5 w-5" />
@@ -140,7 +150,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background hover:bg-background"
+                    style={{ backgroundColor: 'hsl(var(--background))' }}
                     onClick={handlePrevious}
                   >
                     <ChevronLeft className="h-6 w-6" />
@@ -148,7 +159,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background hover:bg-background"
+                    style={{ backgroundColor: 'hsl(var(--background))' }}
                     onClick={handleNext}
                   >
                     <ChevronRight className="h-6 w-6" />
@@ -165,7 +177,10 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 />
               </div>
               {images.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 px-4 py-2 rounded text-sm font-medium">
+                <div 
+                  className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background px-4 py-2 rounded text-sm font-medium"
+                  style={{ backgroundColor: 'hsl(var(--background))' }}
+                >
                   {selectedIndex + 1} / {images.length}
                 </div>
               )}

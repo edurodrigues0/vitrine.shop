@@ -203,8 +203,14 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
       />
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-        <div className="bg-background border border-border rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4 pointer-events-auto">
-          <div className="sticky top-0 border-b border-border p-6 flex items-center justify-between bg-background z-10">
+        <div 
+          className="bg-background border border-border rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4 pointer-events-auto"
+          style={{ backgroundColor: 'hsl(var(--background))' }}
+        >
+          <div 
+            className="sticky top-0 border-b border-border p-6 flex items-center justify-between bg-background z-10"
+            style={{ backgroundColor: 'hsl(var(--background))' }}
+          >
           <h2 className="text-2xl font-bold">Finalizar Pedido</h2>
           <Button variant="ghost" size="icon" onClick={handleClose}>
             <X className="h-4 w-4" />

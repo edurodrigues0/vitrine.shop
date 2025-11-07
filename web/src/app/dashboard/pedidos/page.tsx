@@ -128,6 +128,7 @@ export default function OrdersPage() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="flex h-10 w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}
           >
             <option value="">Todos os status</option>
             <option value="PENDENTE">Pendente</option>
@@ -193,7 +194,7 @@ export default function OrdersPage() {
               CANCELADO: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
             };
             return (
-              <Card key={order.id} className="p-6 hover:shadow-lg transition-shadow">
+              <Card key={order.id} className="p-6 hover:shadow-lg transition-all duration-200 hover:border-border/60 dark:hover:border-border">
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Main Content */}
                   <div className="flex-1 space-y-4">
