@@ -194,7 +194,7 @@ export default function OrdersPage() {
               CANCELADO: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
             };
             return (
-              <Card key={order.id} className="p-6 hover:shadow-lg transition-shadow">
+              <Card key={order.id} className="p-6 hover:shadow-lg transition-all duration-200 hover:border-border/60 dark:hover:border-border">
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Main Content */}
                   <div className="flex-1 space-y-4">

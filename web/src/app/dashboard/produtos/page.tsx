@@ -581,9 +581,12 @@ function ProductCard({
   if (viewMode === "list") {
     return (
       <Card
-        className={`p-4 hover:shadow-lg transition-all group ${
-          isSelected ? "ring-2 ring-primary" : ""
+        className={`p-4 hover:shadow-lg transition-all group cursor-pointer ${
+          isSelected 
+            ? "ring-2 ring-primary dark:ring-primary/80 bg-primary/5 dark:bg-primary/10 border-primary/50 dark:border-primary/40" 
+            : "hover:bg-accent/50 dark:hover:bg-accent/20"
         }`}
+        data-selected={isSelected}
       >
         <div className="flex items-center gap-4">
           {/* Checkbox */}
@@ -592,7 +595,11 @@ function ProductCard({
               type="checkbox"
               checked={isSelected}
               onChange={onToggleSelect}
-              className="h-4 w-4 rounded border-input"
+              className="h-4 w-4 rounded border-input cursor-pointer accent-primary dark:accent-primary"
+              style={{ 
+                backgroundColor: isSelected ? undefined : 'hsl(var(--background))',
+                borderColor: isSelected ? undefined : 'hsl(var(--border))'
+              }}
             />
           )}
           {/* Product Image */}
@@ -687,9 +694,12 @@ function ProductCard({
   return (
     <Card
       key={product.id}
-      className={`p-6 hover:shadow-lg transition-all group overflow-hidden ${
-        isSelected ? "ring-2 ring-primary" : ""
+      className={`p-6 hover:shadow-lg transition-all group overflow-hidden cursor-pointer ${
+        isSelected 
+          ? "ring-2 ring-primary dark:ring-primary/80 bg-primary/5 dark:bg-primary/10 border-primary/50 dark:border-primary/40" 
+          : "hover:bg-accent/50 dark:hover:bg-accent/20"
       }`}
+      data-selected={isSelected}
     >
       <div className="space-y-4">
         {/* Checkbox */}
@@ -699,7 +709,11 @@ function ProductCard({
               type="checkbox"
               checked={isSelected}
               onChange={onToggleSelect}
-              className="h-5 w-5 rounded border-input"
+              className="h-5 w-5 rounded border-input cursor-pointer accent-primary dark:accent-primary"
+              style={{ 
+                backgroundColor: isSelected ? undefined : 'hsl(var(--background))',
+                borderColor: isSelected ? undefined : 'hsl(var(--border))'
+              }}
             />
           </div>
         )}

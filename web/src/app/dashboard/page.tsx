@@ -139,7 +139,7 @@ export default function DashboardPage() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} className="p-6 hover:shadow-lg transition-shadow">
+            <Card key={stat.label} className="p-6 hover:shadow-lg transition-all duration-200 hover:border-border/60 dark:hover:border-border">
               <div className="flex items-start justify-between mb-4">
                 <div className={`p-3 rounded-lg ${stat.bgColor}`}>
                   <Icon className={`h-6 w-6 ${stat.color}`} />

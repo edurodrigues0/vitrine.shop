@@ -170,9 +170,12 @@
   --destructive: 0 63% 31%;
   --destructive-foreground: 210 40% 98%;
 
-  --border: 217 33% 17%;
+  --border: 217 33% 25%;
   --input: 217 33% 17%;
   --ring: 217 91% 60%;
+  
+  /* Melhor contraste para cards no modo escuro */
+  --card-border: 217 33% 30%;
 
   /* Gradientes Dark Mode - Paleta Tasklyn */
   --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
@@ -197,12 +200,15 @@
   --section-orange: linear-gradient(135deg, hsl(25 33% 15%), hsl(30 33% 17%));
   --section-pink: linear-gradient(135deg, hsl(330 33% 15%), hsl(340 33% 17%));
 
-  --shadow-sm: 0 2px 8px hsl(0 0% 0% / 0.2);
-  --shadow-md: 0 4px 16px hsl(0 0% 0% / 0.3);
-  --shadow-lg: 0 8px 24px hsl(0 0% 0% / 0.4);
-  --shadow-xl: 0 12px 32px hsl(0 0% 0% / 0.5);
-  --shadow-2xl: 0 16px 48px hsl(0 0% 0% / 0.6);
+  --shadow-sm: 0 2px 8px hsl(0 0% 0% / 0.3);
+  --shadow-md: 0 4px 16px hsl(0 0% 0% / 0.4);
+  --shadow-lg: 0 8px 24px hsl(0 0% 0% / 0.5);
+  --shadow-xl: 0 12px 32px hsl(0 0% 0% / 0.6);
+  --shadow-2xl: 0 16px 48px hsl(0 0% 0% / 0.7);
   --shadow-glow: 0 0 24px hsl(217 91% 70% / 0.4);
+  
+  /* Sombras para hover de cards */
+  --shadow-card-hover: 0 8px 24px hsl(0 0% 0% / 0.5);
 
   --sidebar-background: 240 6% 10%;
   --sidebar-foreground: 240 5% 96%;
@@ -317,6 +323,143 @@ select {
 select option {
   background-color: hsl(var(--background)) !important;
   color: hsl(var(--foreground)) !important;
+}
+
+/* Melhorias visuais para modo escuro */
+
+/* Cards - Melhor separação visual */
+.dark [data-slot="card"] {
+  border-color: hsl(var(--card-border, var(--border)));
+  box-shadow: var(--shadow-md);
+}
+
+.dark [data-slot="card"]:hover {
+  box-shadow: var(--shadow-card-hover, var(--shadow-lg));
+  border-color: hsl(var(--border));
+  transition: all 200ms ease;
+}
+
+/* Checkboxes - Melhor contraste no modo escuro */
+.dark input[type="checkbox"] {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+  accent-color: hsl(var(--primary));
+}
+
+.dark input[type="checkbox"]:checked {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+.dark input[type="checkbox"]:hover {
+  border-color: hsl(var(--primary) / 0.7);
+}
+
+/* Estados de seleção */
+.dark [data-selected="true"],
+.dark .selected {
+  background-color: hsl(var(--primary) / 0.15) !important;
+  border-color: hsl(var(--primary) / 0.5) !important;
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+}
+
+/* Elementos clicáveis - Cursor pointer (apenas para elementos que realmente devem ter) */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+input[type="submit"]:not(:disabled),
+input[type="button"]:not(:disabled),
+label[for],
+select:not(:disabled) {
+  cursor: pointer;
+}
+
+/* Links apenas quando não são botões ou navegação */
+a:not([class*="Button"]):not([class*="button"]):not([role="button"]) {
+  cursor: pointer;
+}
+
+/* Links - Resetar estilos padrão, aplicar apenas quando necessário */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Links de texto simples (apenas quando explicitamente marcados) */
+a.link-text {
+  color: hsl(var(--primary));
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+a.link-text:hover {
+  color: hsl(var(--primary) / 0.8);
+  text-decoration: underline;
+}
+
+/* Links dentro de navegação não devem ter estilização de link */
+nav a,
+[role="navigation"] a,
+aside a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Links dentro de botões não devem ter estilização de link */
+button a,
+[role="button"] a,
+.Button a,
+[class*="button"] a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Botões - Estados melhorados */
+button:active,
+[role="button"]:active {
+  transform: scale(0.98);
+  transition: transform 100ms ease;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.dark button:focus-visible,
+.dark [role="button"]:focus-visible {
+  outline-color: hsl(var(--ring));
+  outline-width: 3px;
+}
+
+/* Animações de feedback */
+@keyframes click-feedback {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.click-feedback {
+  animation: click-feedback 150ms ease;
+}
+
+/* Estados hover para elementos interativos */
+[data-interactive="true"]:hover,
+.interactive:hover {
+  opacity: 0.9;
+  transition: opacity 150ms ease;
+}
+
+.dark [data-interactive="true"]:hover,
+.dark .interactive:hover {
+  opacity: 1;
+  background-color: hsl(var(--accent) / 0.1);
 }
 
 /* Smooth scroll offset for fixed header */
