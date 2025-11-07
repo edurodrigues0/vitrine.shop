@@ -28,8 +28,13 @@ export const subscriptions = pgTable("subscriptions", {
 	price: decimal("price", { precision: 10, scale: 2 }).notNull(),
 	status: planStatusEnum("status").default("PENDING").notNull(),
 	nextPayment: timestamp("next_payment"),
+	stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
+	stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type NewSubscription = typeof subscriptions.$inferInsert;
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
 	store: one(stores, {

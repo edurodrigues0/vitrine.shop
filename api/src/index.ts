@@ -14,6 +14,7 @@ import { productImagesRoutes } from "./http/controllers/product-images/_routes";
 import { productsRoutes } from "./http/controllers/products/_routes";
 import { productVariationsRoutes } from "./http/controllers/product-variations.ts/_routes";
 import { storesRoutes } from "./http/controllers/stores/_routes";
+import { subscriptionsRoutes } from "./http/controllers/subscriptions/_routes";
 import { usersRoutes } from "./http/controllers/users/_routes";
 import { notificationsRoutes } from "./http/controllers/notifications/_routes";
 
@@ -54,6 +55,11 @@ app.use(
 );
 
 // Middlewares
+// IMPORTANTE: Webhook do Stripe precisa de raw body, então deve vir ANTES do express.json()
+app.use(
+	"/api/subscriptions/webhook",
+	express.raw({ type: "application/json" }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -79,6 +85,7 @@ app.use("/api", authRoutes);
 app.use("/api", ordersRoutes);
 app.use("/api", notificationsRoutes);
 app.use("/api", addressesRoutes);
+app.use("/api", subscriptionsRoutes);
 
 app.get("/api/health", (_req: Request, res: Response) => {
 	res.json({
