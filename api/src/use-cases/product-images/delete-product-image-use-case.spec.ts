@@ -4,7 +4,7 @@ import { InMemoryProductImagesRepository } from "~/repositories/in-memory/in-mem
 import { InMemoryProductsRepository } from "~/repositories/in-memory/in-memory-products-repository";
 import { InMemoryProductsVariationsRepository } from "~/repositories/in-memory/in-memory-products-variations";
 import { ProductImageNotFoundError } from "../@errors/product-images/product-image-not-found-error";
-import { DeleteProductImageUseCase } from "./delete-product-image-use-cae";
+import { DeleteProductImageUseCase } from "./delete-product-image-use-case";
 
 describe("DeleteProductImageUseCase", () => {
 	let categoriesRepository: InMemoryCategoriesRepository;

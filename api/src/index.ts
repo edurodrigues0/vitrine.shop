@@ -5,6 +5,7 @@ import express, { type Request, type Response } from "express";
 import { join } from "path";
 import { setupSwagger } from "~/config/swagger";
 import { logger } from "~/utils/logger";
+import { addressesRoutes } from "./http/controllers/addresses/_routes";
 import { authRoutes } from "./http/controllers/auth/_routes";
 import { categoriesRoutes } from "./http/controllers/categories/_routes";
 import { citiesRoutes } from "./http/controllers/cities/_routes";
@@ -74,6 +75,7 @@ app.use("/api", usersRoutes);
 app.use("/api", authRoutes);
 app.use("/api", ordersRoutes);
 app.use("/api", notificationsRoutes);
+app.use("/api", addressesRoutes);
 
 app.get("/api/health", (_req: Request, res: Response) => {
 	res.json({

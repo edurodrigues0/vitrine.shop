@@ -25,9 +25,6 @@ export class DrizzleProductsRepository implements ProductsRespository {
 		description,
 		categoryId,
 		storeId,
-		price,
-		quantity,
-		color,
 	}: CreateProductParams): Promise<Product> {
 		const [product] = await this.drizzle
 			.insert(products)
@@ -36,9 +33,6 @@ export class DrizzleProductsRepository implements ProductsRespository {
 				description,
 				categoryId,
 				storeId,
-				price: price ?? null,
-				quantity: quantity ?? 0,
-				color: color ?? null,
 			})
 			.returning();
 
@@ -123,8 +117,6 @@ export class DrizzleProductsRepository implements ProductsRespository {
 				description: products.description,
 				categoryId: products.categoryId,
 				storeId: products.storeId,
-				price: products.price,
-				quantity: products.quantity,
 				createdAt: products.createdAt,
 			})
 			.from(products)
