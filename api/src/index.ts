@@ -2,6 +2,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { type Request, type Response } from "express";
+import { join } from "path";
 import { setupSwagger } from "~/config/swagger";
 import { logger } from "~/utils/logger";
 import { addressesRoutes } from "./http/controllers/addresses/_routes";
@@ -58,6 +59,9 @@ app.use(cookieParser());
 
 // Swagger Documentation
 setupSwagger(app);
+
+// Servir arquivos estáticos (imagens)
+app.use("/uploads", express.static(join(process.cwd(), "uploads")));
 
 // Rotas
 app.use("/api", citiesRoutes);

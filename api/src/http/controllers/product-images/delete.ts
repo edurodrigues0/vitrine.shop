@@ -1,7 +1,10 @@
 import type { Request, Response } from "express";
 import z, { ZodError } from "zod";
+import { LocalStorageService } from "~/services/storage/local-storage-service";
 import { ProductImageNotFoundError } from "~/use-cases/@errors/product-images/product-image-not-found-error";
 import { makeDeleteProductImageUseCase } from "~/use-cases/@factories/product-images/make-delete-product-image-use-case";
+import { DrizzleProductImagesRepository } from "~/repositories/drizzle/product-images";
+import { DrizzleORM } from "~/database/connection";
 
 const deleteProductImageParamsSchema = z.object({
 	id: z.uuid("Valid product image ID is required"),
@@ -53,8 +56,26 @@ export async function deleteProductImageController(
 	try {
 		const { id } = deleteProductImageParamsSchema.parse(request.params);
 
-		const deleteProductImageUseCase = makeDeleteProductImageUseCase();
+		// Buscar a imagem antes de deletar para obter a URL e deletar o arquivo físico
+		const imagesRepository = new DrizzleProductImagesRepository(DrizzleORM);
+		const productImage = await imagesRepository.findById({ id });
 
+		if (productImage) {
+			// Extrair nome do arquivo da URL
+			const urlParts = productImage.url.split("/");
+			const fileName = urlParts[urlParts.length - 1];
+
+			// Deletar arquivo físico
+			try {
+				const storageService = new LocalStorageService();
+				await storageService.deleteImage(fileName);
+			} catch (error) {
+				console.error("Erro ao deletar arquivo físico:", error);
+				// Continua mesmo se falhar ao deletar o arquivo físico
+			}
+		}
+
+		const deleteProductImageUseCase = makeDeleteProductImageUseCase();
 		await deleteProductImageUseCase.execute({ id });
 
 		return response.status(204).send();
