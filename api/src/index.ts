@@ -95,12 +95,14 @@ app.get("/api/health", (_req: Request, res: Response) => {
 	});
 });
 
-// Inicia o servidor
-const PORT = process.env.PORT;
-app.listen(PORT, () => {
-	logger.info(`🚀 Servidor rodando na porta ${PORT}`);
-	logger.info(`📊 Ambiente: ${process.env.NODE_ENV}`);
-	logger.info(`🔗 http://localhost:${PORT}`);
-});
-
 export default app;
+
+// Inicia o servidor apenas se não estiver em modo de teste
+if (process.env.NODE_ENV !== "test" && !process.env.VITEST) {
+	const PORT = process.env.PORT || 3000;
+	app.listen(PORT, () => {
+		logger.info(`🚀 Servidor rodando na porta ${PORT}`);
+		logger.info(`📊 Ambiente: ${process.env.NODE_ENV}`);
+		logger.info(`🔗 http://localhost:${PORT}`);
+	});
+}

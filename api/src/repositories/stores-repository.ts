@@ -54,6 +54,8 @@ export interface UpdateStoreParams {
 			tertiaryColor: string;
 		};
 		cityId?: string;
+		status?: "ACTIVE" | "INACTIVE";
+		isPaid?: boolean;
 	};
 }
 

@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import z from "zod";
+import z, { ZodError } from "zod";
 import { InvalidCredentialsError } from "~/use-cases/@errors/users/invalid-credentials-error";
 import { makeAuthenticateUseCase } from "~/use-cases/@factories/users/make-authenticate-use-case";
 import { setAuthCookie } from "~/utils/cookies";
@@ -57,6 +57,17 @@ const loginBodySchema = z.object({
  *                       type: string
  *                 token:
  *                   type: string
+ *       400:
+ *         description: Erro de validação
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 issues:
+ *                   type: array
  *       401:
  *         description: Credenciais inválidas
  *         content:
@@ -71,9 +82,9 @@ const loginBodySchema = z.object({
  *               $ref: '#/components/schemas/Error'
  */
 export async function loginController(request: Request, response: Response) {
-	const { email, password } = loginBodySchema.parse(request.body);
-
 	try {
+		const { email, password } = loginBodySchema.parse(request.body);
+	
 		const authenticateUseCase = makeAuthenticateUseCase();
 
 		const { user, token } = await authenticateUseCase.execute({
@@ -93,6 +104,13 @@ export async function loginController(request: Request, response: Response) {
 			token,
 		});
 	} catch (error) {
+		if (error instanceof ZodError) {
+			return response.status(400).json({
+				error: "Validation error",
+				issues: error.issues,
+			});
+		}
+
 		if (error instanceof InvalidCredentialsError) {
 			return response.status(401).json({
 				error: error.message,

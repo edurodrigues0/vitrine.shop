@@ -6,10 +6,10 @@ import { UserNotFoundError } from "~/use-cases/@errors/users/user-not-found-erro
 import { makeCreateCheckoutSessionUseCase } from "~/use-cases/@factories/subscriptions/make-create-checkout-session-use-case";
 
 const createCheckoutSessionBodySchema = z.object({
-	storeId: z.string().uuid("Store ID must be a valid UUID"),
+	storeId: z.uuid("Store ID must be a valid UUID"),
 	priceId: z.string().min(1, "Price ID is required"),
-	successUrl: z.string().url("Success URL must be a valid URL"),
-	cancelUrl: z.string().url("Cancel URL must be a valid URL"),
+	successUrl: z.url("Success URL must be a valid URL"),
+	cancelUrl: z.url("Cancel URL must be a valid URL"),
 });
 
 /**
