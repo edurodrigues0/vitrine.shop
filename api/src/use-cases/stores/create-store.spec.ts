@@ -21,7 +21,7 @@ describe("CreateStoreUseCase", () => {
 		const cityId = crypto.randomUUID();
 		const ownerId = crypto.randomUUID();
 
-		const { store } = await sut.execucte({
+		const { store } = await sut.execute({
 			name: "Lojinha Doce Mel",
 			description: "A melhor lojinha da cidade",
 			cnpjcpf: "12345678901234",
@@ -50,7 +50,7 @@ describe("CreateStoreUseCase", () => {
 		const cityId = crypto.randomUUID();
 		const ownerId = crypto.randomUUID();
 
-		await sut.execucte({
+		await sut.execute({
 			name: "Store 1",
 			description: "Description 1",
 			cnpjcpf: "12345678901234",
@@ -70,7 +70,7 @@ describe("CreateStoreUseCase", () => {
 		});
 
 		await expect(
-			sut.execucte({
+			sut.execute({
 				name: "Store 2",
 				description: "Description 2",
 				cnpjcpf: "12345678901234", // Same CNPJ
@@ -95,7 +95,7 @@ describe("CreateStoreUseCase", () => {
 		const cityId = crypto.randomUUID();
 		const ownerId = crypto.randomUUID();
 
-		await sut.execucte({
+		await sut.execute({
 			name: "Store 1",
 			description: "Description 1",
 			cnpjcpf: "12345678901234",
@@ -115,7 +115,7 @@ describe("CreateStoreUseCase", () => {
 		});
 
 		await expect(
-			sut.execucte({
+			sut.execute({
 				name: "Store 2",
 				description: "Description 2",
 				cnpjcpf: "98765432109876",
@@ -140,7 +140,7 @@ describe("CreateStoreUseCase", () => {
 		const cityId = crypto.randomUUID();
 		const ownerId = crypto.randomUUID();
 
-		await sut.execucte({
+		await sut.execute({
 			name: "Store 1",
 			description: "Description 1",
 			cnpjcpf: "12345678901234",
@@ -160,7 +160,7 @@ describe("CreateStoreUseCase", () => {
 		});
 
 		await expect(
-			sut.execucte({
+			sut.execute({
 				name: "Store 2",
 				description: "Description 2",
 				cnpjcpf: "98765432109876",
@@ -185,7 +185,7 @@ describe("CreateStoreUseCase", () => {
 		const cityId = crypto.randomUUID();
 		const ownerId = crypto.randomUUID();
 
-		await sut.execucte({
+		await sut.execute({
 			name: "Loja Teste",
 			description: "Descrição teste",
 			cnpjcpf: "12345678901234",
@@ -211,7 +211,7 @@ describe("CreateStoreUseCase", () => {
 		const cityId = crypto.randomUUID();
 		const ownerId = crypto.randomUUID();
 
-		const { store } = await sut.execucte({
+		const { store } = await sut.execute({
 			name: "Store Bom Preço",
 			description: "Mercado de bairro",
 			cnpjcpf: "11111111111111",
@@ -242,7 +242,7 @@ describe("CreateStoreUseCase", () => {
 		const cityId = crypto.randomUUID();
 		const ownerId = crypto.randomUUID();
 
-		const { store } = await sut.execucte({
+		const { store } = await sut.execute({
 			name: "Loja",
 			description: "Descrição",
 			cnpjcpf: "12345678901234",

@@ -30,7 +30,7 @@ interface CreateStoreUseCaseRespose {
 export class CreateStoreUseCase {
 	constructor(private readonly storesRepository: StoresRepository) {}
 
-	async execucte({
+	async execute({
 		name,
 		description,
 		bannerUrl,

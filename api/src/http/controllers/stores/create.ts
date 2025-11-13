@@ -217,7 +217,7 @@ export async function createStoreController(
 
 		const createStoreUseCase = makeCreateStoreUseCase();
 
-		const { store } = await createStoreUseCase.execucte({
+		const { store } = await createStoreUseCase.execute({
 			name,
 			description,
 			bannerUrl,

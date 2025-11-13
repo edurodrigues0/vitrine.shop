@@ -42,7 +42,7 @@ describe("E2E: Subscription Checkout Flow", () => {
 
 		// Criar loja de teste
 		const createStoreUseCase = makeCreateStoreUseCase();
-		const { store } = await createStoreUseCase.execucte({
+		const { store } = await createStoreUseCase.execute({
 			name: "Test Store",
 			cnpjcpf: "12345678901234",
 			whatsapp: "31999999999",
