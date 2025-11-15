@@ -65,6 +65,7 @@ export function AppSidebar({ user, selectedStore, items, projects, navSecondary,
 
   return (
     <Sidebar
+      collapsible="icon"
       className="h-screen"
       {...props}
     >

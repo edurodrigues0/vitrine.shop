@@ -26,16 +26,16 @@ import { SiteHeader } from "@/components/site-header";
 
 const menuItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/loja", label: "Minha Loja", icon: Store },
-  { href: "/dashboard/produtos", label: "Produtos", icon: Package },
-  { href: "/dashboard/pedidos", label: "Pedidos", icon: ShoppingCart },
-  { href: "/dashboard/estatisticas", label: "Estatísticas e Relatórios", icon: BarChart3 },
-  { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings },
+  { href: "/loja", label: "Minha Loja", icon: Store },
+  { href: "/produtos", label: "Produtos", icon: Package },
+  { href: "/pedidos", label: "Pedidos", icon: ShoppingCart },
+  { href: "/estatisticas", label: "Estatísticas e Relatórios", icon: BarChart3 },
+  { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { logout, user } = useAuth();
+  const { user } = useAuth();
   const { selectedStore } = useSelectedStore();
 
   // Estado do sidebar expansível

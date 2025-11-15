@@ -17,8 +17,24 @@ export function PublicLayout({ children }: PublicLayoutProps) {
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();
   const isHomePage = pathname === "/";
-  const isDashboard = pathname?.startsWith("/dashboard");
   const [isMounted, setIsMounted] = useState(false);
+
+  // Rotas protegidas que não devem mostrar o Header/Footer público
+  const protectedRoutes = [
+    "/dashboard",
+    "/loja",
+    "/produtos",
+    "/pedidos",
+    "/estatisticas",
+    "/configuracoes",
+    "/perfil",
+    "/notificacoes",
+  ];
+
+  // Verifica se a rota atual é uma rota protegida
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathname?.startsWith(route)
+  );
 
   // Garantir que só renderizamos após a montagem no cliente
   // Isso evita problemas de hidratação
@@ -40,9 +56,9 @@ export function PublicLayout({ children }: PublicLayoutProps) {
     );
   }
 
-  // Se estiver no dashboard e autenticado, não mostrar header/footer da LP
-  // (o dashboard tem seu próprio layout)
-  if (isDashboard && isAuthenticated) {
+  // Se estiver em uma rota protegida e autenticado, não mostrar header/footer da LP
+  // (as rotas protegidas têm seu próprio layout)
+  if (isProtectedRoute && isAuthenticated) {
     return <>{children}</>;
   }
 
