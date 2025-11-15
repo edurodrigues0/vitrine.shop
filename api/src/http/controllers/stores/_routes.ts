@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authenticateMiddleware } from "~/http/middleware/authenticate";
 import { publicRateLimit, authenticatedRateLimit } from "~/http/middleware/rate-limit";
 import { requireStoreOwner } from "~/http/middleware/permissions";
+import { uploadSingleImage } from "~/http/middleware/upload";
 import { createStoreController } from "./create";
 import { findAllStoresController } from "./find-all";
 import { findStoreByIdController } from "./find-by-id";
@@ -13,6 +14,8 @@ import { getStoreCustomersAnalyticsController } from "./analytics-customers";
 import { getStoreRecentActivitiesController } from "./recent-activities";
 import { updateStoreController } from "./update";
 import { trackStoreVisitController } from "./track-visit";
+import { uploadStoreLogoController } from "./upload-logo";
+import { uploadStoreBannerController } from "./upload-banner";
 
 export const storesRoutes = Router();
 
@@ -27,3 +30,5 @@ storesRoutes.get("/stores/:id/analytics/sales", authenticatedRateLimit, authenti
 storesRoutes.get("/stores/:id/analytics/products", authenticatedRateLimit, authenticateMiddleware, requireStoreOwner, getStoreProductsAnalyticsController);
 storesRoutes.get("/stores/:id/analytics/customers", authenticatedRateLimit, authenticateMiddleware, requireStoreOwner, getStoreCustomersAnalyticsController);
 storesRoutes.put("/stores/:id", authenticatedRateLimit, authenticateMiddleware, requireStoreOwner, updateStoreController);
+storesRoutes.post("/stores/:id/logo", authenticatedRateLimit, authenticateMiddleware, requireStoreOwner, uploadSingleImage, uploadStoreLogoController);
+storesRoutes.post("/stores/:id/banner", authenticatedRateLimit, authenticateMiddleware, requireStoreOwner, uploadSingleImage, uploadStoreBannerController);

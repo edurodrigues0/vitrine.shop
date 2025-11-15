@@ -3,12 +3,14 @@ import { authenticateMiddleware } from "~/http/middleware/authenticate";
 import { requireStoreOwner } from "~/http/middleware/permissions";
 import { requireStoreBranchOwner } from "~/http/middleware/require-store-branch-owner";
 import { publicRateLimit, authenticatedRateLimit } from "~/http/middleware/rate-limit";
+import { uploadSingleImage } from "~/http/middleware/upload";
 import { createStoreBranchController } from "./create";
 import { deleteStoreBranchController } from "./delete";
 import { findAllStoreBranchesController } from "./find-all";
 import { findStoreBranchByIdController } from "./find-by-id";
 import { findStoreBranchesByStoreIdController } from "./find-by-store-id";
 import { updateStoreBranchController } from "./update";
+import { uploadStoreBranchLogoController } from "./upload-logo";
 
 export const storeBranchesRoutes = Router();
 
@@ -62,5 +64,15 @@ storeBranchesRoutes.delete(
 	authenticateMiddleware,
 	requireStoreBranchOwner,
 	deleteStoreBranchController,
+);
+
+// Upload logo da branch - requer ownership da branch
+storeBranchesRoutes.post(
+	"/store-branches/:id/logo",
+	authenticatedRateLimit,
+	authenticateMiddleware,
+	requireStoreBranchOwner,
+	uploadSingleImage,
+	uploadStoreBranchLogoController,
 );
 

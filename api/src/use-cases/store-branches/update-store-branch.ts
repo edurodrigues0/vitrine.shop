@@ -10,6 +10,7 @@ interface UpdateStoreBranchUseCaseRequest {
 		whatsapp?: string;
 		description?: string;
 		isMain?: boolean;
+		logoUrl?: string;
 	};
 }
 

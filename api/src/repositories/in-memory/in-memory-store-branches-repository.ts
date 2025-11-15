@@ -30,6 +30,7 @@ export class InMemoryStoreBranchesRepository
 			cityId,
 			whatsapp: whatsapp ?? null,
 			description: description ?? null,
+			logoUrl: null,
 			isMain,
 			createdAt,
 			updatedAt,
@@ -150,6 +151,7 @@ export class InMemoryStoreBranchesRepository
 					? data.description
 					: currentBranch.description,
 			isMain: data.isMain !== undefined ? data.isMain : currentBranch.isMain,
+			logoUrl: data.logoUrl !== undefined ? data.logoUrl : currentBranch.logoUrl,
 			updatedAt: new Date(),
 		};
 
