@@ -138,7 +138,7 @@ export default function StoreFormPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
       toast.success("Loja criada com sucesso!");
-      router.push("/dashboard/loja");
+      router.push("/loja");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Erro ao criar loja");
@@ -166,7 +166,7 @@ export default function StoreFormPage() {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
       queryClient.invalidateQueries({ queryKey: ["store", storeId] });
       toast.success("Loja atualizada com sucesso!");
-      router.push("/dashboard/loja");
+      router.push("/loja");
     },
     onError: (error: any) => {
       // Melhorar tratamento de erros da API
@@ -478,7 +478,7 @@ export default function StoreFormPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push("/dashboard/loja")}
+                onClick={() => router.push("/loja")}
               >
                 Cancelar
               </Button>

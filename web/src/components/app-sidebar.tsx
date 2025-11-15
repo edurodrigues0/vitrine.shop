@@ -73,7 +73,7 @@ export function AppSidebar({ user, selectedStore, items, projects, navSecondary,
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard/loja">
+              <Link href="/loja">
                 {selectedStore?.logoUrl ? (
                   <div className="relative aspect-square size-8 rounded-lg overflow-hidden">
                     <Image

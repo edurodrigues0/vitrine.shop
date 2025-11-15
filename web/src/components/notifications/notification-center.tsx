@@ -53,7 +53,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
 
 		// Navegar para item relacionado
 		if (notification.relatedId && notification.relatedType === "order") {
-			router.push(`/dashboard/pedidos`);
+			router.push(`/pedidos`);
 			onClose();
 		}
 	};

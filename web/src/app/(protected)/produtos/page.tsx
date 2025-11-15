@@ -210,7 +210,7 @@ export default function ProductsPage() {
             Você precisa criar uma loja antes de adicionar produtos.
           </p>
           <Button asChild>
-            <Link href="/dashboard/loja/cadastro">Criar Loja</Link>
+            <Link href="/loja/cadastro">Criar Loja</Link>
           </Button>
         </Card>
       </div>
@@ -228,7 +228,7 @@ export default function ProductsPage() {
           </p>
         </div>
         <Button asChild size="lg">
-          <Link href="/dashboard/produtos/cadastro">
+          <Link href="/produtos/cadastro">
             <Plus className="h-4 w-4 mr-2" />
             Adicionar Produto
           </Link>
@@ -243,7 +243,7 @@ export default function ProductsPage() {
           action={{
             label: "Adicionar Primeiro Produto",
             onClick: () => {
-              window.location.href = "/dashboard/produtos/cadastro";
+              window.location.href = "/produtos/cadastro";
             },
             variant: "default",
           }}
@@ -669,7 +669,7 @@ function ProductCard({
               </Button>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/dashboard/produtos/${product.id}/editar`}>
+              <Link href={`/produtos/${product.id}/editar`}>
                 <Edit className="h-4 w-4 mr-2" />
                 Editar
               </Link>
@@ -799,7 +799,7 @@ function ProductCard({
         {/* Actions */}
         <div className="flex gap-2 pt-2 border-t">
           <Button variant="outline" size="sm" asChild className="flex-1">
-            <Link href={`/dashboard/produtos/${product.id}/editar`}>
+            <Link href={`/produtos/${product.id}/editar`}>
               <Edit className="h-4 w-4 mr-2" />
               Editar
             </Link>

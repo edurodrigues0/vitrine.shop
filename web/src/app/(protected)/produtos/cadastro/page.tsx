@@ -111,7 +111,7 @@ export default function CreateProductPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       toast.success("Produto criado com sucesso!");
-      router.push("/dashboard/produtos");
+      router.push("/produtos");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Erro ao criar produto");
@@ -156,7 +156,7 @@ export default function CreateProductPage() {
             Você precisa criar uma loja antes de adicionar produtos.
           </p>
           <Button asChild>
-            <a href="/dashboard/loja/cadastro">Criar Loja</a>
+            <a href="/loja/cadastro">Criar Loja</a>
           </Button>
         </div>
       </div>
@@ -352,7 +352,7 @@ export default function CreateProductPage() {
               type="button"
               variant="outline"
               size="lg"
-              onClick={() => router.push("/dashboard/produtos")}
+              onClick={() => router.push("/produtos")}
             >
               Cancelar
             </Button>

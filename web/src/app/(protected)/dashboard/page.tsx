@@ -88,28 +88,28 @@ export default function DashboardPage() {
     {
       title: "Adicionar novo produto",
       description: "Cadastre um novo produto na sua loja",
-      href: "/dashboard/produtos/cadastro",
+      href: "/produtos/cadastro",
       icon: Plus,
       color: "text-primary",
     },
     {
       title: "Gerenciar loja",
       description: "Edite informações e configurações da sua loja",
-      href: "/dashboard/loja",
+      href: "/loja",
       icon: Edit,
       color: "text-blue-600 dark:text-blue-400",
     },
     {
       title: "Ver estatísticas",
       description: "Acompanhe o desempenho da sua loja",
-      href: "/dashboard/estatisticas",
+      href: "/estatisticas",
       icon: BarChart3,
       color: "text-purple-600 dark:text-purple-400",
     },
     {
       title: "Ver pedidos",
       description: "Gerencie os pedidos recebidos",
-      href: "/dashboard/pedidos",
+      href: "/pedidos",
       icon: ShoppingBag,
       color: "text-green-600 dark:text-green-400",
     },
@@ -226,7 +226,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href="/dashboard/loja">
+                  <Link href="/loja">
                     <Edit className="h-4 w-4 mr-2" />
                     Gerenciar Loja
                   </Link>
@@ -246,7 +246,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <Button asChild className="w-full">
-                  <Link href="/dashboard/loja/cadastro">
+                  <Link href="/loja/cadastro">
                     <Store className="h-4 w-4 mr-2" />
                     Criar Loja
                   </Link>

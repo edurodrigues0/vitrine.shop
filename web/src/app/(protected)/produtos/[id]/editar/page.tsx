@@ -144,7 +144,7 @@ export default function EditProductPage() {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["product", productId] });
       toast.success("Produto atualizado com sucesso!");
-      router.push("/dashboard/produtos");
+      router.push("/produtos");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Erro ao atualizar produto");
@@ -230,7 +230,7 @@ export default function EditProductPage() {
             Produto não encontrado.
           </p>
           <Button asChild>
-            <a href="/dashboard/produtos">Voltar para Produtos</a>
+            <a href="/produtos">Voltar para Produtos</a>
           </Button>
         </div>
       </div>
@@ -246,7 +246,7 @@ export default function EditProductPage() {
             Você precisa criar uma loja antes de editar produtos.
           </p>
           <Button asChild>
-            <a href="/dashboard/loja/cadastro">Criar Loja</a>
+            <a href="/loja/cadastro">Criar Loja</a>
           </Button>
         </div>
       </div>
@@ -261,7 +261,7 @@ export default function EditProductPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => router.push("/dashboard/produtos")}
+            onClick={() => router.push("/produtos")}
             className="h-10 w-10"
             title="Voltar para lista de produtos"
           >
@@ -542,12 +542,12 @@ export default function EditProductPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push("/dashboard/produtos")}
+                onClick={() => router.push("/produtos")}
                 size="lg"
                 className="border-2 hover:bg-destructive/10 hover:border-destructive/50 transition-colors"
                 asChild
               >
-                <Link href="/dashboard/produtos">
+                <Link href="/produtos">
                   <X className="h-4 w-4 mr-2" />
                   Cancelar
                 </Link>

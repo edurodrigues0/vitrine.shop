@@ -43,7 +43,7 @@ export default function StoreDashboardPage() {
             Crie sua loja para começar a vender produtos.
           </p>
           <Button asChild>
-            <Link href="/dashboard/loja/cadastro">Criar Loja</Link>
+            <Link href="/loja/cadastro">Criar Loja</Link>
           </Button>
         </Card>
       </div>
@@ -76,7 +76,7 @@ export default function StoreDashboardPage() {
           <p className="text-muted-foreground">Gerencie as informações da sua loja</p>
         </div>
         <Button asChild>
-          <Link href={`/dashboard/loja/cadastro?id=${selectedStore.id}`}>
+          <Link href={`/loja/cadastro?id=${selectedStore.id}`}>
             <Edit className="h-4 w-4 mr-2" />
             Editar
           </Link>
@@ -87,7 +87,7 @@ export default function StoreDashboardPage() {
       <div className="mb-6">
         <Card className="overflow-hidden">
           {selectedStore.bannerUrl ? (
-            <div className="relative h-48 md:h-64 w-full">
+            <div className="relative h-48 md:h-64 w-full top-[-24px]">
               <Image
                 src={selectedStore.bannerUrl}
                 alt={selectedStore.name}
@@ -97,10 +97,11 @@ export default function StoreDashboardPage() {
               />
             </div>
           ) : (
-            <div className="h-48 md:h-64 w-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
+            <div className="relative h-48 md:h-64 w-full top-[-24px] bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
               <Store className="h-16 w-16 text-primary opacity-50" />
             </div>
           )}
+
           <div className="p-6 -mt-12 relative">
             <div className="flex items-end gap-4">
               {selectedStore.logoUrl ? (
@@ -109,7 +110,7 @@ export default function StoreDashboardPage() {
                     src={selectedStore.logoUrl}
                     alt={selectedStore.name}
                     fill
-                    className="object-contain rounded"
+                    className="object-fill rounded"
                     unoptimized
                   />
                 </div>
