@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { FaGoogle } from "react-icons/fa";
 
 const loginSchema = z.object({
-  email: z.string().email("E-mail inválido"),
+  email: z.email("E-mail inválido"),
   password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres"),
 });
 
@@ -120,7 +120,7 @@ export function LoginForm({
             type="button"
             className="w-full border-2 hover:bg-muted/50 transition-all"
           >
-            <FaGoogle className="h-5 w-5 mr-2" />
+            <FaGoogle className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
             Entrar com Google
           </Button>
           <FieldDescription className="text-center mt-4">
