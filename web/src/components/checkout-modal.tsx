@@ -18,7 +18,7 @@ import { Loader2, MessageCircle, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 
 const customerDataSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -37,6 +37,7 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
   const { items, storeId, getTotal, clearCart } = useCart();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<"customer" | "confirm">("customer");
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const { data: store, isLoading: isLoadingStore } = useQuery({
     queryKey: ["store", storeId],
@@ -125,7 +126,8 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
       queryClient.invalidateQueries({ queryKey: ["statistics"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       setStep("confirm");
-      toast.success("Pedido criado com sucesso!");
+      setCheckoutError(null);
+      showSuccess("Pedido criado com sucesso!");
     },
     onError: (error: any) => {
       console.error("Erro ao criar pedido:", error);
@@ -147,7 +149,8 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
           : "Erro de validação. Verifique os dados informados.";
       }
       
-      toast.error(errorMessage);
+      showError(errorMessage);
+      setCheckoutError(errorMessage);
     },
   });
 
@@ -174,6 +177,7 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
   const handleClose = () => {
     setStep("customer");
     reset();
+    setCheckoutError(null);
     onClose();
   };
 
@@ -306,6 +310,7 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
                             id="name"
                             {...register("name")}
                             aria-invalid={errors.name ? "true" : "false"}
+                            disabled={createOrderMutation.isPending}
                             placeholder="Seu nome completo"
                           />
                           {errors.name && (
@@ -321,6 +326,7 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
                             id="whatsapp"
                             {...register("whatsapp")}
                             aria-invalid={errors.whatsapp ? "true" : "false"}
+                            disabled={createOrderMutation.isPending}
                             placeholder="(00) 00000-0000"
                           />
                           {errors.whatsapp && (
@@ -334,14 +340,18 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
                           type="submit"
                           className="w-full"
                           size="lg"
-                          disabled={createOrderMutation.isPending}
+                          isLoading={createOrderMutation.isPending}
+                          loadingText="Processando..."
                         >
-                          {createOrderMutation.isPending
-                            ? "Processando..."
-                            : "Prosseguir com a solicitação"}
+                          Prosseguir com a solicitação
                         </Button>
                       </FieldGroup>
                     </form>
+                    {checkoutError && (
+                      <p className="mt-3 text-sm text-destructive" aria-live="assertive">
+                        {checkoutError}
+                      </p>
+                    )}
                   </Card>
                 ) : (
                   <Card className="p-6">

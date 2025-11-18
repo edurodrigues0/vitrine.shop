@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +16,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
-import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -29,6 +29,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"form">) {
   const { login, isLoggingIn } = useAuth();
+  const [formError, setFormError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -38,15 +39,16 @@ export function LoginForm({
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    try {
-      login(data);
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Erro ao fazer login. Tente novamente.",
-      );
-    }
+    setFormError(null);
+    login(data, {
+      onError: (error) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Erro ao fazer login. Tente novamente.";
+        setFormError(message);
+      },
+    });
   };
 
   return (
@@ -78,7 +80,7 @@ export function LoginForm({
             <FieldLabel htmlFor="password">Senha</FieldLabel>
             <a
               href="#"
-              className="text-sm text-primary hover:underline font-medium"
+              className="link-text text-sm font-medium"
             >
               Esqueceu sua senha?
             </a>
@@ -101,14 +103,18 @@ export function LoginForm({
         <Field>
           <Button 
             type="submit" 
-            disabled={isLoggingIn}
+            isLoading={isLoggingIn}
+            loadingText="Entrando..."
             className="w-full bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary/90 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] relative overflow-hidden group font-semibold"
           >
-            <span className="relative z-10">
-              {isLoggingIn ? "Entrando..." : "Entrar"}
-            </span>
+            <span className="relative z-10">Entrar</span>
             <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
           </Button>
+          {formError && (
+            <p className="text-sm text-destructive mt-2" role="alert" aria-live="polite">
+              {formError}
+            </p>
+          )}
         </Field>
         
         <FieldSeparator>Ou continue com</FieldSeparator>
@@ -129,7 +135,7 @@ export function LoginForm({
           </Button>
           <FieldDescription className="text-center mt-4">
             Não tem uma conta?{" "}
-            <Link href="/register" className="text-primary hover:underline font-medium">
+            <Link href="/register" className="link-text font-medium">
               Cadastre-se
             </Link>
           </FieldDescription>

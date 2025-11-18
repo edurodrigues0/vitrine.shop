@@ -18,7 +18,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import { useState } from "react";
 import { X, Upload, Image as ImageIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
@@ -110,11 +110,11 @@ export default function CreateProductPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast.success("Produto criado com sucesso!");
+      showSuccess("Produto criado com sucesso!");
       router.push("/dashboard/produtos");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao criar produto");
+      showError(error.message || "Erro ao criar produto");
     },
   });
 
@@ -141,7 +141,7 @@ export default function CreateProductPage() {
 
   const onSubmit = async (data: ProductFormData) => {
     if (!selectedStore) {
-      toast.error("Você precisa criar uma loja primeiro");
+      showError("Você precisa criar uma loja primeiro");
       return;
     }
     createMutation.mutate(data);

@@ -1,11 +1,12 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-[var(--feedback-disabled-opacity)] disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.98] data-[state=success]:bg-success data-[state=success]:text-success-foreground data-[state=success]:hover:bg-success/90 data-[state=error]:bg-destructive data-[state=error]:text-destructive-foreground data-[state=error]:hover:bg-destructive/90 data-[loading=true]:cursor-progress",
   {
     variants: {
       variant: {
@@ -36,25 +37,82 @@ const buttonVariants = cva(
   }
 )
 
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"button"> &
+type ButtonProps = React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
-  }) {
-  const Comp = asChild ? Slot : "button"
+    /** Exibe spinner e desabilita interações */
+    isLoading?: boolean
+    /** Texto alternativo enquanto carrega */
+    loadingText?: React.ReactNode
+    /** Ícone customizado para loading */
+    loadingIcon?: React.ReactNode
+    /** Estado visual de sucesso */
+    isSuccess?: boolean
+    /** Estado visual de erro */
+    isError?: boolean
+    /** Ícone opcional fixo */
+    icon?: React.ReactNode
+    iconPosition?: "left" | "right"
+  }
 
-  return (
-    <Comp
-      data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
-  )
-}
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      isLoading = false,
+      loadingText,
+      loadingIcon,
+      isSuccess = false,
+      isError = false,
+      icon,
+      iconPosition = "left",
+      disabled,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
+    const Comp = asChild ? Slot : "button"
+
+    const resolvedLabel = isLoading
+      ? loadingText ?? children
+      : children
+
+    const state = isSuccess ? "success" : isError ? "error" : undefined
+
+    return (
+      <Comp
+        ref={ref}
+        data-slot="button"
+        data-loading={isLoading ? "true" : undefined}
+        data-state={state}
+        disabled={disabled || isLoading}
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          isLoading && "gap-2",
+        )}
+        {...props}
+      >
+        <span className="inline-flex items-center justify-center gap-2">
+          {isLoading && (loadingIcon ?? <Loader2 className="h-4 w-4 animate-spin" />)}
+          {!isLoading && icon && iconPosition === "left" && icon}
+          <span className="inline-flex items-center gap-2">{resolvedLabel}</span>
+          {!isLoading && icon && iconPosition === "right" && icon}
+          {!isLoading && isSuccess && (
+            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+          )}
+          {!isLoading && isError && (
+            <AlertCircle className="h-4 w-4" aria-hidden="true" />
+          )}
+        </span>
+      </Comp>
+    )
+  },
+)
+
+Button.displayName = "Button"
 
 export { Button, buttonVariants }

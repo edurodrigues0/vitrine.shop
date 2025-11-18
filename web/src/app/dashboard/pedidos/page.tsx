@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Package, Phone, Mail, Calendar, CheckCircle2, Clock, Truck, XCircle, Search, MessageCircle } from "lucide-react";
 import { OrderStatusTimeline } from "@/components/order-status-timeline";
 import { useState } from "react";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import { Input } from "@/components/ui/input";
 import {
   Field,
@@ -41,6 +41,11 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [customerNameFilter, setCustomerNameFilter] = useState<string>("");
   const [customerPhoneFilter, setCustomerPhoneFilter] = useState<string>("");
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{
+    orderId: string;
+    status: string;
+  } | null>(null);
+  const [lastUpdatedOrderId, setLastUpdatedOrderId] = useState<string | null>(null);
 
   // Get orders
   const { data: ordersData, isLoading: isLoadingOrders } = useQuery({
@@ -58,12 +63,20 @@ export default function OrdersPage() {
   const updateStatusMutation = useMutation({
     mutationFn: ({ orderId, status }: { orderId: string; status: string }) =>
       ordersService.updateStatus(orderId, { status: status as any }),
-    onSuccess: () => {
+    onMutate: ({ orderId, status }) => {
+      setPendingStatusUpdate({ orderId, status });
+      setLastUpdatedOrderId(null);
+    },
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-      toast.success("Status atualizado com sucesso!");
+      showSuccess("Status atualizado com sucesso!");
+      setLastUpdatedOrderId(variables.orderId);
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao atualizar status");
+      showError(error.message || "Erro ao atualizar status");
+    },
+    onSettled: () => {
+      setPendingStatusUpdate(null);
     },
   });
 
@@ -253,7 +266,7 @@ export default function OrdersPage() {
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <a
                               href={`mailto:${order.customerEmail}`}
-                              className="text-sm text-primary hover:underline"
+                              className="link-text text-sm font-medium"
                               title="Enviar e-mail para o cliente"
                             >
                               {order.customerEmail}
@@ -346,13 +359,24 @@ export default function OrdersPage() {
                           const StatusIcon = statusIcons[status] || Package;
                           const statusColor = statusColors[status] || statusColors.PENDENTE;
                           
+                          const isLoadingButton =
+                            updateStatusMutation.isPending &&
+                            pendingStatusUpdate?.orderId === order.id &&
+                            pendingStatusUpdate?.status === status;
+
+                          const isDisabled =
+                            isSelected ||
+                            (updateStatusMutation.isPending && !isLoadingButton);
+
                           return (
                             <Button
                               key={status}
                               variant={isSelected ? "default" : "outline"}
                               size="sm"
                               onClick={() => handleStatusChange(order.id, status)}
-                              disabled={updateStatusMutation.isPending || isSelected}
+                              isLoading={isLoadingButton}
+                              loadingText="Atualizando..."
+                              disabled={isDisabled}
                               className={`${isSelected ? "" : "hover:bg-accent"} transition-all`}
                               title={isSelected ? "Status atual" : `Alterar para ${label}`}
                             >
@@ -362,11 +386,21 @@ export default function OrdersPage() {
                           );
                         })}
                       </div>
-                      {updateStatusMutation.isPending && (
-                        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                      {updateStatusMutation.isPending && pendingStatusUpdate?.orderId === order.id && (
+                        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
                           <Loader2 className="h-3 w-3 animate-spin" />
-                          <span>Atualizando...</span>
+                          <span>Atualizando status...</span>
                         </div>
+                      )}
+                      {updateStatusMutation.isError && pendingStatusUpdate?.orderId === order.id && (
+                        <p className="mt-2 text-xs text-destructive" aria-live="assertive">
+                          Não foi possível atualizar o status. Tente novamente.
+                        </p>
+                      )}
+                      {updateStatusMutation.isSuccess && !updateStatusMutation.isPending && lastUpdatedOrderId === order.id && (
+                        <p className="mt-2 text-xs text-success" aria-live="polite">
+                          Status atualizado com sucesso.
+                        </p>
                       )}
                     </Card>
                   </div>

@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Loader2, User, Lock, Bell, Palette, ShoppingBag, Package, Eye, Store, AlertTriangle, Info } from "lucide-react";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import { useState, useEffect } from "react";
 
 const profileSchema = z.object({
@@ -80,14 +80,14 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       queryClient.invalidateQueries({ queryKey: ["user"] });
-      toast.success("Perfil atualizado com sucesso!");
+      showSuccess("Perfil atualizado com sucesso!");
       resetProfile({
         name: user?.name || "",
         email: user?.email || "",
       });
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao atualizar perfil");
+      showError(error.message || "Erro ao atualizar perfil");
     },
   });
 
@@ -101,11 +101,11 @@ export default function SettingsPage() {
       });
     },
     onSuccess: () => {
-      toast.success("Senha alterada com sucesso!");
+      showSuccess("Senha alterada com sucesso!");
       resetPassword();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao alterar senha");
+      showError(error.message || "Erro ao alterar senha");
     },
   });
 
@@ -369,12 +369,12 @@ function NotificationPreferences() {
     };
     setPreferences(newPreferences);
     localStorage.setItem("notificationPreferences", JSON.stringify(newPreferences));
-    toast.success("Preferência atualizada!");
+    showSuccess("Preferência atualizada!");
   };
 
   const handleSave = () => {
     localStorage.setItem("notificationPreferences", JSON.stringify(preferences));
-    toast.success("Preferências salvas com sucesso!");
+    showSuccess("Preferências salvas com sucesso!");
   };
 
   const handleReset = () => {
@@ -390,7 +390,7 @@ function NotificationPreferences() {
     };
     setPreferences(defaultPreferences);
     localStorage.setItem("notificationPreferences", JSON.stringify(defaultPreferences));
-    toast.success("Preferências resetadas para o padrão!");
+    showSuccess("Preferências resetadas para o padrão!");
   };
 
   const notificationTypes = [

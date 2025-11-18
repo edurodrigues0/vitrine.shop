@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Edit, Trash2, Package, Search, Filter, PlusCircle, MinusCircle, Image as ImageIcon, Grid3x3, List, ArrowUpDown, ArrowUp, ArrowDown, X } from "lucide-react";
 import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import Image from "next/image";
 import { AlertDialog } from "@/components/ui/alert-dialog";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -139,10 +139,12 @@ export default function ProductsPage() {
     mutationFn: (id: string) => productsService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast.success("Produto excluído com sucesso!");
+      showSuccess("Produto excluído com sucesso!");
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
     },
     onError: () => {
-      toast.error("Erro ao excluir produto");
+      showError("Erro ao excluir produto");
     },
   });
 
@@ -152,10 +154,10 @@ export default function ProductsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast.success("Estoque atualizado com sucesso!");
+      showSuccess("Estoque atualizado com sucesso!");
     },
     onError: () => {
-      toast.error("Erro ao atualizar estoque");
+      showError("Erro ao atualizar estoque");
     },
   });
 
@@ -470,16 +472,38 @@ export default function ProductsPage() {
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) {
+            deleteMutation.reset();
+            setProductToDelete(null);
+          }
+        }}
         title="Excluir Produto"
         description="Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita."
         confirmText="Excluir"
         cancelText="Cancelar"
         variant="destructive"
+        isConfirmLoading={deleteMutation.isPending}
+        confirmLoadingText="Excluindo..."
+        status={
+          deleteMutation.isError
+            ? "error"
+            : deleteMutation.isSuccess
+              ? "success"
+              : "idle"
+        }
+        statusMessage={
+          deleteMutation.isError
+            ? "Não foi possível excluir o produto."
+            : deleteMutation.isSuccess
+              ? "Produto excluído com sucesso."
+              : undefined
+        }
+        autoCloseOnConfirm={false}
         onConfirm={() => {
           if (productToDelete) {
             deleteMutation.mutate(productToDelete);
-            setProductToDelete(null);
           }
         }}
       />
@@ -487,12 +511,20 @@ export default function ProductsPage() {
       {/* Bulk Delete Confirmation Dialog */}
       <AlertDialog
         open={bulkDeleteDialogOpen}
-        onOpenChange={setBulkDeleteDialogOpen}
+        onOpenChange={(open) => {
+          setBulkDeleteDialogOpen(open);
+          if (!open) {
+            deleteMutation.reset();
+          }
+        }}
         title="Excluir Produtos Selecionados"
         description={`Tem certeza que deseja excluir ${selectedProducts.size} produto(s)? Esta ação não pode ser desfeita.`}
         confirmText="Excluir Todos"
         cancelText="Cancelar"
         variant="destructive"
+        isConfirmLoading={deleteMutation.isPending}
+        confirmLoadingText="Excluindo..."
+        autoCloseOnConfirm={false}
         onConfirm={handleConfirmBulkDelete}
       />
     </div>
@@ -542,10 +574,10 @@ function ProductCard({
     mutationFn: (id: string) => productsService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast.success("Produto excluído com sucesso!");
+      showSuccess("Produto excluído com sucesso!");
     },
     onError: () => {
-      toast.error("Erro ao excluir produto");
+      showError("Erro ao excluir produto");
     },
   });
 
@@ -555,10 +587,10 @@ function ProductCard({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast.success("Estoque atualizado com sucesso!");
+      showSuccess("Estoque atualizado com sucesso!");
     },
     onError: () => {
-      toast.error("Erro ao atualizar estoque");
+      showError("Erro ao atualizar estoque");
     },
   });
 
@@ -581,7 +613,7 @@ function ProductCard({
   if (viewMode === "list") {
     return (
       <Card
-        className={`p-4 hover:shadow-lg transition-all group cursor-pointer ${
+        className={`p-4 hover:shadow-lg transition-all group cursor-pointer hovelift ${
           isSelected 
             ? "ring-2 ring-primary dark:ring-primary/80 bg-primary/5 dark:bg-primary/10 border-primary/50 dark:border-primary/40" 
             : "hover:bg-accent/50 dark:hover:bg-accent/20"
@@ -694,7 +726,7 @@ function ProductCard({
   return (
     <Card
       key={product.id}
-      className={`p-6 hover:shadow-lg transition-all group overflow-hidden cursor-pointer ${
+      className={`p-6 hover:shadow-lg transition-all group overflow-hidden cursor-pointer hovelift ${
         isSelected 
           ? "ring-2 ring-primary dark:ring-primary/80 bg-primary/5 dark:bg-primary/10 border-primary/50 dark:border-primary/40" 
           : "hover:bg-accent/50 dark:hover:bg-accent/20"

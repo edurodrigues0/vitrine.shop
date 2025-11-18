@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { usersService } from "@/services/users-service";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import Link from "next/link";
 import { Store, Sparkles, Check } from "lucide-react";
 
@@ -51,11 +51,11 @@ export default function RegisterPage() {
     mutationFn: (data: Omit<RegisterFormData, "confirmPassword">) =>
       usersService.create(data),
     onSuccess: () => {
-      toast.success("Conta criada com sucesso! Faça login para continuar.");
+      showSuccess("Conta criada com sucesso! Faça login para continuar.");
       router.push("/login");
     },
     onError: (error: Error) => {
-      toast.error(
+      showError(
         error.message || "Erro ao criar conta. Tente novamente.",
       );
     },

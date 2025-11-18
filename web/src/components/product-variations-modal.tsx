@@ -11,7 +11,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import { X, Plus, Edit, Trash2, Loader2, Save, XCircle, Check } from "lucide-react";
 import type { ProductVariation } from "@/dtos/product-variation";
 
@@ -76,14 +76,14 @@ export function ProductVariationsModal({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product-variations", productId] });
-      toast.success("Variação criada com sucesso!");
+      showSuccess("Variação criada com sucesso!");
       resetForm();
       setIsCreating(false);
     },
     onError: (error: any) => {
       console.error("Create mutation error:", error);
       const errorMessage = error?.message || error?.response?.data?.message || "Erro ao criar variação";
-      toast.error(errorMessage);
+      showError(errorMessage);
     },
   });
 
@@ -105,11 +105,11 @@ export function ProductVariationsModal({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product-variations", productId] });
-      toast.success("Variação atualizada com sucesso!");
+      showSuccess("Variação atualizada com sucesso!");
       setEditingVariationId(null);
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao atualizar variação");
+      showError(error.message || "Erro ao atualizar variação");
     },
   });
 
@@ -119,10 +119,10 @@ export function ProductVariationsModal({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product-variations", productId] });
-      toast.success("Variação excluída com sucesso!");
+      showSuccess("Variação excluída com sucesso!");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao excluir variação");
+      showError(error.message || "Erro ao excluir variação");
     },
   });
 
@@ -161,12 +161,12 @@ export function ProductVariationsModal({
 
     // Validação básica
     if (!formData.price || parseFloat(formData.price) <= 0) {
-      toast.error("O preço é obrigatório e deve ser maior que zero");
+      showError("O preço é obrigatório e deve ser maior que zero");
       return;
     }
 
     if (!formData.stock || parseInt(formData.stock, 10) < 0) {
-      toast.error("O estoque é obrigatório e não pode ser negativo");
+      showError("O estoque é obrigatório e não pode ser negativo");
       return;
     }
 
@@ -478,12 +478,12 @@ function VariationCard({
     const stock = parseInt(editData.stock, 10);
 
     if (price <= 0) {
-      toast.error("O preço deve ser maior que zero");
+      showError("O preço deve ser maior que zero");
       return;
     }
 
     if (stock < 0) {
-      toast.error("O estoque não pode ser negativo");
+      showError("O estoque não pode ser negativo");
       return;
     }
 

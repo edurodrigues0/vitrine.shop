@@ -27,7 +27,7 @@ import {
 import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
 import { useCart } from "@/contexts/cart-context";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import Link from "next/link";
 import type { ProductVariation } from "@/dtos/product-variation";
 import type { ProductImage } from "@/dtos/product-image";
@@ -178,19 +178,19 @@ export default function ProductPage() {
     if (!product) return;
 
     if (!canAddItem(product.storeId)) {
-      toast.error(
+      showError(
         "Não é possível adicionar produtos de lojas diferentes ao carrinho. Finalize o pedido atual ou limpe o carrinho.",
       );
       return;
     }
 
     if (!isAvailable) {
-      toast.error("Produto fora de estoque");
+      showError("Produto fora de estoque");
       return;
     }
 
     if (quantity > availableStock) {
-      toast.error(`Quantidade disponível: ${availableStock} unidades`);
+      showError(`Quantidade disponível: ${availableStock} unidades`);
       return;
     }
 
@@ -209,12 +209,12 @@ export default function ProductPage() {
       
       try {
         addItem(product, defaultVariation, quantity);
-        toast.success(
+        showSuccess(
           `${quantity} ${quantity === 1 ? "produto" : "produtos"} adicionado${quantity === 1 ? "" : "s"} ao carrinho!`,
         );
         setQuantity(1);
       } catch (error) {
-        toast.error(
+        showError(
           error instanceof Error
             ? error.message
             : "Erro ao adicionar ao carrinho",
@@ -224,18 +224,18 @@ export default function ProductPage() {
     }
 
     if (!selectedVariation) {
-      toast.error("Selecione uma variação do produto");
+      showError("Selecione uma variação do produto");
       return;
     }
 
     try {
       addItem(product, selectedVariation, quantity);
-      toast.success(
+      showSuccess(
         `${quantity} ${quantity === 1 ? "produto" : "produtos"} adicionado${quantity === 1 ? "" : "s"} ao carrinho!`,
       );
       setQuantity(1);
     } catch (error) {
-      toast.error(
+      showError(
         error instanceof Error
           ? error.message
           : "Erro ao adicionar ao carrinho",
@@ -302,10 +302,10 @@ export default function ProductPage() {
                       try {
                         const productUrl = window.location.href;
                         await navigator.clipboard.writeText(productUrl);
-                        toast.success("Link copiado para área de transferência!");
+                        showSuccess("Link copiado para área de transferência!");
                       } catch (error) {
                         console.error("Erro ao copiar link:", error);
-                        toast.error("Erro ao copiar link");
+                        showError("Erro ao copiar link");
                       }
                     }}
                     title="Compartilhar produto"

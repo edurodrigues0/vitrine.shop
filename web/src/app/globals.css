@@ -121,6 +121,15 @@
   --shadow-2xl: 0 16px 48px hsl(217 91% 60% / 0.25);
   --shadow-glow: 0 0 24px hsl(217 91% 70% / 0.3);
 
+  /* Feedback tokens (light) */
+  --feedback-hover-surface: 210 40% 97%;
+  --feedback-hover-border: 214 32% 88%;
+  --feedback-active-surface: 217 91% 96%;
+  --feedback-active-border: 214 32% 82%;
+  --feedback-disabled-opacity: 0.55;
+  --feedback-transition: 150ms ease;
+  --feedback-press-scale: 0.97;
+  
   --sidebar-background: 0 0% 98%;
   --sidebar-foreground: 240 5% 26%;
   --sidebar-primary: 240 6% 10%;
@@ -206,6 +215,15 @@
   --shadow-xl: 0 12px 32px hsl(0 0% 0% / 0.6);
   --shadow-2xl: 0 16px 48px hsl(0 0% 0% / 0.7);
   --shadow-glow: 0 0 24px hsl(217 91% 70% / 0.4);
+
+  /* Feedback tokens (dark) */
+  --feedback-hover-surface: 217 33% 19%;
+  --feedback-hover-border: 217 33% 35%;
+  --feedback-active-surface: 217 33% 22%;
+  --feedback-active-border: 217 33% 40%;
+  --feedback-disabled-opacity: 0.4;
+  --feedback-transition: 150ms ease;
+  --feedback-press-scale: 0.97;
   
   /* Sombras para hover de cards */
   --shadow-card-hover: 0 8px 24px hsl(0 0% 0% / 0.5);
@@ -416,7 +434,7 @@ button a,
 /* Botões - Estados melhorados */
 button:active,
 [role="button"]:active {
-  transform: scale(0.98);
+  transform: scale(var(--feedback-press-scale));
   transition: transform 100ms ease;
 }
 
@@ -446,14 +464,14 @@ button:focus-visible,
 }
 
 .click-feedback {
-  animation: click-feedback 150ms ease;
+  animation: click-feedback var(--feedback-transition);
 }
 
 /* Estados hover para elementos interativos */
 [data-interactive="true"]:hover,
 .interactive:hover {
   opacity: 0.9;
-  transition: opacity 150ms ease;
+  transition: opacity var(--feedback-transition);
 }
 
 .dark [data-interactive="true"]:hover,
@@ -546,6 +564,21 @@ button:focus-visible,
 
 @utility section-bg-green {
   background: var(--section-green);
+}
+
+.hovelift {
+  transition: transform var(--feedback-transition), box-shadow var(--feedback-transition);
+  transform: translateY(0);
+}
+
+.hovelift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.hovelift:active {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 @utility section-bg-orange {

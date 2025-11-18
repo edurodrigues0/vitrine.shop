@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { createSlug } from "@/lib/slug";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import { Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useEffect } from "react";
@@ -137,11 +137,11 @@ export default function StoreFormPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
-      toast.success("Loja criada com sucesso!");
+      showSuccess("Loja criada com sucesso!");
       router.push("/dashboard/loja");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao criar loja");
+      showError(error.message || "Erro ao criar loja");
     },
   });
 
@@ -165,7 +165,7 @@ export default function StoreFormPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
       queryClient.invalidateQueries({ queryKey: ["store", storeId] });
-      toast.success("Loja atualizada com sucesso!");
+      showSuccess("Loja atualizada com sucesso!");
       router.push("/dashboard/loja");
     },
     onError: (error: any) => {
@@ -188,7 +188,7 @@ export default function StoreFormPage() {
         errorMessage = error?.data?.message || "Os dados informados já estão em uso por outra loja";
       }
       
-      toast.error(errorMessage);
+      showError(errorMessage);
     },
   });
 

@@ -16,6 +16,11 @@ interface AlertDialogProps {
   onConfirm: () => void;
   onCancel?: () => void;
   children?: React.ReactNode;
+  isConfirmLoading?: boolean;
+  confirmLoadingText?: string;
+  status?: "idle" | "success" | "error";
+  statusMessage?: string;
+  autoCloseOnConfirm?: boolean;
 }
 
 export function AlertDialog({
@@ -29,6 +34,11 @@ export function AlertDialog({
   onConfirm,
   onCancel,
   children,
+  isConfirmLoading = false,
+  confirmLoadingText,
+  status = "idle",
+  statusMessage,
+  autoCloseOnConfirm = true,
 }: AlertDialogProps) {
   if (!open) return null;
 
@@ -38,21 +48,27 @@ export function AlertDialog({
   };
 
   const handleConfirm = () => {
+    if (isConfirmLoading) return;
     onConfirm();
-    onOpenChange(false);
+    if (autoCloseOnConfirm) {
+      onOpenChange(false);
+    }
   };
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+        className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm animate-fade-in"
         onClick={handleCancel}
       />
       {/* Dialog */}
       <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
         <div
-          className="bg-background border border-border rounded-lg shadow-lg w-full max-w-md m-4 p-6 pointer-events-auto"
+          className={cn(
+            "bg-background border border-border rounded-lg shadow-lg w-full max-w-md m-4 p-6 pointer-events-auto animate-slide-up",
+            className
+          )}
           style={{ backgroundColor: 'hsl(var(--background))' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -68,16 +84,34 @@ export function AlertDialog({
           <p className="text-sm text-muted-foreground mb-6">{description}</p>
           {children && <div className="mb-6">{children}</div>}
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={handleCancel}>
+            <Button
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isConfirmLoading}
+            >
               {cancelText}
             </Button>
             <Button
               variant={variant === "destructive" ? "destructive" : "default"}
+              isLoading={isConfirmLoading}
+              loadingText={confirmLoadingText ?? confirmText}
+              isSuccess={status === "success"}
+              isError={status === "error"}
               onClick={handleConfirm}
             >
               {confirmText}
             </Button>
           </div>
+          {status !== "idle" && statusMessage && (
+            <p
+              className={cn(
+                "mt-4 text-sm",
+                status === "error" ? "text-destructive" : "text-success",
+              )}
+            >
+              {statusMessage}
+            </p>
+          )}
         </div>
       </div>
     </>

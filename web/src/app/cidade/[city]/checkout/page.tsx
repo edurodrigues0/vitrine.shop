@@ -18,7 +18,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 
 const customerDataSchema = z.object({
@@ -73,10 +73,10 @@ export default function CheckoutPage() {
       queryClient.invalidateQueries({ queryKey: ["statistics"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       setStep("confirm");
-      toast.success("Pedido criado com sucesso!");
+      showSuccess("Pedido criado com sucesso!");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao criar pedido");
+      showError(error.message || "Erro ao criar pedido");
     },
   });
 

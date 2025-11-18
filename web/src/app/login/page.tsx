@@ -48,11 +48,11 @@ export default function LoginPage() {
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 Ao continuar, você concorda com nossos{" "}
-                <Link href="/termos" className="text-primary hover:underline font-medium">
+                <Link href="/termos" className="link-text font-medium">
                   Termos de Uso
                 </Link>
                 {" "}e{" "}
-                <Link href="/privacidade" className="text-primary hover:underline font-medium">
+                <Link href="/privacidade" className="link-text font-medium">
                   Política de Privacidade
                 </Link>
               </p>

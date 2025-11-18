@@ -9,8 +9,9 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
       className={cn(
         "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm transition-all duration-200",
         "dark:border-border/80 dark:shadow-md",
-        "hover:shadow-md dark:hover:shadow-lg hover:border-border/60 dark:hover:border-border",
-        className
+        "hover:shadow-md hover:bg-[hsl(var(--feedback-hover-surface))] hover:border-[hsl(var(--feedback-hover-border))]",
+        "active:bg-[hsl(var(--feedback-active-surface))] active:border-[hsl(var(--feedback-active-border))]",
+        className,
       )}
       {...props}
     />

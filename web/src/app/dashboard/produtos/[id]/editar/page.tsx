@@ -16,7 +16,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import { Loader2, ArrowLeft, Save, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ProductVariationsModal } from "@/components/product-variations-modal";
@@ -143,11 +143,11 @@ export default function EditProductPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["product", productId] });
-      toast.success("Produto atualizado com sucesso!");
+      showSuccess("Produto atualizado com sucesso!");
       router.push("/dashboard/produtos");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao atualizar produto");
+      showError(error.message || "Erro ao atualizar produto");
     },
   });
 
@@ -178,10 +178,10 @@ export default function EditProductPage() {
     },
     onSuccess: () => {
       refetchImages();
-      toast.success("Imagem removida com sucesso!");
+      showSuccess("Imagem removida com sucesso!");
     },
     onError: () => {
-      toast.error("Erro ao remover imagem");
+      showError("Erro ao remover imagem");
     },
   });
 
@@ -197,10 +197,10 @@ export default function EditProductPage() {
       setSelectedImages([]);
       setImagePreviews([]);
       refetchImages();
-      toast.success("Imagens adicionadas com sucesso!");
+      showSuccess("Imagens adicionadas com sucesso!");
     },
     onError: () => {
-      toast.error("Erro ao fazer upload das imagens");
+      showError("Erro ao fazer upload das imagens");
     },
   });
 

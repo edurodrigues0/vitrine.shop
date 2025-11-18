@@ -182,14 +182,14 @@ export default function DashboardPage() {
                 <Link
                   key={action.title}
                   href={action.href}
-                  className="group"
+                  className="group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-lg"
                 >
-                  <div className="p-4 rounded-lg border hover:border-primary/50 hover:bg-accent/50 transition-all cursor-pointer">
+                  <div className="p-4 rounded-lg border hover:border-primary/50 hover:bg-[hsl(var(--feedback-hover-surface))] transition-all cursor-pointer hovelift">
                     <div className="flex items-start gap-3">
                       <div className={`p-2 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors`}>
                         <Icon className={`h-5 w-5 ${action.color}`} />
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="space-y-2">
                         <h3 className="font-semibold mb-1 group-hover:text-primary transition-colors">
                           {action.title}
                         </h3>

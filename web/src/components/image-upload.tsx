@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import Image from "next/image";
 
 interface ImageUploadProps {
@@ -33,13 +33,13 @@ export function ImageUpload({
 
     // Validar tipo de arquivo
     if (!file.type.startsWith("image/")) {
-      toast.error("Por favor, selecione apenas arquivos de imagem");
+      showError("Por favor, selecione apenas arquivos de imagem");
       return;
     }
 
     // Validar tamanho
     if (file.size > maxSize) {
-      toast.error(
+      showError(
         `O arquivo é muito grande. Tamanho máximo: ${(maxSize / 1024 / 1024).toFixed(2)}MB`,
       );
       return;
@@ -56,7 +56,7 @@ export function ImageUpload({
   const handleUpload = async () => {
     const file = fileInputRef.current?.files?.[0];
     if (!file) {
-      toast.error("Por favor, selecione um arquivo");
+      showError("Por favor, selecione um arquivo");
       return;
     }
 
@@ -67,20 +67,20 @@ export function ImageUpload({
         // Usar função de upload personalizada se fornecida
         const url = await onUpload(file);
         onUploadComplete(url);
-        toast.success("Imagem carregada com sucesso!");
+        showSuccess("Imagem carregada com sucesso!");
       } else {
         // Fallback: usar data URL como preview
         const reader = new FileReader();
         reader.onloadend = () => {
           const dataUrl = reader.result as string;
           onUploadComplete(dataUrl);
-          toast.success("Imagem carregada com sucesso!");
+          showSuccess("Imagem carregada com sucesso!");
         };
         reader.readAsDataURL(file);
       }
     } catch (error) {
       console.error("Error uploading image:", error);
-      toast.error(
+      showError(
         error instanceof Error
           ? error.message
           : "Erro ao fazer upload da imagem",
