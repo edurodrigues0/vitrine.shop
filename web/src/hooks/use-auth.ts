@@ -33,6 +33,8 @@ export function useAuth() {
       }
       // Update auth query with user data
       queryClient.setQueryData(AUTH_KEY, response.user);
+      // Invalidar cache de lojas para buscar dados atualizados após login
+      queryClient.invalidateQueries({ queryKey: ["stores", "user"] });
       router.push("/dashboard");
       showSuccess("Login realizado com sucesso!");
     },

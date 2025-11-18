@@ -112,7 +112,21 @@ export default function StatisticsPage() {
     );
   }
 
-  if (!selectedStore) {
+  // Mostrar loading enquanto está carregando as lojas
+  if (isLoadingStore) {
+    return (
+      <div>
+        <h1 className="text-3xl font-bold mb-8">Estatísticas</h1>
+        <Card className="p-8 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregando...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  // Só mostrar mensagem de "criar loja" se não estiver carregando e realmente não tiver loja
+  if (!selectedStore && !isLoadingStore) {
     return (
       <div>
         <h1 className="text-3xl font-bold mb-8">Estatísticas</h1>

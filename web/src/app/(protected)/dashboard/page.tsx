@@ -213,7 +213,12 @@ export default function DashboardPage() {
             Informações
           </h2>
           <div className="space-y-4">
-            {selectedStore ? (
+            {isLoadingStore ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-sm text-muted-foreground">Carregando...</span>
+              </div>
+            ) : selectedStore ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
@@ -226,9 +231,9 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href="/loja">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Gerenciar Loja
+                  <Link href="/loja" className="flex items-center justify-center gap-2 whitespace-nowrap">
+                    <Edit className="h-4 w-4 shrink-0" />
+                    <span>Gerenciar Loja</span>
                   </Link>
                 </Button>
               </div>
@@ -246,9 +251,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <Button asChild className="w-full">
-                  <Link href="/loja/cadastro">
-                    <Store className="h-4 w-4 mr-2" />
-                    Criar Loja
+                  <Link href="/loja/cadastro" className="flex items-center justify-center gap-2 whitespace-nowrap">
+                    <Store className="h-4 w-4 shrink-0" />
+                    <span>Criar Loja</span>
                   </Link>
                 </Button>
               </div>

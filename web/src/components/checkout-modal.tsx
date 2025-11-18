@@ -43,6 +43,7 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
     queryKey: ["store", storeId],
     queryFn: () => storesService.findById(storeId!),
     enabled: !!storeId && isOpen,
+    retry: false, // Não tentar novamente se a loja não for encontrada (404)
   });
 
   const total = getTotal();

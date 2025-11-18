@@ -76,9 +76,9 @@ export default function StoreDashboardPage() {
           <p className="text-muted-foreground">Gerencie as informações da sua loja</p>
         </div>
         <Button asChild>
-          <Link href={`/loja/cadastro?id=${selectedStore.id}`}>
-            <Edit className="h-4 w-4 mr-2" />
-            Editar
+          <Link href={`/loja/cadastro?id=${selectedStore.id}`} className="flex items-center justify-center gap-2 whitespace-nowrap">
+            <Edit className="h-4 w-4 shrink-0" />
+            <span>Editar</span>
           </Link>
         </Button>
       </div>

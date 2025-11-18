@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { createSlug } from "@/lib/slug";
-import { toast } from "sonner";
+import { showSuccess, showError } from "@/lib/toast";
 import { Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useEffect } from "react";
@@ -61,6 +61,7 @@ export default function StoreFormPage() {
     queryKey: ["store", storeId],
     queryFn: () => storesService.findById(storeId!),
     enabled: !!storeId,
+    retry: false, // Não tentar novamente se a loja não for encontrada (404)
   });
 
   const isEditing = !!storeId;
@@ -136,12 +137,14 @@ export default function StoreFormPage() {
       });
     },
     onSuccess: () => {
+      // Invalidar todas as queries relacionadas a lojas
       queryClient.invalidateQueries({ queryKey: ["stores"] });
-      toast.success("Loja criada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["stores", "user"] }); // Invalidar query de lojas do usuário
+      showSuccess("Loja criada com sucesso!");
       router.push("/loja");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao criar loja");
+      showError(error.message || "Erro ao criar loja");
     },
   });
 
@@ -163,9 +166,11 @@ export default function StoreFormPage() {
       return storesService.update(storeId!, updateData);
     },
     onSuccess: () => {
+      // Invalidar todas as queries relacionadas a lojas
       queryClient.invalidateQueries({ queryKey: ["stores"] });
       queryClient.invalidateQueries({ queryKey: ["store", storeId] });
-      toast.success("Loja atualizada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["stores", "user"] }); // Invalidar query de lojas do usuário
+      showSuccess("Loja atualizada com sucesso!");
       router.push("/loja");
     },
     onError: (error: any) => {
@@ -188,7 +193,7 @@ export default function StoreFormPage() {
         errorMessage = error?.data?.message || "Os dados informados já estão em uso por outra loja";
       }
       
-      toast.error(errorMessage);
+      showError(errorMessage);
     },
   });
 
@@ -468,8 +473,8 @@ export default function StoreFormPage() {
               >
                 {createMutation.isPending || updateMutation.isPending ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {isEditing ? "Salvando..." : "Criando..."}
+                    <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                    <span>{isEditing ? "Salvando..." : "Criando..."}</span>
                   </>
                 ) : (
                   isEditing ? "Salvar Alterações" : "Criar Loja"

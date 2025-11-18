@@ -129,13 +129,15 @@ export async function findStoreByIdController(
 			},
 		});
 	} catch (error) {
-		console.error("Error finding store by ID:", error);
-
 		if (error instanceof StoreNotFoundError) {
+			// 404 é um erro esperado, não precisa ser logado como erro crítico
 			return response.status(404).json({
 				message: "Loja não encontrada",
 			});
 		}
+
+		// Apenas erros inesperados devem ser logados
+		console.error("Error finding store by ID:", error);
 
 		return response.status(500).json({
 			message: "Internal server error",

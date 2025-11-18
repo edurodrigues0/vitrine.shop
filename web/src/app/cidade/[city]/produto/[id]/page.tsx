@@ -64,6 +64,7 @@ export default function ProductPage() {
     queryKey: ["store", product?.storeId],
     queryFn: () => storesService.findById(product!.storeId),
     enabled: !!product?.storeId,
+    retry: false, // Não tentar novamente se a loja não for encontrada (404)
   });
 
   // Buscar categoria
@@ -140,9 +141,9 @@ export default function ProductPage() {
           <p className="text-muted-foreground mb-6">
             O produto que você está procurando não existe.
           </p>
-          <Button variant="outline" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
+          <Button variant="outline" onClick={() => router.back()} className="flex items-center justify-center gap-2 whitespace-nowrap">
+            <ArrowLeft className="h-4 w-4 shrink-0" />
+            <span>Voltar</span>
           </Button>
         </div>
       </div>

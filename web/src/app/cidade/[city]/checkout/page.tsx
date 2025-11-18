@@ -40,6 +40,7 @@ export default function CheckoutPage() {
     queryKey: ["store", storeId],
     queryFn: () => storesService.findById(storeId!),
     enabled: !!storeId,
+    retry: false, // Não tentar novamente se a loja não for encontrada (404)
   });
 
   const total = getTotal();
@@ -289,8 +290,8 @@ export default function CheckoutPage() {
                     router.push(`/cidade/${citySlug}`);
                   }}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Limpar carrinho
+                  <Trash2 className="h-4 w-4 shrink-0" />
+                  <span>Limpar carrinho</span>
                 </Button>
               </div>
             </Card>

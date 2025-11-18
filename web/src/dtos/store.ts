@@ -60,6 +60,7 @@ export interface FindAllStoresParams {
   limit?: number;
   name?: string;
   cityId?: string;
+  ownerId?: string;
   status?: StoreStatus;
 }
 

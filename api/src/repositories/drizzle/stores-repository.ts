@@ -130,6 +130,7 @@ export class DrizzleStoresRepository implements StoresRepository {
 		}
 
 		if (filters.ownerId) {
+			console.log("DrizzleStoresRepository.findAll - Filtrando por ownerId:", filters.ownerId);
 			conditions.push(eq(stores.ownerId, filters.ownerId));
 		}
 
@@ -141,10 +142,17 @@ export class DrizzleStoresRepository implements StoresRepository {
 			conditions.push(eq(stores.isPaid, filters.isPaid));
 		}
 
-		// Sempre filtrar por status ACTIVE
-		conditions.push(eq(stores.status, "ACTIVE"));
+		// Se não houver filtro por ownerId, filtrar apenas lojas ativas (para busca pública)
+		// Se houver filtro por ownerId, mostrar todas as lojas do usuário (para gestão)
+		if (!filters.ownerId) {
+			console.log("DrizzleStoresRepository.findAll - Aplicando filtro de status ACTIVE (busca pública)");
+			conditions.push(eq(stores.status, "ACTIVE"));
+		} else {
+			console.log("DrizzleStoresRepository.findAll - NÃO aplicando filtro de status (busca por ownerId)");
+		}
 
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+		console.log("DrizzleStoresRepository.findAll - Condições aplicadas:", conditions.length);
 
 		// Buscar lojas
 		const storesResult = await this.drizzle

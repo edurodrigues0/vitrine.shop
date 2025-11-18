@@ -8,7 +8,11 @@ export function useNotifications() {
 	const { isAuthenticated } = useAuth();
 	const queryClient = useQueryClient();
 	const eventSourceRef = useRef<EventSource | null>(null);
+	const queryClientRef = useRef(queryClient);
 	const [isConnected, setIsConnected] = useState(false);
+
+	// Manter referência atualizada do queryClient
+	queryClientRef.current = queryClient;
 
 	// Buscar notificações
 	const { data, isLoading } = useQuery({
@@ -24,6 +28,17 @@ export function useNotifications() {
 	// Conectar ao SSE
 	useEffect(() => {
 		if (!isAuthenticated) {
+			// Fechar conexão se não estiver autenticado
+			if (eventSourceRef.current) {
+				eventSourceRef.current.close();
+				eventSourceRef.current = null;
+				setIsConnected(false);
+			}
+			return;
+		}
+
+		// Evitar criar múltiplas conexões
+		if (eventSourceRef.current && eventSourceRef.current.readyState !== EventSource.CLOSED) {
 			return;
 		}
 
@@ -49,9 +64,10 @@ export function useNotifications() {
 		console.log("Connecting to SSE:", sseUrl.replace(/token=[^&]+/, "token=***"));
 
 		const eventSource = new EventSource(sseUrl);
+		eventSourceRef.current = eventSource;
 
 		eventSource.onopen = () => {
-			console.log("SSE connection opened");
+			console.log("SSE connection opened successfully");
 			setIsConnected(true);
 		};
 
@@ -77,14 +93,17 @@ export function useNotifications() {
 				}
 
 				if (data.type === "error") {
-					console.error("SSE error message:", data.message);
+					console.warn("SSE error message received:", data.message);
 					setIsConnected(false);
-					eventSource.close();
+					// Fechar conexão se receber erro do servidor
+					if (eventSource.readyState !== EventSource.CLOSED) {
+						eventSource.close();
+					}
 					return;
 				}
 
 				// Invalidar queries para atualizar notificações
-				queryClient.invalidateQueries({ queryKey: ["notifications"] });
+				queryClientRef.current.invalidateQueries({ queryKey: ["notifications"] });
 			} catch (error) {
 				console.error("Error parsing SSE message:", error, event.data);
 			}
@@ -97,37 +116,58 @@ export function useNotifications() {
 				console.log("SSE notification received:", data);
 				
 				// Invalidar queries para atualizar notificações
-				queryClient.invalidateQueries({ queryKey: ["notifications"] });
+				queryClientRef.current.invalidateQueries({ queryKey: ["notifications"] });
 			} catch (error) {
 				console.error("Error parsing SSE notification:", error, event.data);
 			}
 		});
 
 		eventSource.onerror = (error) => {
-			console.error("SSE connection error:", {
-				readyState: eventSource.readyState,
-				url: sseUrl.replace(/token=[^&]+/, "token=***"),
-				error,
-			});
-			setIsConnected(false);
+			const readyState = eventSource.readyState;
 			
 			// EventSource.CONNECTING = 0, EventSource.OPEN = 1, EventSource.CLOSED = 2
-			if (eventSource.readyState === EventSource.CLOSED) {
-				console.log("SSE connection closed, will not reconnect automatically");
+			if (readyState === EventSource.CLOSED) {
+				console.warn("SSE connection closed", {
+					readyState,
+					url: sseUrl.replace(/token=[^&]+/, "token=***"),
+				});
+				setIsConnected(false);
 				eventSource.close();
+				return;
+			}
+			
+			// Se estiver em CONNECTING, pode ser erro de conexão inicial
+			if (readyState === EventSource.CONNECTING) {
+				console.warn("SSE connection error while connecting", {
+					readyState,
+					url: sseUrl.replace(/token=[^&]+/, "token=***"),
+					message: "Possível erro de autenticação ou conexão",
+				});
+				setIsConnected(false);
+				return;
+			}
+			
+			// Se estiver OPEN mas teve erro, pode ser erro de rede
+			if (readyState === EventSource.OPEN) {
+				console.warn("SSE connection error while open", {
+					readyState,
+					url: sseUrl.replace(/token=[^&]+/, "token=***"),
+					message: "Possível erro de rede ou servidor",
+				});
+				setIsConnected(false);
+				return;
 			}
 		};
-
-		eventSourceRef.current = eventSource;
 
 		return () => {
 			console.log("Cleaning up SSE connection");
-			if (eventSource.readyState !== EventSource.CLOSED) {
-				eventSource.close();
+			if (eventSourceRef.current && eventSourceRef.current.readyState !== EventSource.CLOSED) {
+				eventSourceRef.current.close();
 			}
+			eventSourceRef.current = null;
 			setIsConnected(false);
 		};
-	}, [isAuthenticated, queryClient]);
+	}, [isAuthenticated]); // queryClient é acessado via ref, então não precisa estar nas dependências
 
 	// Mutations
 	const markAsReadMutation = useMutation({

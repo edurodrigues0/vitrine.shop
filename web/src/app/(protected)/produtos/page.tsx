@@ -28,7 +28,7 @@ type ViewMode = "grid" | "list";
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc" | "stock-asc" | "stock-desc" | "date-asc" | "date-desc";
 
 export default function ProductsPage() {
-  const { selectedStore } = useSelectedStore();
+  const { selectedStore, isLoading: isLoadingStore } = useSelectedStore();
   const queryClient = useQueryClient();
   const [nameFilter, setNameFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -203,7 +203,21 @@ export default function ProductsPage() {
     );
   }
 
-  if (!selectedStore) {
+  // Mostrar loading enquanto está carregando as lojas
+  if (isLoadingStore) {
+    return (
+      <div>
+        <h1 className="text-3xl font-bold mb-8">Produtos</h1>
+        <Card className="p-8 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregando...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  // Só mostrar mensagem de "criar loja" se não estiver carregando e realmente não tiver loja
+  if (!selectedStore && !isLoadingStore) {
     return (
       <div>
         <h1 className="text-3xl font-bold mb-8">Produtos</h1>
@@ -230,9 +244,9 @@ export default function ProductsPage() {
           </p>
         </div>
         <Button asChild size="lg">
-          <Link href="/produtos/cadastro">
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar Produto
+          <Link href="/produtos/cadastro" className="flex items-center justify-center gap-2 whitespace-nowrap">
+            <Plus className="h-4 w-4 shrink-0" />
+            <span>Adicionar Produto</span>
           </Link>
         </Button>
       </div>
@@ -343,8 +357,8 @@ export default function ProductsPage() {
                   }}
                   className="mt-2"
                 >
-                  <X className="h-4 w-4 mr-2" />
-                  Limpar Filtros
+                  <X className="h-4 w-4 shrink-0" />
+                  <span>Limpar Filtros</span>
                 </Button>
               )}
             </FieldGroup>
@@ -374,8 +388,8 @@ export default function ProductsPage() {
                       onClick={handleBulkDelete}
                       disabled={deleteMutation.isPending}
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Excluir Selecionados
+                      <Trash2 className="h-4 w-4 shrink-0" />
+                      <span>Excluir Selecionados</span>
                     </Button>
                   </Tooltip>
                 </div>
@@ -701,9 +715,9 @@ function ProductCard({
               </Button>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/produtos/${product.id}/editar`}>
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
+              <Link href={`/produtos/${product.id}/editar`} className="flex items-center justify-center gap-2 whitespace-nowrap">
+                <Edit className="h-4 w-4 shrink-0" />
+                <span>Editar</span>
               </Link>
             </Button>
             <Tooltip content="Excluir produto">
@@ -831,9 +845,9 @@ function ProductCard({
         {/* Actions */}
         <div className="flex gap-2 pt-2 border-t">
           <Button variant="outline" size="sm" asChild className="flex-1">
-            <Link href={`/produtos/${product.id}/editar`}>
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
+            <Link href={`/produtos/${product.id}/editar`} className="flex items-center justify-center gap-2 whitespace-nowrap">
+              <Edit className="h-4 w-4 shrink-0" />
+              <span>Editar</span>
             </Link>
           </Button>
           <Tooltip content="Excluir produto">
