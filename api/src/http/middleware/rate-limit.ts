@@ -17,7 +17,7 @@ const store: RateLimitStore = {};
 
 /**
  * Middleware de rate limiting simples em memória
- * Para produção, considere usar Redis ou uma biblioteca especializada
+ * Para produção, considere usar uma biblioteca especializada
  */
 export function rateLimit(options: RateLimitOptions) {
 	const { windowMs, maxRequests, message = "Too many requests, please try again later." } = options;

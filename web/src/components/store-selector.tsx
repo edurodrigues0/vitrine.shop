@@ -79,7 +79,7 @@ export function StoreSelector() {
                 src={selectedStore.logoUrl}
                 alt={selectedStore.name}
                 fill
-                className="object-contain rounded"
+                className="object-cover rounded"
                 unoptimized
               />
             </div>
@@ -131,7 +131,7 @@ export function StoreSelector() {
                           src={store.logoUrl}
                           alt={store.name}
                           fill
-                          className="object-contain rounded"
+                          className="object-cover rounded"
                           unoptimized
                         />
                       </div>

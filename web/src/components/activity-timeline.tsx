@@ -240,7 +240,7 @@ export function ActivityTimeline({
 										</div>
 										{activity.type === "ORDER" && activity.relatedId && (
 											<Link
-												href={`/dashboard/pedidos?order=${activity.relatedId}`}
+												href={`/pedidos?order=${activity.relatedId}`}
 												className="text-xs text-primary hover:underline shrink-0"
 											>
 												Ver pedido
@@ -248,7 +248,7 @@ export function ActivityTimeline({
 										)}
 										{activity.type === "PRODUCT" && activity.relatedId && (
 											<Link
-												href={`/dashboard/produtos/${activity.relatedId}/editar`}
+												href={`/produtos/${activity.relatedId}/editar`}
 												className="text-xs text-primary hover:underline shrink-0"
 											>
 												Ver produto

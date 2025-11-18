@@ -23,6 +23,7 @@ export const storeBranches = pgTable("store_branches", {
 	isMain: boolean("is_main").default(false).notNull(),
 	whatsapp: varchar("whatsapp", { length: 20 }),
 	description: text("description"),
+	logoUrl: text("logo_url"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -14,6 +14,7 @@ import { productImagesRoutes } from "./http/controllers/product-images/_routes";
 import { productsRoutes } from "./http/controllers/products/_routes";
 import { productVariationsRoutes } from "./http/controllers/product-variations.ts/_routes";
 import { storesRoutes } from "./http/controllers/stores/_routes";
+import { storeBranchesRoutes } from "./http/controllers/store-branches/_routes";
 import { subscriptionsRoutes } from "./http/controllers/subscriptions/_routes";
 import { usersRoutes } from "./http/controllers/users/_routes";
 import { notificationsRoutes } from "./http/controllers/notifications/_routes";
@@ -80,6 +81,7 @@ app.use("/api", productsRoutes);
 app.use("/api", productImagesRoutes);
 app.use("/api", productVariationsRoutes);
 app.use("/api", storesRoutes);
+app.use("/api", storeBranchesRoutes);
 app.use("/api", usersRoutes);
 app.use("/api", authRoutes);
 app.use("/api", ordersRoutes);
@@ -95,12 +97,14 @@ app.get("/api/health", (_req: Request, res: Response) => {
 	});
 });
 
-// Inicia o servidor
-const PORT = process.env.PORT;
-app.listen(PORT, () => {
-	logger.info(`🚀 Servidor rodando na porta ${PORT}`);
-	logger.info(`📊 Ambiente: ${process.env.NODE_ENV}`);
-	logger.info(`🔗 http://localhost:${PORT}`);
-});
-
 export default app;
+
+// Inicia o servidor apenas se não estiver em modo de teste
+if (process.env.NODE_ENV !== "test" && !process.env.VITEST) {
+	const PORT = process.env.PORT || 3000;
+	app.listen(PORT, () => {
+		logger.info(`🚀 Servidor rodando na porta ${PORT}`);
+		logger.info(`📊 Ambiente: ${process.env.NODE_ENV}`);
+		logger.info(`🔗 http://localhost:${PORT}`);
+	});
+}

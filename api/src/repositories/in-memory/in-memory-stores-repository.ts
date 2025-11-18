@@ -49,6 +49,8 @@ export class InMemoryStoresRepository implements StoresRepository {
 			},
 			cityId,
 			ownerId,
+			status: "INACTIVE",
+			isPaid: false,
 			createdAt,
 			updatedAt,
 		};
@@ -193,6 +195,11 @@ export class InMemoryStoresRepository implements StoresRepository {
 			instagramUrl: data.instagramUrl ?? currentStore.instagramUrl,
 			facebookUrl: data.facebookUrl ?? currentStore.facebookUrl,
 			bannerUrl: data.bannerUrl ?? currentStore.bannerUrl,
+			theme: data.theme ?? currentStore.theme,
+			cityId: data.cityId ?? currentStore.cityId,
+			status: data.status ?? currentStore.status,
+			isPaid: data.isPaid ?? currentStore.isPaid,
+			updatedAt: new Date(),
 		};
 
 		this.items[storeIndex] = updatedStore;

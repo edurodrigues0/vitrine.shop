@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import z, { ZodError } from "zod";
-import { LocalStorageService } from "~/services/storage/local-storage-service";
+import { R2StorageService } from "~/services/storage/r2-storage-service";
 import { FailedToCreateProductImageError } from "~/use-cases/@errors/product-images/failed-to-create-product-image-error";
 import { ProductVariationNotFoundError } from "~/use-cases/@errors/product-variations/product-variation-not-found-error";
 import { makeCreateProductImageUseCase } from "~/use-cases/@factories/product-images/make-create-product-image-use-case";
@@ -105,7 +105,8 @@ export async function createProductImageController(
 		const fileExtension = mimeToExt[request.file.mimetype] || "jpg";
 		const fileName = `${body.productVariationId}-${Date.now()}.${fileExtension}`;
 
-		const storageService = new LocalStorageService();
+		const storageService = new R2StorageService();
+
 		const imageUrl = await storageService.uploadImage(
 			request.file.buffer,
 			fileName,

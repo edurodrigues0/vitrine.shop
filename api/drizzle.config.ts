@@ -8,6 +8,6 @@ export default defineConfig({
 	schema: "./src/database/schema/index.ts",
 	out: "./drizzle",
 	dbCredentials: {
-		url: "postgresql://docker:docker@localhost:5432/vitrine.shop",
+		url: process.env.DATABASE_URL as string,
 	},
 });

@@ -1,7 +1,6 @@
 import type { ProductImage } from "~/database/schema";
 import type { ProductImagesRepository } from "~/repositories/product-images-repository";
 import type { ProductVariationsRepository } from "~/repositories/product-variations";
-import { redisImageCacheService } from "~/services/cache/redis-image-cache-service";
 import { FailedToCreateProductImageError } from "../@errors/product-images/failed-to-create-product-image-error";
 import { ProductVariationNotFoundError } from "../@errors/product-variations/product-variation-not-found-error";
 
@@ -40,14 +39,6 @@ export class CreateProductImageUseCase {
 
 		if (!productImage) {
 			throw new FailedToCreateProductImageError();
-		}
-
-		// Armazenar URL da imagem no Redis
-		try {
-			await redisImageCacheService.setImageUrl(productImage.id, productImage.url);
-		} catch (error) {
-			// Log do erro mas não falha a criação da imagem
-			console.error("Erro ao salvar imagem no Redis:", error);
 		}
 
 		return { productImage };
