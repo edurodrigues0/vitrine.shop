@@ -15,9 +15,16 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Loader2, User, Lock, Bell, Palette, ShoppingBag, Package, Eye, Store, AlertTriangle, Info } from "lucide-react";
+import { Loader2, User, Lock, Bell, Palette, ShoppingBag, Package, Eye, Store, AlertTriangle, Info, CreditCard } from "lucide-react";
 import { showError, showSuccess } from "@/lib/toast";
 import { useState, useEffect } from "react";
+import { useSelectedStore } from "@/hooks/use-selected-store";
+import { subscriptionsService } from "@/services/subscriptions-service";
+import { Badge } from "@/components/ui/badge";
+import { Check, Sparkles, Zap, Building2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { SkeletonCard } from "@/components/ui/skeleton";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const profileSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(120, "Nome muito longo"),
@@ -41,7 +48,16 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 export default function SettingsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"profile" | "password" | "notifications">("profile");
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<"profile" | "password" | "notifications" | "subscription">("profile");
+
+  // Verificar se há uma aba específica na URL
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "subscription") {
+      setActiveTab("subscription");
+    }
+  }, [searchParams]);
 
   const {
     register: registerProfile,
@@ -177,6 +193,19 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-3">
                   <Bell className="h-5 w-5" />
                   <span className="font-medium">Notificações</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab("subscription")}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
+                  activeTab === "subscription"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "hover:bg-accent"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <CreditCard className="h-5 w-5" />
+                  <span className="font-medium">Planos e Assinatura</span>
                 </div>
               </button>
             </nav>
@@ -331,6 +360,10 @@ export default function SettingsPage() {
           {activeTab === "notifications" && (
             <NotificationPreferences />
           )}
+
+          {activeTab === "subscription" && (
+            <SubscriptionPlans />
+          )}
         </div>
       </div>
     </div>
@@ -467,13 +500,18 @@ function NotificationPreferences() {
               </div>
               <button
                 onClick={() => handleToggle("browserNotifications")}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  preferences.browserNotifications ? "bg-primary" : "bg-muted"
+                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${
+                  preferences.browserNotifications 
+                    ? "bg-primary dark:bg-primary shadow-xl shadow-primary/60 dark:shadow-primary/70 border-2 border-primary dark:border-primary ring-2 ring-primary/50 dark:ring-primary/60" 
+                    : "bg-slate-400 dark:bg-slate-700 border-2 border-slate-500 dark:border-slate-400 shadow-md"
                 }`}
+                aria-label={preferences.browserNotifications ? "Desativar notificações no navegador" : "Ativar notificações no navegador"}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    preferences.browserNotifications ? "translate-x-6" : "translate-x-1"
+                  className={`inline-block h-4 w-4 transform rounded-full transition-all duration-300 ${
+                    preferences.browserNotifications 
+                      ? "translate-x-6 bg-white dark:bg-white shadow-lg border border-primary/30 dark:border-primary/40" 
+                      : "translate-x-1 bg-white dark:bg-slate-100 shadow-md border border-slate-400 dark:border-slate-500"
                   }`}
                 />
               </button>
@@ -490,13 +528,18 @@ function NotificationPreferences() {
               </div>
               <button
                 onClick={() => handleToggle("emailNotifications")}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  preferences.emailNotifications ? "bg-primary" : "bg-muted"
+                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${
+                  preferences.emailNotifications 
+                    ? "bg-primary dark:bg-primary shadow-xl shadow-primary/60 dark:shadow-primary/70 border-2 border-primary dark:border-primary ring-2 ring-primary/50 dark:ring-primary/60" 
+                    : "bg-slate-400 dark:bg-slate-700 border-2 border-slate-500 dark:border-slate-400 shadow-md"
                 }`}
+                aria-label={preferences.emailNotifications ? "Desativar notificações por e-mail" : "Ativar notificações por e-mail"}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    preferences.emailNotifications ? "translate-x-6" : "translate-x-1"
+                  className={`inline-block h-4 w-4 transform rounded-full transition-all duration-300 ${
+                    preferences.emailNotifications 
+                      ? "translate-x-6 bg-white dark:bg-white shadow-lg border border-primary/30 dark:border-primary/40" 
+                      : "translate-x-1 bg-white dark:bg-slate-100 shadow-md border border-slate-400 dark:border-slate-500"
                   }`}
                 />
               </button>
@@ -527,13 +570,18 @@ function NotificationPreferences() {
                   </div>
                   <button
                     onClick={() => handleToggle(type.key)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      isEnabled ? "bg-primary" : "bg-muted"
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${
+                      isEnabled 
+                        ? "bg-primary dark:bg-primary shadow-xl shadow-primary/60 dark:shadow-primary/70 border-2 border-primary dark:border-primary ring-2 ring-primary/50 dark:ring-primary/60" 
+                        : "bg-slate-400 dark:bg-slate-700 border-2 border-slate-500 dark:border-slate-400 shadow-md"
                     }`}
+                    aria-label={isEnabled ? `Desativar ${type.label.toLowerCase()}` : `Ativar ${type.label.toLowerCase()}`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        isEnabled ? "translate-x-6" : "translate-x-1"
+                      className={`inline-block h-4 w-4 transform rounded-full transition-all duration-300 ${
+                        isEnabled 
+                          ? "translate-x-6 bg-white dark:bg-white shadow-lg border border-primary/30 dark:border-primary/40" 
+                          : "translate-x-1 bg-white dark:bg-slate-100 shadow-md border border-slate-400 dark:border-slate-500"
                       }`}
                     />
                   </button>
@@ -554,6 +602,421 @@ function NotificationPreferences() {
         </div>
       </div>
     </Card>
+  );
+}
+
+// Componente de Planos e Assinatura
+function SubscriptionPlans() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+  const { selectedStore, isLoading: isLoadingStore } = useSelectedStore();
+  const [selectedPlan, setSelectedPlan] = useState<"basic" | "professional" | "enterprise" | null>(null);
+  const { confirm, ConfirmDialog } = useConfirm();
+
+  // Verificar se retornou do checkout
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+
+    if (success === "true") {
+      showSuccess("Pagamento processado com sucesso! Sua assinatura está ativa.");
+      queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      router.replace("/configuracoes?tab=subscription");
+    } else if (canceled === "true") {
+      showError("Pagamento cancelado. Você pode tentar novamente quando quiser.");
+      router.replace("/configuracoes?tab=subscription");
+    }
+  }, [searchParams, router, queryClient]);
+
+  const plans = [
+    {
+      id: "basic" as const,
+      name: "Básico",
+      price: 49,
+      description: "Ideal para começar",
+      features: [
+        "Até 50 produtos",
+        "Catálogo digital",
+        "Carrinho WhatsApp",
+        "Suporte por email",
+        "Sem comissões",
+      ],
+      icon: Check,
+    },
+    {
+      id: "professional" as const,
+      name: "Profissional",
+      price: 99,
+      description: "Para negócios em crescimento",
+      features: [
+        "Produtos ilimitados",
+        "Catálogo digital",
+        "Carrinho WhatsApp",
+        "Suporte prioritário",
+        "Relatórios de vendas",
+        "Sem comissões",
+      ],
+      popular: true,
+      icon: Zap,
+    },
+    {
+      id: "enterprise" as const,
+      name: "Enterprise",
+      price: 199,
+      description: "Para grandes negócios",
+      features: [
+        "Produtos ilimitados",
+        "Múltiplas filiais",
+        "Carrinho WhatsApp",
+        "Suporte dedicado",
+        "API personalizada",
+        "Sem comissões",
+      ],
+      icon: Building2,
+    },
+  ];
+
+  // Buscar assinatura atual
+  const { data: subscriptionData, isLoading: isLoadingSubscription } = useQuery({
+    queryKey: ["subscription", selectedStore?.id],
+    queryFn: () => subscriptionsService.findByStoreId(selectedStore!.id),
+    enabled: !!selectedStore?.id,
+  });
+
+  const subscription = subscriptionData?.subscription;
+  const currentPlanId = subscription?.planId?.split("-")[0] as "basic" | "professional" | "enterprise" | undefined;
+  
+  // Ordem dos planos para comparação
+  const planOrder: Record<"basic" | "professional" | "enterprise", number> = {
+    basic: 1,
+    professional: 2,
+    enterprise: 3,
+  };
+
+  // Função para determinar o tipo de ação do botão
+  const getPlanAction = (planId: "basic" | "professional" | "enterprise") => {
+    if (!currentPlanId || subscription?.status !== "PAID") {
+      return "assinar";
+    }
+    
+    if (currentPlanId === planId) {
+      return "atual";
+    }
+    
+    const currentOrder = planOrder[currentPlanId];
+    const planOrderValue = planOrder[planId];
+    
+    if (planOrderValue > currentOrder) {
+      return "upgrade";
+    } else {
+      return "downgrade";
+    }
+  };
+
+  // Criar sessão de checkout
+  const checkoutMutation = useMutation({
+    mutationFn: async (plan: typeof plans[0]) => {
+      if (!selectedStore?.id) {
+        throw new Error("Loja não selecionada");
+      }
+
+      const priceIdMap: Record<typeof plan.id, string> = {
+        basic: "price_basic_monthly",
+        professional: "price_professional_monthly",
+        enterprise: "price_enterprise_monthly",
+      };
+
+      const priceId = plan.priceId || priceIdMap[plan.id];
+
+      if (!priceId) {
+        throw new Error(`Price ID não configurado para o plano ${plan.name}`);
+      }
+
+      const successUrl = `${window.location.origin}/configuracoes?success=true&tab=subscription`;
+      const cancelUrl = `${window.location.origin}/configuracoes?canceled=true&tab=subscription`;
+
+      return subscriptionsService.createCheckoutSession({
+        storeId: selectedStore.id,
+        priceId,
+        successUrl,
+        cancelUrl,
+      });
+    },
+    onSuccess: (data) => {
+      window.location.href = data.checkoutUrl;
+    },
+    onError: (error: Error) => {
+      showError(error.message || "Erro ao iniciar processo de pagamento");
+      setSelectedPlan(null);
+    },
+  });
+
+  // Cancelar assinatura
+  const cancelMutation = useMutation({
+    mutationFn: async () => {
+      if (!subscription?.id) {
+        throw new Error("Nenhuma assinatura encontrada");
+      }
+      return subscriptionsService.cancel(subscription.id);
+    },
+    onSuccess: () => {
+      showSuccess("Assinatura cancelada com sucesso");
+      queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
+      router.refresh();
+    },
+    onError: (error: Error) => {
+      showError(error.message || "Erro ao cancelar assinatura");
+    },
+  });
+
+  const handleSelectPlan = (plan: typeof plans[0]) => {
+    const action = getPlanAction(plan.id);
+    
+    if (action === "atual") {
+      showError("Você já está neste plano");
+      return;
+    }
+    
+    setSelectedPlan(plan.id);
+    checkoutMutation.mutate(plan);
+  };
+
+  const handleCancelSubscription = () => {
+    confirm({
+      title: "Cancelar Assinatura",
+      description: "Tem certeza que deseja cancelar sua assinatura? Você continuará tendo acesso aos recursos premium até o final do período pago. Após isso, sua loja será migrada para o plano gratuito.",
+      confirmText: "Sim, cancelar",
+      cancelText: "Não, manter assinatura",
+      variant: "destructive",
+      onConfirm: () => {
+        cancelMutation.mutate();
+      },
+    });
+  };
+
+  if (isLoadingStore) {
+    return (
+      <Card className="p-6">
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-semibold mb-2">Planos e Assinatura</h2>
+            <p className="text-sm text-muted-foreground">Escolha o plano ideal para o seu negócio</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <SkeletonCard key={i} className="h-96" />
+            ))}
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  if (!selectedStore) {
+    return (
+      <Card className="p-6">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">
+            Você precisa criar uma loja antes de assinar um plano
+          </p>
+          <Button asChild>
+            <a href="/loja/cadastro">Criar Loja</a>
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+            <CreditCard className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold">Planos e Assinatura</h2>
+            <p className="text-sm text-muted-foreground">
+              Escolha o plano ideal para o seu negócio. Todos os planos incluem suporte e sem comissões.
+            </p>
+          </div>
+        </div>
+
+        {/* Assinatura Atual */}
+        {subscription && subscription.status === "PAID" && (
+          <Card className="p-6 bg-primary/5 border-primary/20 mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-semibold">Assinatura Ativa</h3>
+                  <Badge variant="default" className="bg-green-600">
+                    {plans.find((p) => p.id === currentPlanId)?.name || subscription.planName}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Próximo pagamento: {new Date(subscription.nextPayment || subscription.currentPeriodEnd).toLocaleDateString("pt-BR")}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleCancelSubscription}
+                  disabled={cancelMutation.isPending}
+                >
+                  {cancelMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                      <span>Cancelando...</span>
+                    </>
+                  ) : (
+                    "Cancelar Assinatura"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Planos */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {plans.map((plan) => {
+            const Icon = plan.icon;
+            const isCurrentPlan = currentPlanId === plan.id && subscription?.status === "PAID";
+            const isSelected = selectedPlan === plan.id;
+
+            return (
+              <Card
+                key={plan.id}
+                className={`relative p-6 transition-all duration-300 ${
+                  plan.popular
+                    ? "border-primary border-2 shadow-lg scale-105"
+                    : "hover:shadow-lg hover:scale-105"
+                } ${isCurrentPlan ? "ring-2 ring-green-500" : ""}`}
+              >
+                {plan.popular && (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">
+                    Mais Popular
+                  </Badge>
+                )}
+                {isCurrentPlan && (
+                  <Badge className="absolute -top-3 right-4 bg-green-600">
+                    Plano Atual
+                  </Badge>
+                )}
+
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <Icon className="h-6 w-6 text-primary" />
+                      </div>
+                      <h3 className="text-2xl font-bold">{plan.name}</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{plan.description}</p>
+                  </div>
+
+                  {/* Preço */}
+                  <div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl font-bold">R$ {plan.price}</span>
+                      <span className="text-muted-foreground">/mês</span>
+                    </div>
+                  </div>
+
+                  {/* Features */}
+                  <ul className="space-y-3">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <Check className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* CTA */}
+                  <Button
+                    className="w-full"
+                    variant={plan.popular ? "default" : "outline"}
+                    onClick={() => handleSelectPlan(plan)}
+                    disabled={isCurrentPlan || checkoutMutation.isPending || isSelected}
+                  >
+                    {checkoutMutation.isPending && isSelected ? (
+                      <>
+                        <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                        <span>Processando...</span>
+                      </>
+                    ) : (() => {
+                      const action = getPlanAction(plan.id);
+                      switch (action) {
+                        case "atual":
+                          return (
+                            <>
+                              <Check className="h-4 w-4 shrink-0" />
+                              <span>Plano Atual</span>
+                            </>
+                          );
+                        case "upgrade":
+                          return (
+                            <>
+                              <Zap className="h-4 w-4 shrink-0" />
+                              <span>Fazer Upgrade</span>
+                            </>
+                          );
+                        case "downgrade":
+                          return (
+                            <>
+                              <CreditCard className="h-4 w-4 shrink-0" />
+                              <span>Fazer Downgrade</span>
+                            </>
+                          );
+                        default:
+                          return (
+                            <>
+                              <CreditCard className="h-4 w-4 shrink-0" />
+                              <span>Assinar Agora</span>
+                            </>
+                          );
+                      }
+                    })()}
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Informações Adicionais */}
+        <Card className="p-6 bg-muted/50">
+          <h3 className="text-lg font-semibold mb-4">Perguntas Frequentes</h3>
+          <div className="space-y-4 text-sm">
+            <div>
+              <h4 className="font-medium mb-1">Posso mudar de plano a qualquer momento?</h4>
+              <p className="text-muted-foreground">
+                Sim! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento. As alterações serão aplicadas no próximo ciclo de cobrança.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium mb-1">O que acontece se eu cancelar?</h4>
+              <p className="text-muted-foreground">
+                Você continuará tendo acesso aos recursos do plano até o final do período pago. Após isso, sua loja será migrada para o plano gratuito.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium mb-1">Como funciona o suporte?</h4>
+              <p className="text-muted-foreground">
+                O plano Básico inclui suporte por email. Profissional e Enterprise incluem suporte prioritário e dedicado respectivamente.
+              </p>
+            </div>
+          </div>
+        </Card>
+      </Card>
+
+      {/* Confirm Dialog */}
+      {ConfirmDialog}
+    </>
   );
 }
 

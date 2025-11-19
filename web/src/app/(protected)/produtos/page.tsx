@@ -18,11 +18,13 @@ import Image from "next/image";
 import { AlertDialog } from "@/components/ui/alert-dialog";
 import { Tooltip } from "@/components/ui/tooltip";
 import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
 import {
   Field,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+import { TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 type ViewMode = "grid" | "list";
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc" | "stock-asc" | "stock-desc" | "date-asc" | "date-desc";
@@ -189,16 +191,18 @@ export default function ProductsPage() {
     return (
       <div>
         <h1 className="text-3xl font-bold mb-8">Produtos</h1>
-        <Card className="p-8 text-center">
-          <p className="text-destructive mb-4">
-            {error instanceof Error 
-              ? error.message 
-              : "Erro ao carregar produtos. Verifique se o servidor está rodando."}
-          </p>
-          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["products"] })}>
-            Tentar novamente
-          </Button>
-        </Card>
+        <ErrorState
+          title="Erro ao carregar produtos"
+          description={error instanceof Error 
+            ? error.message 
+            : "Não foi possível carregar os produtos. Verifique sua conexão com a internet e tente novamente."}
+          icon={Package}
+          action={{
+            label: "Tentar novamente",
+            onClick: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
+            variant: "default",
+          }}
+        />
       </div>
     );
   }
@@ -381,16 +385,21 @@ export default function ProductsPage() {
                       ? "Desselecionar todos"
                       : "Selecionar todos"}
                   </Button>
-                  <Tooltip content={`Excluir ${selectedProducts.size} produto(s) selecionado(s)`}>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={handleBulkDelete}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4 shrink-0" />
-                      <span>Excluir Selecionados</span>
-                    </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleBulkDelete}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 shrink-0" />
+                        <span>Excluir Selecionados</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Excluir {selectedProducts.size} produto(s) selecionado(s)</p>
+                    </TooltipContent>
                   </Tooltip>
                 </div>
               </div>
@@ -720,16 +729,21 @@ function ProductCard({
                 <span>Editar</span>
               </Link>
             </Button>
-            <Tooltip content="Excluir produto">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onDeleteClick?.(product.id)}
-                disabled={deleteMutation.isPending}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onDeleteClick?.(product.id)}
+                  disabled={deleteMutation.isPending}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Excluir produto</p>
+              </TooltipContent>
             </Tooltip>
           </div>
         </div>
@@ -850,19 +864,21 @@ function ProductCard({
               <span>Editar</span>
             </Link>
           </Button>
-          <Tooltip content="Excluir produto">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setProductToDelete(product.id);
-                setDeleteDialogOpen(true);
-              }}
-              disabled={deleteMutation.isPending}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onDeleteClick?.(product.id)}
+                disabled={deleteMutation.isPending}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Excluir produto</p>
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>

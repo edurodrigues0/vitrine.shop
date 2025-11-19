@@ -12,6 +12,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { showError, showSuccess } from "@/lib/toast";
+import { useConfirm } from "@/hooks/use-confirm";
 import { X, Plus, Edit, Trash2, Loader2, Save, XCircle, Check } from "lucide-react";
 import type { ProductVariation } from "@/dtos/product-variation";
 
@@ -29,6 +30,7 @@ export function ProductVariationsModal({
   onClose,
 }: ProductVariationsModalProps) {
   const queryClient = useQueryClient();
+  const { confirm, ConfirmDialog } = useConfirm();
   const [variationType, setVariationType] = useState<VariationType>("none");
   const [isCreating, setIsCreating] = useState(false);
   const [editingVariationId, setEditingVariationId] = useState<string | null>(null);
@@ -401,13 +403,16 @@ export function ProductVariationsModal({
                       });
                     }}
                     onDelete={() => {
-                      if (
-                        confirm(
-                          "Tem certeza que deseja excluir esta variação? Esta ação não pode ser desfeita."
-                        )
-                      ) {
-                        deleteMutation.mutate(variation.id);
-                      }
+                      confirm({
+                        title: "Excluir variação",
+                        description: "Tem certeza que deseja excluir esta variação? Esta ação não pode ser desfeita.",
+                        variant: "destructive",
+                        confirmText: "Excluir",
+                        cancelText: "Cancelar",
+                        onConfirm: () => {
+                          deleteMutation.mutate(variation.id);
+                        },
+                      });
                     }}
                     isUpdating={updateMutation.isPending}
                     isDeleting={deleteMutation.isPending}
@@ -419,6 +424,7 @@ export function ProductVariationsModal({
         </div>
       </div>
       </div>
+      {ConfirmDialog}
     </>
   );
 }

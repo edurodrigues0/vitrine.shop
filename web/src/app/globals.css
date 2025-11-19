@@ -449,8 +449,53 @@ button:focus-visible,
   }
 }
 
+/* Shimmer animation for skeleton loaders */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes successCheckmark {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .click-feedback {
   animation: click-feedback 150ms ease;
+}
+
+/* Transições de página */
+.page-transition {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Animação de sucesso */
+.success-checkmark {
+  animation: successCheckmark 0.5s ease-out;
 }
 
 /* Estados hover para elementos interativos */

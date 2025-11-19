@@ -15,6 +15,7 @@ import {
   LogOut,
   LayoutDashboard,
   ShoppingCart,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -70,7 +71,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         <SidebarInset className="flex flex-col h-screen">
           <SiteHeader />
           <main className="flex-1 overflow-y-auto">
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-4 py-8 page-transition">
               {children}
             </div>
           </main>

@@ -25,6 +25,7 @@ import { productImagesService } from "@/services/product-images-service";
 import { Image as ImageIcon, Upload, X as XIcon, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const productSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -43,6 +44,7 @@ export default function EditProductPage() {
   const productId = params.id as string;
   const { selectedStore } = useSelectedStore();
   const queryClient = useQueryClient();
+  const { confirm, ConfirmDialog } = useConfirm();
   const [isVariationsModalOpen, setIsVariationsModalOpen] = useState(false);
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -440,9 +442,16 @@ export default function EditProductPage() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  if (confirm("Tem certeza que deseja remover esta imagem?")) {
-                                    deleteImageMutation.mutate(image.id);
-                                  }
+                                  confirm({
+                                    title: "Remover imagem",
+                                    description: "Tem certeza que deseja remover esta imagem? Esta ação não pode ser desfeita.",
+                                    variant: "destructive",
+                                    confirmText: "Remover",
+                                    cancelText: "Cancelar",
+                                    onConfirm: () => {
+                                      deleteImageMutation.mutate(image.id);
+                                    },
+                                  });
                                 }}
                                 className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                                 disabled={deleteImageMutation.isPending}
@@ -564,6 +573,7 @@ export default function EditProductPage() {
           onClose={() => setIsVariationsModalOpen(false)}
         />
       )}
+      {ConfirmDialog}
     </div>
   );
 }

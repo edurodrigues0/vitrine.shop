@@ -388,24 +388,40 @@ export default function ProductPage() {
                       return (
                         <Card
                           key={variation.id}
-                          className={`p-4 cursor-pointer transition-all border-2 ${
+                          className={`p-4 cursor-pointer transition-all duration-200 border-2 relative ${
                             isSelected
-                              ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                              : "border-border hover:border-primary/50 hover:bg-accent/50"
+                              ? "border-primary bg-primary/10 dark:bg-primary/20 ring-2 ring-primary/30 shadow-md shadow-primary/10"
+                              : "border-border hover:border-primary/50 hover:bg-accent/50 dark:hover:bg-accent/30"
                           }`}
                           onClick={() => {
                             setSelectedVariation(variation);
                           }}
                         >
-                          <div className="flex justify-between items-center">
+                          {/* Indicador de seleção */}
+                          {isSelected && (
+                            <div className="absolute top-3 right-3">
+                              <div className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-between items-center pr-8">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <p className="font-semibold text-lg">
+                                <p className={`font-semibold text-lg transition-colors ${
+                                  isSelected ? "text-primary" : "text-foreground"
+                                }`}>
                                   {variation.color} - {variation.size}
                                 </p>
                                 {hasDiscount && (
                                   <Badge variant="destructive" className="text-xs">
                                     Oferta
+                                  </Badge>
+                                )}
+                                {isSelected && (
+                                  <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
+                                    Selecionado
                                   </Badge>
                                 )}
                               </div>
@@ -428,7 +444,9 @@ export default function ProductPage() {
                             </div>
                             <div className="text-right ml-4">
                               <div className="flex items-baseline gap-2">
-                                <span className="text-xl font-bold text-primary">
+                                <span className={`text-xl font-bold transition-colors ${
+                                  isSelected ? "text-primary" : "text-foreground"
+                                }`}>
                                   R${" "}
                                   {(variationPrice / 100)
                                     .toFixed(2)

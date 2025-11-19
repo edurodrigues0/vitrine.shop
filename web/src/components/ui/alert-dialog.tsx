@@ -21,6 +21,7 @@ interface AlertDialogProps {
   status?: "idle" | "success" | "error";
   statusMessage?: string;
   autoCloseOnConfirm?: boolean;
+  className?: string;
 }
 
 export function AlertDialog({
@@ -39,6 +40,7 @@ export function AlertDialog({
   status = "idle",
   statusMessage,
   autoCloseOnConfirm = true,
+  className,
 }: AlertDialogProps) {
   if (!open) return null;
 

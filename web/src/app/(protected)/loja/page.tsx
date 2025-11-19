@@ -136,95 +136,174 @@ export default function StoreDashboardPage() {
         </Card>
       </div>
 
+      {/* Informações em 2 colunas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Informações Básicas */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Store className="h-5 w-5" />
-            Informações Básicas
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Nome da Loja</p>
-              <p className="font-semibold">{selectedStore.name}</p>
-            </div>
-            {selectedStore.description && (
+        {/* Coluna Esquerda */}
+        <div className="space-y-6">
+          {/* Informações Básicas */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Store className="h-5 w-5" />
+              Informações Básicas
+            </h2>
+            <div className="space-y-4">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Descrição</p>
-                <p className="text-sm">{selectedStore.description}</p>
+                <p className="text-sm text-muted-foreground mb-1">Nome da Loja</p>
+                <p className="font-semibold text-lg">{selectedStore.name}</p>
               </div>
-            )}
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Slug</p>
-              <p className="font-mono text-sm bg-muted px-2 py-1 rounded inline-block">
-                {selectedStore.slug}
-              </p>
+              {selectedStore.description && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Descrição</p>
+                  <p className="text-sm leading-relaxed">{selectedStore.description}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Slug</p>
+                <p className="font-mono text-sm bg-muted px-3 py-1.5 rounded-md inline-block border border-border">
+                  {selectedStore.slug}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Status</p>
+                {getStatusBadge(selectedStore.status)}
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Status</p>
-              {getStatusBadge(selectedStore.status)}
-            </div>
-          </div>
-        </Card>
+          </Card>
 
-        {/* Contato */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <MessageCircle className="h-5 w-5" />
-            Contato
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                <MessageCircle className="h-4 w-4" />
-                WhatsApp
-              </p>
-              <a
-                href={`https://wa.me/${selectedStore.whatsapp.replace(/\D/g, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 flex items-center gap-1 transition-colors"
-              >
-                {selectedStore.whatsapp}
-                <ExternalLink className="h-3 w-3" />
-              </a>
+          {/* Localização */}
+          {storeCity && (
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Localização
+              </h2>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Cidade</p>
+                  <p className="font-semibold">{storeCity.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Estado</p>
+                  <p className="font-semibold">{storeCity.state}</p>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* Coluna Direita */}
+        <div className="space-y-6">
+          {/* Contato */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              Contato
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp
+                </p>
+                <a
+                  href={`https://wa.me/${selectedStore.whatsapp.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-green-500/10 dark:hover:bg-green-500/20"
+                >
+                  {selectedStore.whatsapp}
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+              {selectedStore.instagramUrl && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
+                    <Instagram className="h-4 w-4" />
+                    Instagram
+                  </p>
+                  <a
+                    href={selectedStore.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-pink-500/10 dark:hover:bg-pink-500/20"
+                  >
+                    {selectedStore.instagramUrl.replace(/^https?:\/\//, "")}
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </div>
+              )}
+              {selectedStore.facebookUrl && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
+                    <Facebook className="h-4 w-4" />
+                    Facebook
+                  </p>
+                  <a
+                    href={selectedStore.facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-blue-500/10 dark:hover:bg-blue-500/20"
+                  >
+                    {selectedStore.facebookUrl.replace(/^https?:\/\//, "")}
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </div>
+              )}
             </div>
-            {selectedStore.instagramUrl && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                  <Instagram className="h-4 w-4" />
-                  Instagram
-                </p>
-                <a
-                  href={selectedStore.instagramUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 flex items-center gap-1 transition-colors"
-                >
-                  {selectedStore.instagramUrl.replace(/^https?:\/\//, "")}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            )}
-            {selectedStore.facebookUrl && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                  <Facebook className="h-4 w-4" />
-                  Facebook
-                </p>
-                <a
-                  href={selectedStore.facebookUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 transition-colors"
-                >
-                  {selectedStore.facebookUrl.replace(/^https?:\/\//, "")}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            )}
-          </div>
-        </Card>
+          </Card>
+
+          {/* Informações Adicionais */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Store className="h-5 w-5" />
+              Informações Adicionais
+            </h2>
+            <div className="space-y-4">
+              {selectedStore.cnpjcpf && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">CNPJ/CPF</p>
+                  <p className="font-mono text-sm bg-muted px-3 py-1.5 rounded-md inline-block border border-border">
+                    {selectedStore.cnpjcpf}
+                  </p>
+                </div>
+              )}
+              {selectedStore.theme && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-3">Cores do Tema</p>
+                  <div className="flex gap-3">
+                    {selectedStore.theme.primaryColor && (
+                      <div className="flex flex-col items-center gap-1">
+                        <div
+                          className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
+                          style={{ backgroundColor: selectedStore.theme.primaryColor }}
+                        />
+                        <span className="text-xs text-muted-foreground">Primária</span>
+                      </div>
+                    )}
+                    {selectedStore.theme.secondaryColor && (
+                      <div className="flex flex-col items-center gap-1">
+                        <div
+                          className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
+                          style={{ backgroundColor: selectedStore.theme.secondaryColor }}
+                        />
+                        <span className="text-xs text-muted-foreground">Secundária</span>
+                      </div>
+                    )}
+                    {selectedStore.theme.tertiaryColor && (
+                      <div className="flex flex-col items-center gap-1">
+                        <div
+                          className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
+                          style={{ backgroundColor: selectedStore.theme.tertiaryColor }}
+                        />
+                        <span className="text-xs text-muted-foreground">Terciária</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );

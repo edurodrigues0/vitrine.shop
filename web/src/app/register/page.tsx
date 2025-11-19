@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { showError, showSuccess } from "@/lib/toast";
 import Link from "next/link";
 import { Store, Sparkles, Check } from "lucide-react";
+import { GuestLayout } from "@/components/guest-layout";
 
 const registerSchema = z
   .object({
@@ -74,7 +75,8 @@ export default function RegisterPage() {
   ];
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <GuestLayout>
+      <div className="min-h-screen overflow-x-hidden">
       {/* Background with decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/25 rounded-full blur-3xl animate-pulse"></div>
@@ -288,6 +290,6 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
-    </div>
+    </GuestLayout>
   );
 }

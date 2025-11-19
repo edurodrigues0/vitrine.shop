@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { storesService } from "@/services/stores-service";
 import { productsService } from "@/services/products-service";
@@ -9,6 +9,7 @@ import { productImagesService } from "@/services/product-images-service";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ErrorState } from "@/components/ui/error-state";
 import {
   Store,
   Loader2,
@@ -36,6 +37,7 @@ import { categoriesService } from "@/services/categories-service";
 
 export default function StorePage() {
   const params = useParams();
+  const router = useRouter();
   const citySlug = params.city as string;
   const storeSlug = params.slug as string;
 
@@ -163,21 +165,16 @@ export default function StorePage() {
   if (storeError) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <div className="text-center max-w-md mx-auto">
-          <div className="bg-destructive/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <Store className="h-8 w-8 text-destructive" />
-          </div>
-          <h1 className="text-2xl font-bold mb-4">Erro ao carregar loja</h1>
-          <p className="text-destructive mb-6">
-            {storeError instanceof Error ? storeError.message : "Erro desconhecido"}
-          </p>
-          <Link href={`/cidade/${citySlug}`}>
-            <Button variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar para a cidade
-            </Button>
-          </Link>
-        </div>
+        <ErrorState
+          title="Erro ao carregar loja"
+          description={storeError instanceof Error ? storeError.message : "Não foi possível carregar as informações da loja. Tente novamente mais tarde."}
+          icon={Store}
+          action={{
+            label: "Voltar para a cidade",
+            onClick: () => router.push(`/cidade/${citySlug}`),
+            variant: "outline",
+          }}
+        />
       </div>
     );
   }

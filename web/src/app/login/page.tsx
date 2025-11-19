@@ -4,10 +4,12 @@ import Image from "next/image";
 import { LoginForm } from "@/components/login-form";
 import { Store, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { GuestLayout } from "@/components/guest-layout";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <GuestLayout>
+      <div className="min-h-screen overflow-x-hidden">
       {/* Background with decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/25 rounded-full blur-3xl animate-pulse"></div>
@@ -101,6 +103,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </GuestLayout>
   );
 }
