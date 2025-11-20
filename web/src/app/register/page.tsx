@@ -68,10 +68,11 @@ export default function RegisterPage() {
   };
 
   const benefits = [
-    "Sem comissões sobre vendas",
-    "Configuração em minutos",
-    "Suporte completo",
-    "Gestão de produtos fácil",
+    "Crie sua loja em minutos, sem precisar de conhecimento técnico",
+    "Personalize sua vitrine com suas cores e logo",
+    "Gerenciamento de pedidos e estoque em tempo real",
+    "Pagamentos seguros integrados",
+    "Suporte 24/7 para te ajudar no que precisar"
   ];
 
   return (

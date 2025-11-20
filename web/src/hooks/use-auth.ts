@@ -39,11 +39,19 @@ export function useAuth() {
       showSuccess("Login realizado com sucesso!");
     },
     onError: (error: any) => {
-      const message =
-        typeof error?.message === "string"
-          ? error.message
-          : error?.response?.data?.message ?? "Não foi possível entrar.";
-      showError(message);
+      let message = "Não foi possível fazer login. Verifique suas credenciais e tente novamente.";
+      
+      if (error?.status === 401) {
+        message = "E-mail ou senha incorretos. Verifique seus dados e tente novamente.";
+      } else if (error?.status === 404) {
+        message = "Serviço de autenticação indisponível. Tente novamente mais tarde.";
+      } else if (error?.message) {
+        // Se for uma mensagem de erro da API, usa ela, senão usa a mensagem padrão
+        message = error.message;
+      }
+      
+      // Adiciona a mensagem de erro ao objeto de erro para ser usada no componente
+      error.userMessage = message;
     },
   });
 
@@ -64,6 +72,8 @@ export function useAuth() {
     isLoading,
     isAuthenticated: !!user && !error,
     login: loginMutation.mutate,
+    loginError: loginMutation.error,
+    resetLoginError: loginMutation.reset,
     logout: logoutMutation.mutate,
     isLoggingIn: loginMutation.isPending,
     isLoggingOut: logoutMutation.isPending,
