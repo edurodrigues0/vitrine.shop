@@ -12,7 +12,6 @@ import {
 import { addresses } from "./addresses";
 import { cities } from "./cities";
 import { products } from "./products";
-import { storeBranches } from "./store-branches";
 import { subscriptions } from "./subscriptions";
 import { users } from "./users";
 
@@ -62,5 +61,4 @@ export const storesRelations = relations(stores, ({ one, many }) => ({
 	subscriptions: many(subscriptions),
 	users: many(users),
 	addresses: many(addresses),
-	branches: many(storeBranches),
 }));

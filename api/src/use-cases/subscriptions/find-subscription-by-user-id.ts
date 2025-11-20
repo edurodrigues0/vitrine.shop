@@ -1,24 +1,24 @@
 import type { Subscription } from "~/database/schema";
 import type { SubscriptionsRepository } from "~/repositories/subscriptions-repository";
 
-interface FindSubscriptionByStoreIdUseCaseRequest {
-	storeId: string;
+interface FindSubscriptionByUserIdUseCaseRequest {
+	userId: string;
 }
 
-interface FindSubscriptionByStoreIdUseCaseResponse {
+interface FindSubscriptionByUserIdUseCaseResponse {
 	subscription: Subscription | null;
 }
 
-export class FindSubscriptionByStoreIdUseCase {
+export class FindSubscriptionByUserIdUseCase {
 	constructor(
 		private readonly subscriptionsRepository: SubscriptionsRepository,
 	) {}
 
 	async execute({
-		storeId,
-	}: FindSubscriptionByStoreIdUseCaseRequest): Promise<FindSubscriptionByStoreIdUseCaseResponse> {
+		userId,
+	}: FindSubscriptionByUserIdUseCaseRequest): Promise<FindSubscriptionByUserIdUseCaseResponse> {
 		const subscription =
-			await this.subscriptionsRepository.findByStoreId({ storeId });
+			await this.subscriptionsRepository.findByUserId({ userId });
 
 		return { subscription };
 	}

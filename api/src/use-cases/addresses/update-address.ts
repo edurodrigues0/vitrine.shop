@@ -12,7 +12,6 @@ interface UpdateAddressUseCaseRequest {
 		cityId?: string;
 		zipCode?: string;
 		country?: string;
-		branchId?: string;
 		storeId?: string;
 		isMain?: boolean;
 	};

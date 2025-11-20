@@ -25,9 +25,6 @@ export const users = pgTable("users", {
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
-export const usersRelations = relations(users, ({ one }) => ({
-	store: one(stores, {
-		fields: [users.storeId],
-		references: [stores.id],
-	}),
+export const usersRelations = relations(users, ({ many }) => ({
+	stores: many(stores),
 }));

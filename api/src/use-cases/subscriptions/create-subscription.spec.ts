@@ -2,41 +2,40 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryStoresRepository } from "~/repositories/in-memory/in-memory-stores-repository";
 import { InMemorySubscriptionsRepository } from "~/repositories/in-memory/in-memory-subscriptions-repository";
 import { InMemoryCitiesRepository } from "~/repositories/in-memory/in-memory-cities-repository";
-import { StoreNotFoundError } from "../@errors/stores/store-not-found-error";
+import { InMemoryUsersRepository } from "~/repositories/in-memory/in-memory-users-repository";
+import { UserNotFoundError } from "../@errors/users/user-not-found-error";
 import { CreateSubscriptionUseCase } from "./create-subscription";
 
 describe("CreateSubscriptionUseCase", () => {
 	let citiesRepository: InMemoryCitiesRepository;
 	let storesRepository: InMemoryStoresRepository;
+	let usersRepository: InMemoryUsersRepository;
 	let subscriptionsRepository: InMemorySubscriptionsRepository;
 	let sut: CreateSubscriptionUseCase;
 
 	beforeEach(() => {
 		citiesRepository = new InMemoryCitiesRepository();
 		storesRepository = new InMemoryStoresRepository(citiesRepository);
+		usersRepository = new InMemoryUsersRepository();
 		subscriptionsRepository = new InMemorySubscriptionsRepository();
 		sut = new CreateSubscriptionUseCase(
 			subscriptionsRepository,
 			storesRepository,
+			usersRepository,
 		);
 	});
 
 	it("should be able to create a new subscription", async () => {
-		const cityId = crypto.randomUUID();
-		const ownerId = crypto.randomUUID();
-
-		// Criar loja primeiro
-		const store = await storesRepository.create({
-			name: "Test Store",
-			cnpjcpf: "12345678901234",
-			whatsapp: "31999999999",
-			slug: "test-store",
-			cityId,
-			ownerId,
+		// Criar usuário primeiro
+		const user = await usersRepository.create({
+			name: "Test User",
+			email: "test@example.com",
+			password: "hashed_password",
+			role: "OWNER",
 		});
 
 		const { subscription } = await sut.execute({
-			storeId: store.id,
+			userId: user.id,
 			planName: "Basic Plan",
 			planId: "price_123",
 			provider: "stripe",
@@ -48,17 +47,17 @@ describe("CreateSubscriptionUseCase", () => {
 
 		expect(subscription).toBeTruthy();
 		expect(subscription.id).toBeTruthy();
-		expect(subscription.storeId).toBe(store.id);
+		expect(subscription.userId).toBe(user.id);
 		expect(subscription.planName).toBe("Basic Plan");
 		expect(subscription.status).toBe("PAID");
 	});
 
-	it("should not create subscription for non-existent store", async () => {
-		const storeId = crypto.randomUUID();
+	it("should not create subscription for non-existent user", async () => {
+		const userId = crypto.randomUUID();
 
 		await expect(
 			sut.execute({
-				storeId,
+				userId,
 				planName: "Basic Plan",
 				planId: "price_123",
 				provider: "stripe",
@@ -66,28 +65,34 @@ describe("CreateSubscriptionUseCase", () => {
 				currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
 				price: "29.99",
 			}),
-		).rejects.toBeInstanceOf(StoreNotFoundError);
+		).rejects.toBeInstanceOf(UserNotFoundError);
 	});
 
 	it("should update store isPaid to true when subscription status is PAID", async () => {
 		const cityId = crypto.randomUUID();
-		const ownerId = crypto.randomUUID();
-		const storeId = crypto.randomUUID();
 
-		// Criar loja primeiro
+		// Criar usuário
+		const user = await usersRepository.create({
+			name: "Test User",
+			email: "test@example.com",
+			password: "hashed_password",
+			role: "OWNER",
+		});
+
+		// Criar loja do usuário
 		const store = await storesRepository.create({
 			name: "Test Store",
 			cnpjcpf: "12345678901234",
 			whatsapp: "31999999999",
 			slug: "test-store",
 			cityId,
-			ownerId,
+			ownerId: user.id,
 		});
 
 		expect(store.isPaid).toBe(false);
 
 		await sut.execute({
-			storeId: store.id,
+			userId: user.id,
 			planName: "Basic Plan",
 			planId: "price_123",
 			provider: "stripe",

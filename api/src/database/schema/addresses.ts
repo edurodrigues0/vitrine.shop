@@ -1,15 +1,11 @@
 import { relations } from "drizzle-orm";
 import { boolean, pgTable, uuid, varchar } from "drizzle-orm/pg-core";
 import { cities } from "./cities";
-import { storeBranches } from "./store-branches";
 import { stores } from "./stores";
 
 export const addresses = pgTable("addresses", {
 	id: uuid("id").defaultRandom().primaryKey(),
 	storeId: uuid("store_id").references(() => stores.id),
-	branchId: uuid("branch_id").references(() => storeBranches.id, {
-		onDelete: "cascade",
-	}),
 	cityId: uuid("city_id")
 		.references(() => cities.id)
 		.notNull(),
@@ -29,10 +25,6 @@ export const addressesRelations = relations(addresses, ({ one }) => ({
 	store: one(stores, {
 		fields: [addresses.storeId],
 		references: [stores.id],
-	}),
-	branch: one(storeBranches, {
-		fields: [addresses.branchId],
-		references: [storeBranches.id],
 	}),
 	city: one(cities, {
 		fields: [addresses.cityId],

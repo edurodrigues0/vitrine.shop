@@ -1,7 +1,7 @@
 import type * as schema from "~/database/schema";
 
 export interface CreateSubscriptionParams {
-	storeId: string;
+	userId: string;
 	planName: string;
 	planId: string;
 	provider: string;
@@ -32,7 +32,7 @@ export interface UpdateSubscriptionParams {
 export interface SubscriptionsRepository {
 	create(params: CreateSubscriptionParams): Promise<schema.Subscription>;
 	findById({ id }: { id: string }): Promise<schema.Subscription | null>;
-	findByStoreId({ storeId }: { storeId: string }): Promise<schema.Subscription | null>;
+	findByUserId({ userId }: { userId: string }): Promise<schema.Subscription | null>;
 	findByStripeSubscriptionId({
 		stripeSubscriptionId,
 	}: {

@@ -181,16 +181,22 @@ export class DrizzleProductsRepository implements ProductsRespository {
 		price,
 		stock,
 	}: CreateProductVariationParams): Promise<ProductVariation> {
+		// Converter preços de reais para centavos (integer)
+		const priceInCents = Math.round(price * 100);
+		const discountPriceInCents = discountPrice
+			? Math.round(discountPrice * 100)
+			: null;
+
 		const [variation] = await this.drizzle
 			.insert(productsVariations)
 			.values({
 				productId,
 				size,
 				color,
-				weight: weight?.toString(),
-				dimensions,
-				discountPrice: discountPrice?.toString(),
-				price: price?.toString(),
+				weight: weight ?? null,
+				dimensions: dimensions ?? null,
+				discountPrice: discountPriceInCents,
+				price: priceInCents,
 				stock,
 			})
 			.returning();

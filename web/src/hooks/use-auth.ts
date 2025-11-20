@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { authService } from "@/services/auth-service";
 import type { LoginRequest } from "@/dtos/user";
 import { showError, showSuccess } from "@/lib/toast";
@@ -12,16 +13,48 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const router = useRouter();
 
+  // Verificar token antes de habilitar a query (memoizado para evitar recálculos)
+  const hasToken = useMemo(() => {
+    return typeof window !== "undefined" && !!localStorage.getItem("authToken");
+  }, []);
+
   const {
     data: user,
     isLoading,
     error,
   } = useQuery({
     queryKey: AUTH_KEY,
-    queryFn: () => authService.me(),
+    queryFn: async () => {
+      try {
+        return await authService.me();
+      } catch (error: any) {
+        // Se receber 401, limpar token inválido silenciosamente
+        if (error?.status === 401 || error?.response?.status === 401) {
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("authToken");
+            // Invalidar a query para evitar novas tentativas
+            queryClient.setQueryData(AUTH_KEY, null);
+          }
+          // Retornar null em vez de lançar erro para evitar logs no console
+          return null;
+        }
+        throw error;
+      }
+    },
     retry: false,
     staleTime: Infinity,
-    enabled: typeof window !== "undefined" && !!localStorage.getItem("authToken"),
+    enabled: hasToken,
+    // Evitar refetch automático quando não há token
+    refetchOnMount: hasToken,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    // Não mostrar erro no console para 401 (token inválido é esperado)
+    onError: (error: any) => {
+      if (error?.status === 401 || error?.response?.status === 401) {
+        // Erro 401 é esperado quando o token é inválido, não precisa logar
+        return;
+      }
+    },
   });
 
   const loginMutation = useMutation({

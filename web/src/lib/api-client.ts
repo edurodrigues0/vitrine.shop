@@ -85,6 +85,9 @@ async function apiClient<T>(
       const error = new ApiError(response.status, response.statusText, data);
       // Adicionar data ao erro para facilitar tratamento no frontend
       (error as any).data = data;
+      // Adicionar status ao erro para facilitar verificação
+      (error as any).status = response.status;
+      (error as any).response = { status: response.status, data };
       throw error;
     }
 

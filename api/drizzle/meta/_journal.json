@@ -8,6 +8,13 @@
       "when": 1762959216398,
       "tag": "0000_wandering_harrier",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1763659069747,
+      "tag": "0001_awesome_molten_man",
+      "breakpoints": true
     }
   ]
 }

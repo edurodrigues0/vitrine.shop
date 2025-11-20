@@ -1,21 +1,21 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemorySubscriptionsRepository } from "~/repositories/in-memory/in-memory-subscriptions-repository";
-import { FindSubscriptionByStoreIdUseCase } from "./find-subscription-by-store-id";
+import { FindSubscriptionByUserIdUseCase } from "./find-subscription-by-user-id";
 
-describe("FindSubscriptionByStoreIdUseCase", () => {
+describe("FindSubscriptionByUserIdUseCase", () => {
 	let subscriptionsRepository: InMemorySubscriptionsRepository;
-	let sut: FindSubscriptionByStoreIdUseCase;
+	let sut: FindSubscriptionByUserIdUseCase;
 
 	beforeEach(() => {
 		subscriptionsRepository = new InMemorySubscriptionsRepository();
-		sut = new FindSubscriptionByStoreIdUseCase(subscriptionsRepository);
+		sut = new FindSubscriptionByUserIdUseCase(subscriptionsRepository);
 	});
 
-	it("should be able to find subscription by store id", async () => {
-		const storeId = crypto.randomUUID();
+	it("should be able to find subscription by user id", async () => {
+		const userId = crypto.randomUUID();
 
 		const createdSubscription = await subscriptionsRepository.create({
-			storeId,
+			userId,
 			planName: "Basic Plan",
 			planId: "price_123",
 			provider: "stripe",
@@ -25,17 +25,17 @@ describe("FindSubscriptionByStoreIdUseCase", () => {
 			status: "PAID",
 		});
 
-		const { subscription } = await sut.execute({ storeId });
+		const { subscription } = await sut.execute({ userId });
 
 		expect(subscription).toBeTruthy();
 		expect(subscription?.id).toBe(createdSubscription.id);
-		expect(subscription?.storeId).toBe(storeId);
+		expect(subscription?.userId).toBe(userId);
 	});
 
 	it("should return null when subscription not found", async () => {
-		const storeId = crypto.randomUUID();
+		const userId = crypto.randomUUID();
 
-		const { subscription } = await sut.execute({ storeId });
+		const { subscription } = await sut.execute({ userId });
 
 		expect(subscription).toBeNull();
 	});

@@ -1,8 +1,12 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { ArrowRight } from "lucide-react";
 
 export function CTA() {
+  const router = useRouter();
+
   return (
     <section className="relative py-20 md:py-28 px-4 overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -20,13 +24,18 @@ export function CTA() {
         </p>
         <Button
           size="lg"
-          asChild
-          className="shadow-2xl text-lg px-10 py-6 h-auto bg-white text-purple-600 hover:bg-white/95 hover:scale-105 transition-all duration-300 font-semibold border-0"
+          className="
+            shadow-2xl text-lg px-10 py-6 h-auto
+            bg-white text-purple-600
+            transition-all duration-300 font-semibold border-0 hover:cursor-pointer
+            hover:bg-white hover:text-purple-700 hover:shadow-3xl hover:scale-105 hover:opacity-100
+            active:scale-100 active:opacity-100
+            [&:hover]:opacity-100 [&:hover]:bg-white
+          "
+          onClick={() => router.push('/register')}
         >
-          <Link href="/register" className="flex items-center gap-2 justify-center text-purple-600">
-            Criar minha loja agora
-            <ArrowRight className="h-5 w-5" />
-          </Link>
+          Criar minha loja agora
+          <ArrowRight className="h-5 w-5" />
         </Button>
       </div>
     </section>
