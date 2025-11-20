@@ -27,7 +27,7 @@ export function ImageUpload({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -48,6 +48,32 @@ export function ImageUpload({
     // Criar preview
     const reader = new FileReader();
     reader.onloadend = () => {
+      setPreview(reader.result as string);
+      
+      // Resetar o input de arquivo
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+      // Se houver um callback de upload, chamá-lo
+      if (onUpload) {
+        setIsUploading(true);
+        onUpload(file)
+          .then((url) => {
+            onUploadComplete(url);
+            showSuccess("Imagem enviada com sucesso!");
+          })
+          .catch((error) => {
+            console.error("Erro ao fazer upload da imagem:", error);
+            showError("Erro ao fazer upload da imagem. Tente novamente.");
+            setPreview(null);
+          })
+          .finally(() => {
+            setIsUploading(false);
+          });
+      } else {
+        onUploadComplete(reader.result as string);
+      }
       setPreview(reader.result as string);
     };
     reader.readAsDataURL(file);

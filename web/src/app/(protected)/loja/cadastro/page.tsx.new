@@ -419,6 +419,7 @@ export default function StoreFormPage() {
               <div className="space-y-6">
                 {/* Logo Upload */}
                 <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Logo da Loja</h3>
                   <StoreImageUpload
                     storeId={storeId || ""}
                     type="logo"
@@ -437,6 +438,7 @@ export default function StoreFormPage() {
 
                 {/* Banner Upload */}
                 <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Banner da Loja</h3>
                   <StoreImageUpload
                     storeId={storeId || ""}
                     type="banner"
