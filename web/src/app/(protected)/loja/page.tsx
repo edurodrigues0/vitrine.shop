@@ -136,174 +136,168 @@ export default function StoreDashboardPage() {
         </Card>
       </div>
 
-      {/* Informações em 2 colunas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Coluna Esquerda */}
-        <div className="space-y-6">
-          {/* Informações Básicas */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Store className="h-5 w-5" />
-              Informações Básicas
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Nome da Loja</p>
-                <p className="font-semibold text-lg">{selectedStore.name}</p>
-              </div>
-              {selectedStore.description && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Descrição</p>
-                  <p className="text-sm leading-relaxed">{selectedStore.description}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Slug</p>
-                <p className="font-mono text-sm bg-muted px-3 py-1.5 rounded-md inline-block border border-border">
-                  {selectedStore.slug}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Status</p>
-                {getStatusBadge(selectedStore.status)}
-              </div>
+      {/* Informações em Grid 2x2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-fr">
+        {/* Informações Básicas */}
+        <Card className="p-6 h-full flex flex-col">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Store className="h-5 w-5" />
+            Informações Básicas
+          </h2>
+          <div className="space-y-4 flex-1">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Nome da Loja</p>
+              <p className="font-semibold text-lg">{selectedStore.name}</p>
             </div>
-          </Card>
-
-          {/* Localização */}
-          {storeCity && (
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Localização
-              </h2>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Cidade</p>
-                  <p className="font-semibold">{storeCity.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Estado</p>
-                  <p className="font-semibold">{storeCity.state}</p>
-                </div>
+            {selectedStore.description && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Descrição</p>
+                <p className="text-sm leading-relaxed">{selectedStore.description}</p>
               </div>
-            </Card>
-          )}
-        </div>
+            )}
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Slug</p>
+              <p className="font-mono text-sm bg-muted px-3 py-1.5 rounded-md inline-block border border-border">
+                {selectedStore.slug}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Status</p>
+              {getStatusBadge(selectedStore.status)}
+            </div>
+          </div>
+        </Card>
 
-        {/* Coluna Direita */}
-        <div className="space-y-6">
-          {/* Contato */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
-              Contato
-            </h2>
-            <div className="space-y-4">
+        {/* Contato */}
+        <Card className="p-6 h-full flex flex-col">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            Contato
+          </h2>
+          <div className="space-y-4 flex-1">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
+                <MessageCircle className="h-4 w-4" />
+                WhatsApp
+              </p>
+              <a
+                href={`https://wa.me/${selectedStore.whatsapp.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-green-500/10 dark:hover:bg-green-500/20"
+              >
+                {selectedStore.whatsapp}
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+            {selectedStore.instagramUrl && (
               <div>
                 <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                  <MessageCircle className="h-4 w-4" />
-                  WhatsApp
+                  <Instagram className="h-4 w-4" />
+                  Instagram
                 </p>
                 <a
-                  href={`https://wa.me/${selectedStore.whatsapp.replace(/\D/g, "")}`}
+                  href={selectedStore.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-semibold text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-green-500/10 dark:hover:bg-green-500/20"
+                  className="font-semibold text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-pink-500/10 dark:hover:bg-pink-500/20"
                 >
-                  {selectedStore.whatsapp}
+                  {selectedStore.instagramUrl.replace(/^https?:\/\//, "")}
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </div>
-              {selectedStore.instagramUrl && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                    <Instagram className="h-4 w-4" />
-                    Instagram
-                  </p>
-                  <a
-                    href={selectedStore.instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-pink-500/10 dark:hover:bg-pink-500/20"
-                  >
-                    {selectedStore.instagramUrl.replace(/^https?:\/\//, "")}
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </div>
-              )}
-              {selectedStore.facebookUrl && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                    <Facebook className="h-4 w-4" />
-                    Facebook
-                  </p>
-                  <a
-                    href={selectedStore.facebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-blue-500/10 dark:hover:bg-blue-500/20"
-                  >
-                    {selectedStore.facebookUrl.replace(/^https?:\/\//, "")}
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </div>
-              )}
-            </div>
-          </Card>
+            )}
+            {selectedStore.facebookUrl && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
+                  <Facebook className="h-4 w-4" />
+                  Facebook
+                </p>
+                <a
+                  href={selectedStore.facebookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-blue-500/10 dark:hover:bg-blue-500/20"
+                >
+                  {selectedStore.facebookUrl.replace(/^https?:\/\//, "")}
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+            )}
+          </div>
+        </Card>
 
-          {/* Informações Adicionais */}
-          <Card className="p-6">
+        {/* Localização */}
+        {storeCity && (
+          <Card className="p-6 h-full flex flex-col">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Store className="h-5 w-5" />
-              Informações Adicionais
+              <MapPin className="h-5 w-5" />
+              Localização
             </h2>
-            <div className="space-y-4">
-              {selectedStore.cnpjcpf && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">CNPJ/CPF</p>
-                  <p className="font-mono text-sm bg-muted px-3 py-1.5 rounded-md inline-block border border-border">
-                    {selectedStore.cnpjcpf}
-                  </p>
-                </div>
-              )}
-              {selectedStore.theme && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-3">Cores do Tema</p>
-                  <div className="flex gap-3">
-                    {selectedStore.theme.primaryColor && (
-                      <div className="flex flex-col items-center gap-1">
-                        <div
-                          className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
-                          style={{ backgroundColor: selectedStore.theme.primaryColor }}
-                        />
-                        <span className="text-xs text-muted-foreground">Primária</span>
-                      </div>
-                    )}
-                    {selectedStore.theme.secondaryColor && (
-                      <div className="flex flex-col items-center gap-1">
-                        <div
-                          className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
-                          style={{ backgroundColor: selectedStore.theme.secondaryColor }}
-                        />
-                        <span className="text-xs text-muted-foreground">Secundária</span>
-                      </div>
-                    )}
-                    {selectedStore.theme.tertiaryColor && (
-                      <div className="flex flex-col items-center gap-1">
-                        <div
-                          className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
-                          style={{ backgroundColor: selectedStore.theme.tertiaryColor }}
-                        />
-                        <span className="text-xs text-muted-foreground">Terciária</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+            <div className="space-y-3 flex-1">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Cidade</p>
+                <p className="font-semibold">{storeCity.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Estado</p>
+                <p className="font-semibold">{storeCity.state}</p>
+              </div>
             </div>
           </Card>
-        </div>
+        )}
+
+        {/* Informações Adicionais */}
+        <Card className="p-6 h-full flex flex-col">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Store className="h-5 w-5" />
+            Informações Adicionais
+          </h2>
+          <div className="space-y-4 flex-1">
+            {selectedStore.cnpjcpf && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">CNPJ/CPF</p>
+                <p className="font-mono text-sm bg-muted px-3 py-1.5 rounded-md inline-block border border-border">
+                  {selectedStore.cnpjcpf}
+                </p>
+              </div>
+            )}
+            {selectedStore.theme && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-3">Cores do Tema</p>
+                <div className="flex gap-3">
+                  {selectedStore.theme.primaryColor && (
+                    <div className="flex flex-col items-center gap-1">
+                      <div
+                        className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
+                        style={{ backgroundColor: selectedStore.theme.primaryColor }}
+                      />
+                      <span className="text-xs text-muted-foreground">Primária</span>
+                    </div>
+                  )}
+                  {selectedStore.theme.secondaryColor && (
+                    <div className="flex flex-col items-center gap-1">
+                      <div
+                        className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
+                        style={{ backgroundColor: selectedStore.theme.secondaryColor }}
+                      />
+                      <span className="text-xs text-muted-foreground">Secundária</span>
+                    </div>
+                  )}
+                  {selectedStore.theme.tertiaryColor && (
+                    <div className="flex flex-col items-center gap-1">
+                      <div
+                        className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
+                        style={{ backgroundColor: selectedStore.theme.tertiaryColor }}
+                      />
+                      <span className="text-xs text-muted-foreground">Terciária</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
       </div>
     </div>
   );
