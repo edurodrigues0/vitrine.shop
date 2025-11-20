@@ -126,7 +126,7 @@ export async function uploadStoreBannerController(
 		const imageUrl = await storageService.uploadImageToPath(
 			request.file.buffer,
 			fileName,
-			"stores",
+			"vitrine",
 		);
 
 		// Atualizar a loja com a nova URL

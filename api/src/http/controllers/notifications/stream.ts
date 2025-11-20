@@ -19,7 +19,6 @@ export async function streamNotificationsController(
 		const token = getAuthCookie(request) || (request.query.token as string | undefined);
 
 		if (!token) {
-			console.log("SSE: No token provided");
 			response.writeHead(401, {
 				"Content-Type": "text/event-stream",
 				"Cache-Control": "no-cache",
@@ -51,15 +50,12 @@ export async function streamNotificationsController(
 		}
 
 		const userId = payload.sub;
-		console.log(`SSE: Client connecting - userId: ${userId}`);
-
 		// Adicionar cliente ao serviço SSE
 		sseService.addClient(userId, response);
 
 		// Manter conexão aberta
 		// A conexão será fechada quando o cliente desconectar
 		request.on("close", () => {
-			console.log(`SSE: Client disconnected - userId: ${userId}`);
 			// Cliente desconectado, será removido automaticamente pelo sseService
 		});
 	} catch (error) {

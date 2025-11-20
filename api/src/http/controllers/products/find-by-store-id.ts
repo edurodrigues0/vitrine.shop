@@ -70,15 +70,11 @@ export async function findProductsByStoreIdController(
 	try {
 		const { storeId } = findProductsByStoreIdParamsSchema.parse(request.params);
 
-		console.log("Finding products for storeId:", storeId);
-
 		const findProductsByStoreIdUseCase = makeFindProductsByStoreIdUseCase();
 
 		const { products } = await findProductsByStoreIdUseCase.execute({
 			storeId,
 		});
-
-		console.log(`Found ${products.length} products for store ${storeId}`);
 
 		return response.status(200).json({
 			products: products.map((product) => ({

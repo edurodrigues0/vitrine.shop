@@ -33,8 +33,6 @@ class SSEService {
 		}
 		this.clients.get(userId)!.push({ userId, response });
 
-		console.log(`SSE: Client added - userId: ${userId}, total clients: ${this.getClientCount()}`);
-
 		// Remover cliente quando conexão for fechada
 		response.on("close", () => {
 			this.removeClient(userId, response);

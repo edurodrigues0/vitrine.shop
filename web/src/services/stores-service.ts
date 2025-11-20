@@ -26,7 +26,6 @@ export const storesService = {
 
   findBySlug: async (slug: string): Promise<Store> => {
     const response = await api.get<{ store: Store }>(`/stores/slug/${slug}`);
-    console.log("Store response:", response);
     return response.store;
   },
 

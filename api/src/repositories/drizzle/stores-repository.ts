@@ -130,7 +130,6 @@ export class DrizzleStoresRepository implements StoresRepository {
 		}
 
 		if (filters.ownerId) {
-			console.log("DrizzleStoresRepository.findAll - Filtrando por ownerId:", filters.ownerId);
 			conditions.push(eq(stores.ownerId, filters.ownerId));
 		}
 

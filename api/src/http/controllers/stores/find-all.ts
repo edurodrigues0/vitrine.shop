@@ -153,17 +153,6 @@ export async function findAllStoresController(
 		const { page, limit, name, description, slug, ownerId, cityId, isPaid } =
 			findAllStoresQuerySchema.parse(request.query);
 
-		console.log("findAllStores - Parâmetros recebidos:", {
-			page,
-			limit,
-			name,
-			description,
-			slug,
-			ownerId,
-			cityId,
-			isPaid,
-		});
-
 		const findAllStoresUseCase = makeFindAllStoresUseCase();
 
 		const { stores, pagination } = await findAllStoresUseCase.execute({
@@ -174,15 +163,9 @@ export async function findAllStoresController(
 				description,
 				slug,
 				ownerId,
-				cityId,
+				cityName,
 				isPaid,
 			},
-		});
-
-		console.log("findAllStores - Resultado:", {
-			storesCount: stores.length,
-			stores: stores.map(s => ({ id: s.id, name: s.name, ownerId: s.ownerId, status: s.status })),
-			pagination,
 		});
 
 		return response.status(200).json({
