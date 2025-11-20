@@ -5,34 +5,84 @@ import {
 	addresses,
 	categories,
 	cities,
+	notifications,
+	orderItems,
+	orders,
 	products,
 	productsImages,
 	productsVariations,
-	storeBranches,
+	storeVisits,
 	stores,
 	subscriptions,
 	users,
 } from "./schema";
 import { BCRYPT_SALT_ROUNDS } from "../config/constants";
 
+/**
+ * Limpa todos os dados do banco de dados, respeitando as dependências de foreign keys.
+ * A ordem de exclusão é inversa à ordem de criação (tabelas dependentes primeiro).
+ */
+export async function clearDatabase() {
+	console.log("🧹 Limpando banco de dados...");
+
+	try {
+		// 1. Tabelas mais dependentes (com mais foreign keys)
+		await DrizzleORM.delete(orderItems).where(sql`1=1`);
+		console.log("   ✓ order_items limpo");
+
+		await DrizzleORM.delete(productsImages).where(sql`1=1`);
+		console.log("   ✓ products_images limpo");
+
+		await DrizzleORM.delete(productsVariations).where(sql`1=1`);
+		console.log("   ✓ products_variations limpo");
+
+		await DrizzleORM.delete(orders).where(sql`1=1`);
+		console.log("   ✓ orders limpo");
+
+		await DrizzleORM.delete(products).where(sql`1=1`);
+		console.log("   ✓ products limpo");
+
+		await DrizzleORM.delete(notifications).where(sql`1=1`);
+		console.log("   ✓ notifications limpo");
+
+		await DrizzleORM.delete(storeVisits).where(sql`1=1`);
+		console.log("   ✓ store_visits limpo");
+
+		await DrizzleORM.delete(subscriptions).where(sql`1=1`);
+		console.log("   ✓ subscriptions limpo");
+
+		await DrizzleORM.delete(addresses).where(sql`1=1`);
+		console.log("   ✓ addresses limpo");
+
+		// Limpar storeId dos usuários antes de deletar as lojas
+		await DrizzleORM.update(users).set({ storeId: null }).where(sql`1=1`);
+		console.log("   ✓ storeId dos usuários limpo");
+
+		await DrizzleORM.delete(stores).where(sql`1=1`);
+		console.log("   ✓ stores limpo");
+
+		await DrizzleORM.delete(users).where(sql`1=1`);
+		console.log("   ✓ users limpo");
+
+		await DrizzleORM.delete(categories).where(sql`1=1`);
+		console.log("   ✓ categories limpo");
+
+		await DrizzleORM.delete(cities).where(sql`1=1`);
+		console.log("   ✓ cities limpo");
+
+		console.log("✅ Banco de dados limpo com sucesso!");
+	} catch (error) {
+		console.error("❌ Erro ao limpar banco de dados:", error);
+		throw error;
+	}
+}
+
 async function seed() {
 	console.log("🌱 Iniciando seed do banco de dados...");
 
 	try {
-		// Limpar dados existentes (em ordem inversa de dependências)
-		console.log("🧹 Limpando dados existentes...");
-		await DrizzleORM.delete(productsImages).where(sql`1=1`);
-		await DrizzleORM.delete(productsVariations).where(sql`1=1`);
-		await DrizzleORM.delete(products).where(sql`1=1`);
-		await DrizzleORM.delete(subscriptions).where(sql`1=1`);
-		await DrizzleORM.delete(storeBranches).where(sql`1=1`);
-		await DrizzleORM.delete(addresses).where(sql`1=1`);
-		// Limpar storeId dos usuários antes de deletar as lojas
-		await DrizzleORM.update(users).set({ storeId: null }).where(sql`1=1`);
-		await DrizzleORM.delete(stores).where(sql`1=1`);
-		await DrizzleORM.delete(users).where(sql`1=1`);
-		await DrizzleORM.delete(categories).where(sql`1=1`);
-		await DrizzleORM.delete(cities).where(sql`1=1`);
+		// Limpar dados existentes
+		await clearDatabase();
 
 		// 1. Criar Cidades (até 10)
 		console.log("🏙️ Criando cidades...");
@@ -296,42 +346,11 @@ async function seed() {
 			},
 		]);
 
-		// 6. Criar Filiais
-		console.log("🏬 Criando filiais...");
-		const [branch1] = await DrizzleORM
-			.insert(storeBranches)
-			.values([
-				{
-					parentStoreId: store1.id,
-					name: "Moda Elegante - Filial Shopping",
-					cityId: citySaoPaulo.id,
-					whatsapp: "5511999999998",
-					description: "Nossa filial no shopping center",
-					isMain: false,
-				},
-			])
-			.returning();
-
-		// Endereço da filial
-		await DrizzleORM.insert(addresses).values([
-			{
-				branchId: branch1.id,
-				cityId: citySaoPaulo.id,
-				street: "Avenida Paulista",
-				number: "1000",
-				complement: "Shopping Center - Loja 205",
-				neighborhood: "Bela Vista",
-				zipCode: "01310100",
-				country: "Brasil",
-				isMain: false,
-			},
-		]);
-
-		// 7. Criar Assinaturas
+		// 6. Criar Assinaturas
 		console.log("💳 Criando assinaturas...");
 		await DrizzleORM.insert(subscriptions).values([
 			{
-				storeId: store1.id,
+				userId: owner1.id, // Usar ownerId em vez de storeId
 				planName: "Plano Premium",
 				planId: "premium-monthly",
 				provider: "stripe",
@@ -344,7 +363,7 @@ async function seed() {
 				nextPayment: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
 			},
 			{
-				storeId: store2.id,
+				userId: owner2.id, // Usar ownerId em vez de storeId
 				planName: "Plano Básico",
 				planId: "basic-monthly",
 				provider: "stripe",
@@ -601,8 +620,7 @@ async function seed() {
 		console.log(`   - ${10} categorias`);
 		console.log(`   - ${10} usuários`);
 		console.log(`   - ${10} lojas`);
-		console.log(`   - ${4} endereços`);
-		console.log(`   - ${1} filial`);
+		console.log(`   - ${3} endereços`);
 		console.log(`   - ${2} assinaturas`);
 		console.log(`   - ${10} produtos (com preço e quantidade)`);
 		console.log(`   - ${8} variações de produtos`);

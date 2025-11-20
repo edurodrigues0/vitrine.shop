@@ -11,7 +11,7 @@ export class InMemorySubscriptionsRepository
 	public items: Subscription[] = [];
 
 	async create({
-		storeId,
+		userId,
 		planName,
 		planId,
 		provider,
@@ -28,7 +28,7 @@ export class InMemorySubscriptionsRepository
 
 		const subscription: Subscription = {
 			id,
-			storeId,
+			userId,
 			planName,
 			planId,
 			provider,
@@ -51,21 +51,21 @@ export class InMemorySubscriptionsRepository
 		return this.items.find((item) => item.id === id) ?? null;
 	}
 
-	async findByStoreId({
-		storeId,
+	async findByUserId({
+		userId,
 	}: {
-		storeId: string;
+		userId: string;
 	}): Promise<Subscription | null> {
-		const storeSubscriptions = this.items.filter(
-			(item) => item.storeId === storeId,
+		const userSubscriptions = this.items.filter(
+			(item) => item.userId === userId,
 		);
 
-		if (storeSubscriptions.length === 0) {
+		if (userSubscriptions.length === 0) {
 			return null;
 		}
 
 		// Retorna a mais recente
-		return storeSubscriptions.sort(
+		return userSubscriptions.sort(
 			(a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
 		)[0];
 	}

@@ -11,7 +11,7 @@ export class DrizzleSubscriptionsRepository implements SubscriptionsRepository {
 	constructor(private readonly drizzle: typeof DrizzleORM) {}
 
 	async create({
-		storeId,
+		userId,
 		planName,
 		planId,
 		provider,
@@ -26,7 +26,7 @@ export class DrizzleSubscriptionsRepository implements SubscriptionsRepository {
 		const [subscription] = await this.drizzle
 			.insert(subscriptions)
 			.values({
-				storeId,
+				userId,
 				planName,
 				planId,
 				provider,
@@ -56,15 +56,15 @@ export class DrizzleSubscriptionsRepository implements SubscriptionsRepository {
 		return subscription ?? null;
 	}
 
-	async findByStoreId({
-		storeId,
+	async findByUserId({
+		userId,
 	}: {
-		storeId: string;
+		userId: string;
 	}): Promise<Subscription | null> {
 		const [subscription] = await this.drizzle
 			.select()
 			.from(subscriptions)
-			.where(eq(subscriptions.storeId, storeId))
+			.where(eq(subscriptions.userId, userId))
 			.orderBy(desc(subscriptions.createdAt));
 
 		return subscription ?? null;

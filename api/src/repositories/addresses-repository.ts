@@ -9,7 +9,6 @@ export interface CreateAddressParams {
 	cityId: string;
 	zipCode: string;
 	country: string;
-	branchId?: string;
 	storeId?: string;
 	isMain?: boolean;
 }
@@ -40,7 +39,6 @@ export interface UpdateAddressParams {
 		state?: string;
 		zipCode?: string;
 		country?: string;
-		branchId?: string;
 		storeId?: string;
 		isMain?: boolean;
 	};
@@ -55,7 +53,6 @@ export interface AddressesRepository {
 		cityId,
 		zipCode,
 		country,
-		branchId,
 		storeId,
 		isMain,
 	}: CreateAddressParams): Promise<Address>;

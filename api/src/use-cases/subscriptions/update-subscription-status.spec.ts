@@ -23,8 +23,7 @@ describe("UpdateSubscriptionStatusUseCase", () => {
 
 	it("should be able to update subscription status", async () => {
 		const cityId = crypto.randomUUID();
-		const ownerId = crypto.randomUUID();
-		const storeId = crypto.randomUUID();
+		const userId = crypto.randomUUID();
 
 		// Criar loja
 		await storesRepository.create({
@@ -33,12 +32,12 @@ describe("UpdateSubscriptionStatusUseCase", () => {
 			whatsapp: "31999999999",
 			slug: "test-store",
 			cityId,
-			ownerId,
+			ownerId: userId,
 		});
 
 		// Criar subscription
 		const subscription = await subscriptionsRepository.create({
-			storeId,
+			userId,
 			planName: "Basic Plan",
 			planId: "price_123",
 			provider: "stripe",
@@ -67,8 +66,7 @@ describe("UpdateSubscriptionStatusUseCase", () => {
 
 	it("should update store isPaid when subscription status changes to PAID", async () => {
 		const cityId = crypto.randomUUID();
-		const ownerId = crypto.randomUUID();
-		const storeId = crypto.randomUUID();
+		const userId = crypto.randomUUID();
 
 		// Criar loja
 		const store = await storesRepository.create({
@@ -77,12 +75,12 @@ describe("UpdateSubscriptionStatusUseCase", () => {
 			whatsapp: "31999999999",
 			slug: "test-store",
 			cityId,
-			ownerId,
+			ownerId: userId,
 		});
 
 		// Criar subscription com status PENDING
 		const subscription = await subscriptionsRepository.create({
-			storeId: store.id,
+			userId,
 			planName: "Basic Plan",
 			planId: "price_123",
 			provider: "stripe",

@@ -65,7 +65,7 @@ export function FAQ() {
           {faqs.map((faq, index) => (
             <Card key={index} className="border-2 border-purple-200/50 dark:border-purple-800/50 hover:border-purple-400 dark:hover:border-purple-600 transition-all bg-white/80 dark:bg-card/80 backdrop-blur-sm overflow-hidden">
               <button
-                className="w-full py-3 px-4 text-left flex items-start justify-between gap-4 hover:bg-purple-50/50 dark:hover:bg-purple-950/30 transition-colors rounded-lg group"
+                className="w-full py-3 px-4 text-left flex items-start justify-between gap-4 transition-colors rounded-lg group"
                 onClick={() => toggleFaq(index)}
                 aria-expanded={openFaq === index}
               >

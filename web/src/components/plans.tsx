@@ -23,7 +23,7 @@ export function Plans() {
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {/* Plano Básico */}
-          <Card className="p-8 border-2 border-blue-200/50 dark:border-blue-800/50 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-xl transition-all relative bg-white/80 dark:bg-card/80 backdrop-blur-sm">
+          <Card className="p-8 flex flex-col justify-between border-2 border-blue-200/50 dark:border-blue-800/50 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-xl transition-all relative bg-white/80 dark:bg-card/80 backdrop-blur-sm">
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold mb-2 text-foreground dark:text-foreground">Básico</h3>
               <div className="mb-4">
@@ -60,7 +60,7 @@ export function Plans() {
           </Card>
 
           {/* Plano Profissional */}
-          <Card className="p-8 border-2 border-purple-400 dark:border-purple-600 shadow-xl hover:shadow-2xl transition-all relative bg-white/90 dark:bg-card/90 backdrop-blur-sm">
+          <Card className="p-8 flex flex-col justify-between border-2 border-purple-400 dark:border-purple-600 shadow-xl hover:shadow-2xl transition-all relative bg-white/90 dark:bg-card/90 backdrop-blur-sm">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <div className="px-4 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium rounded-full shadow-lg">
                 Mais Popular
@@ -106,7 +106,7 @@ export function Plans() {
           </Card>
 
           {/* Plano Enterprise */}
-          <Card className="p-8 border-2 border-pink-200/50 dark:border-pink-800/50 hover:border-pink-400 dark:hover:border-pink-600 hover:shadow-xl transition-all relative bg-white/80 dark:bg-card/80 backdrop-blur-sm">
+          <Card className="p-8 flex flex-col justify-between border-2 border-pink-200/50 dark:border-pink-800/50 hover:border-pink-400 dark:hover:border-pink-600 hover:shadow-xl transition-all relative bg-white/80 dark:bg-card/80 backdrop-blur-sm">
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold mb-2 text-foreground dark:text-foreground">Enterprise</h3>
               <div className="mb-4">
@@ -141,7 +141,11 @@ export function Plans() {
                 <span className="text-sm text-foreground dark:text-foreground">Sem comissões</span>
               </li>
             </ul>
-            <Button className="w-full border-2 border-foreground/20 hover:bg-foreground/5 hover:border-foreground/40 bg-background/80 backdrop-blur-sm" variant="outline" asChild>
+            <Button
+              asChild
+              variant="outline"
+              className="w-full border-2 border-foreground/20 hover:bg-foreground/5 hover:border-foreground/40 bg-background/80 backdrop-blur-sm"
+              >
               <Link href="/register" className="text-foreground">Falar com vendas</Link>
             </Button>
           </Card>
@@ -152,7 +156,7 @@ export function Plans() {
             Todos os planos incluem: Sem comissões por venda • Setup rápido • Suporte técnico
           </p>
           <Button size="lg" variant="ghost" asChild className="text-foreground hover:bg-foreground/10">
-            <Link href="#faq" className="text-foreground">Veja perguntas frequentes</Link>
+            <Link href="#faq" className="flex-1 text-foreground">Veja perguntas frequentes</Link>
           </Button>
         </div>
       </div>

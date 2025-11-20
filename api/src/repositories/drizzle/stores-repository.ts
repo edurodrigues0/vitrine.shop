@@ -152,9 +152,7 @@ export class DrizzleStoresRepository implements StoresRepository {
 		}
 
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-		console.log("DrizzleStoresRepository.findAll - Condições aplicadas:", conditions.length);
 
-		// Buscar lojas
 		const storesResult = await this.drizzle
 			.select({
 				id: stores.id,

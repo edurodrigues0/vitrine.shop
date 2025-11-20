@@ -7,7 +7,6 @@ export * from "./orders";
 export * from "./products";
 export * from "./products-images";
 export * from "./products-variations";
-export * from "./store-branches";
 export * from "./store-visits";
 export * from "./stores";
 export * from "./subscriptions";

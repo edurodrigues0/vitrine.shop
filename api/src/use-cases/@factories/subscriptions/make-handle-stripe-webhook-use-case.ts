@@ -23,6 +23,7 @@ export function makeHandleStripeWebhookUseCase() {
 
 	return new HandleStripeWebhookUseCase(
 		subscriptionsRepository,
+		storesRepository,
 		createSubscriptionUseCase,
 		updateSubscriptionStatusUseCase,
 		stripeService,

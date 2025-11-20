@@ -12,7 +12,6 @@ const updateAddressBodySchema = z.object({
 	cityId: z.string().uuid("ID da cidade deve ser um UUID válido").optional(),
 	zipCode: z.string().length(8, "CEP deve ter 8 caracteres").optional(),
 	country: z.string().min(1, "País é obrigatório").max(50, "País deve ter no máximo 50 caracteres").optional(),
-	branchId: z.string().uuid("ID da filial deve ser um UUID válido").nullable().optional(),
 	storeId: z.string().uuid("ID da loja deve ser um UUID válido").nullable().optional(),
 	isMain: z.boolean().optional(),
 });
@@ -67,10 +66,6 @@ const updateAddressBodySchema = z.object({
  *                 type: string
  *                 minLength: 1
  *                 maxLength: 50
- *               branchId:
- *                 type: string
- *                 format: uuid
- *                 nullable: true
  *               storeId:
  *                 type: string
  *                 format: uuid
@@ -107,10 +102,6 @@ const updateAddressBodySchema = z.object({
  *                       type: string
  *                     country:
  *                       type: string
- *                     branchId:
- *                       type: string
- *                       format: uuid
- *                       nullable: true
  *                     storeId:
  *                       type: string
  *                       format: uuid
@@ -185,7 +176,6 @@ export async function updateAddressController(
 				cityId: address.cityId,
 				zipCode: address.zipCode,
 				country: address.country,
-				branchId: address.branchId,
 				storeId: address.storeId,
 				isMain: address.isMain,
 			},

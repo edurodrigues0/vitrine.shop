@@ -1,29 +1,29 @@
 import type { Response } from "express";
 import z, { ZodError } from "zod";
 import type { AuthenticatedRequest } from "~/http/middleware/authenticate";
-import { makeFindSubscriptionByStoreIdUseCase } from "~/use-cases/@factories/subscriptions/make-find-subscription-by-store-id-use-case";
+import { makeFindSubscriptionByUserIdUseCase } from "~/use-cases/@factories/subscriptions/make-find-subscription-by-user-id-use-case";
 
-const findSubscriptionByStoreParamsSchema = z.object({
-	storeId: z.string().uuid("Store ID must be a valid UUID"),
+const findSubscriptionByUserParamsSchema = z.object({
+	userId: z.string().uuid("User ID must be a valid UUID"),
 });
 
 /**
  * @swagger
- * /subscriptions/store/{storeId}:
+ * /subscriptions/user/{userId}:
  *   get:
- *     summary: Busca assinatura por ID da loja
+ *     summary: Busca assinatura por ID do usuário
  *     tags: [Subscriptions]
  *     security:
  *       - bearerAuth: []
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
- *         name: storeId
+ *         name: userId
  *         required: true
  *         schema:
  *           type: string
  *           format: uuid
- *         description: ID da loja
+ *         description: ID do usuário
  *     responses:
  *       200:
  *         description: Assinatura encontrada
@@ -39,7 +39,7 @@ const findSubscriptionByStoreParamsSchema = z.object({
  *                     id:
  *                       type: string
  *                       format: uuid
- *                     storeId:
+ *                     userId:
  *                       type: string
  *                       format: uuid
  *                     planName:
@@ -77,27 +77,27 @@ const findSubscriptionByStoreParamsSchema = z.object({
  *       500:
  *         description: Erro interno do servidor
  */
-export async function findSubscriptionByStoreController(
+export async function findSubscriptionByUserController(
 	request: AuthenticatedRequest,
 	response: Response,
 ) {
 	try {
-		const { storeId } = findSubscriptionByStoreParamsSchema.parse(
+		const { userId } = findSubscriptionByUserParamsSchema.parse(
 			request.params,
 		);
 
-		const findSubscriptionByStoreIdUseCase =
-			makeFindSubscriptionByStoreIdUseCase();
+		const findSubscriptionByUserIdUseCase =
+			makeFindSubscriptionByUserIdUseCase();
 
-		const { subscription } = await findSubscriptionByStoreIdUseCase.execute({
-			storeId,
+		const { subscription } = await findSubscriptionByUserIdUseCase.execute({
+			userId,
 		});
 
 		return response.status(200).json({
 			subscription,
 		});
 	} catch (error) {
-		console.error("Error finding subscription by store:", error);
+		console.error("Error finding subscription by user:", error);
 
 		if (error instanceof ZodError) {
 			return response.status(400).json({

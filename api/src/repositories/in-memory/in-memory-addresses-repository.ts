@@ -17,7 +17,6 @@ export class InMemoryAddressesRepository implements AddressesRepository {
 		street,
 		country,
 		zipCode,
-		branchId,
 		isMain,
 		storeId,
 		neighborhood,
@@ -36,7 +35,6 @@ export class InMemoryAddressesRepository implements AddressesRepository {
 			zipCode,
 			country,
 			cityId,
-			branchId: branchId ?? null,
 			storeId: storeId ?? null,
 			isMain: isMain ?? false,
 		};
@@ -158,9 +156,6 @@ export class InMemoryAddressesRepository implements AddressesRepository {
 			cityId: data.cityId ?? currentAddress.cityId,
 			zipCode: data.zipCode ?? currentAddress.zipCode,
 			country: data.country ?? currentAddress.country,
-			branchId: hasProperty("branchId")
-				? data.branchId ?? null
-				: currentAddress.branchId,
 			storeId: hasProperty("storeId")
 				? data.storeId ?? null
 				: currentAddress.storeId,

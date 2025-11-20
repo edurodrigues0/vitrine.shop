@@ -51,10 +51,6 @@ const findAddressByIdParamsSchema = z.object({
  *                       type: string
  *                     country:
  *                       type: string
- *                     branchId:
- *                       type: string
- *                       format: uuid
- *                       nullable: true
  *                     storeId:
  *                       type: string
  *                       format: uuid
@@ -101,7 +97,6 @@ export async function findAddressByIdController(
 				cityId: address.cityId,
 				zipCode: address.zipCode,
 				country: address.country,
-				branchId: address.branchId,
 				storeId: address.storeId,
 				isMain: address.isMain,
 			},

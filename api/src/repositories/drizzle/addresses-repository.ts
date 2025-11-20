@@ -19,7 +19,6 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 		cityId,
 		zipCode,
 		country,
-		branchId,
 		storeId,
 		isMain,
 	}: CreateAddressParams): Promise<Address> {
@@ -33,7 +32,6 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 				cityId,
 				zipCode,
 				country,
-				branchId: branchId || null,
 				storeId: storeId || null,
 				isMain: isMain ?? false,
 			})
@@ -188,7 +186,6 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 		if (data.cityId !== undefined) updateData.cityId = data.cityId;
 		if (data.zipCode !== undefined) updateData.zipCode = data.zipCode;
 		if (data.country !== undefined) updateData.country = data.country;
-		if (data.branchId !== undefined) updateData.branchId = data.branchId ?? null;
 		if (data.storeId !== undefined) updateData.storeId = data.storeId ?? null;
 		if (data.isMain !== undefined) updateData.isMain = data.isMain;
 

@@ -50,14 +50,27 @@ export class UpdateSubscriptionStatusUseCase {
 			throw new Error("Failed to update subscription");
 		}
 
-		// Sincronizar isPaid da loja conforme status
+		// Sincronizar isPaid de todas as lojas do usuário conforme status
 		const isPaid = status === "PAID";
-		await this.storesRepository.update({
-			id: subscription.storeId,
-			data: {
-				isPaid,
+		const { stores } = await this.storesRepository.findAll({
+			page: 1,
+			limit: 1000,
+			filters: {
+				ownerId: subscription.userId,
 			},
 		});
+
+		// Atualizar todas as lojas do usuário
+		await Promise.all(
+			stores.map((store) =>
+				this.storesRepository.update({
+					id: store.id,
+					data: {
+						isPaid,
+					},
+				}),
+			),
+		);
 
 		return { subscription: updatedSubscription };
 	}

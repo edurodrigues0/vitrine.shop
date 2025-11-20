@@ -18,6 +18,7 @@
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
 		"db:seed": "tsx --env-file=.env src/database/run-seed.ts",
+		"db:clear": "tsx --env-file=.env src/database/run-clear.ts",
 		"db:add-color": "tsx --env-file=.env src/database/add-color-column.ts",
 		"db:create-notifications": "tsx --env-file=.env src/database/create-notifications-table.ts"
 	},
