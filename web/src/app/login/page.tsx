@@ -1,10 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { LoginForm } from "@/components/login-form";
 import { Store, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { GuestLayout } from "@/components/guest-layout";
 import { useAuth } from "@/hooks/use-auth";
 import { redirect } from "next/navigation";
 

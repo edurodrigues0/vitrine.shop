@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePathname } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { OrderNotificationsList } from "@/components/order-notification";
 import { useState, useEffect } from "react";
 
 interface PublicLayoutProps {
@@ -72,6 +73,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
         {children}
       </main>
       <Footer />
+      <OrderNotificationsList />
     </>
   );
 }

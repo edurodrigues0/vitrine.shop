@@ -39,7 +39,7 @@ export default function ProductPage() {
   const router = useRouter();
   const citySlug = params.city as string;
   const productId = params.id as string;
-  const { addItem, canAddItem } = useCart();
+  const { addItem } = useCart();
 
   const [selectedVariation, setSelectedVariation] =
     useState<ProductVariation | null>(null);
@@ -177,13 +177,6 @@ export default function ProductPage() {
 
   const handleAddToCart = () => {
     if (!product) return;
-
-    if (!canAddItem(product.storeId)) {
-      showError(
-        "Não é possível adicionar produtos de lojas diferentes ao carrinho. Finalize o pedido atual ou limpe o carrinho.",
-      );
-      return;
-    }
 
     if (!isAvailable) {
       showError("Produto fora de estoque");
