@@ -51,8 +51,9 @@ export class R2StorageService {
 		path: string = "products",
 	): Promise<string> {
 		try {
-			// Padronizar path para products/ (plural)
-			const key = `products/${fileName}`;
+			// Usar o path fornecido, garantindo que não tenha barras extras
+			const normalizedPath = path.replace(/^\/+|\/+$/g, ''); // Remove barras no início e fim
+			const key = `${normalizedPath}/${fileName}`;
 			const contentType = this.getContentType(fileName);
 
 			const command = new PutObjectCommand({

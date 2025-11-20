@@ -129,6 +129,8 @@ export async function uploadStoreBannerController(
 			"stores",
 		);
 
+		console.log('Imagem do banner enviada com sucesso. URL:', imageUrl);
+
 		// Atualizar a loja com a nova URL
 		const updateStoreUseCase = makeUpdateStoreUseCase();
 		const { store } = await updateStoreUseCase.execute({
