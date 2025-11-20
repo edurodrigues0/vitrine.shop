@@ -6,7 +6,7 @@ import { useSelectedStore } from "@/hooks/use-selected-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Package, Phone, Mail, Calendar, CheckCircle2, Clock, Truck, XCircle, Search, MessageCircle } from "lucide-react";
+import { Loader2, Package, Phone, Mail, Calendar, CheckCircle2, Clock, Truck, XCircle, Search, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { OrderStatusTimeline } from "@/components/order-status-timeline";
 import { useState } from "react";
 import { showError, showSuccess } from "@/lib/toast";
@@ -16,6 +16,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+import { cn } from "@/lib/utils";
 
 const statusLabels: Record<string, string> = {
   PENDENTE: "Pendente",
@@ -41,6 +42,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [customerNameFilter, setCustomerNameFilter] = useState<string>("");
   const [customerPhoneFilter, setCustomerPhoneFilter] = useState<string>("");
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{
     orderId: string;
     status: string;
@@ -82,6 +84,18 @@ export default function OrdersPage() {
 
   const handleStatusChange = (orderId: string, newStatus: string) => {
     updateStatusMutation.mutate({ orderId, status: newStatus });
+  };
+
+  const toggleOrder = (orderId: string) => {
+    setExpandedOrders((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
   };
 
   const orders = ordersData?.orders || [];
@@ -209,7 +223,7 @@ export default function OrdersPage() {
           </p>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {orders.map((order) => {
             const StatusIcon = statusIcons[order.status] || Package;
             const statusColors: Record<string, string> = {
@@ -220,205 +234,249 @@ export default function OrdersPage() {
               ENTREGUE: "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
               CANCELADO: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
             };
+            const isExpanded = expandedOrders.has(order.id);
+            
             return (
-              <Card key={order.id} className="p-6 hover:shadow-lg transition-all duration-200 hover:border-border/60 dark:hover:border-border">
-                <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Main Content */}
-                  <div className="flex-1 space-y-4">
-                    {/* Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${statusColors[order.status] || statusColors.PENDENTE}`}>
-                          <StatusIcon className="h-5 w-5" />
+              <Card key={order.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 hover:border-border/60 dark:hover:border-border">
+                {/* Header - Sempre visível */}
+                <button
+                  onClick={() => toggleOrder(order.id)}
+                  className="w-full p-6 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                  aria-expanded={isExpanded}
+                  aria-controls={`order-${order.id}`}
+                >
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className={`p-2 rounded-lg ${statusColors[order.status] || statusColors.PENDENTE} flex-shrink-0`}>
+                      <StatusIcon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-lg font-semibold truncate">
+                          Pedido #{order.id.slice(0, 8).toUpperCase()}
+                        </h3>
+                        <Badge className={`${statusColors[order.status] || statusColors.PENDENTE} border flex-shrink-0`}>
+                          {statusLabels[order.status]}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-4 w-4" />
+                          <span>
+                            {new Date(order.createdAt).toLocaleDateString("pt-BR", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold">
-                            Pedido #{order.id.slice(0, 8).toUpperCase()}
-                          </h3>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
-                            <span>
-                              {new Date(order.createdAt).toLocaleDateString("pt-BR", {
-                                day: "2-digit",
-                                month: "2-digit",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-foreground">{order.customerName}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Phone className="h-4 w-4" />
+                          <span>{order.customerPhone}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-primary">
+                            R$ {(order.total / 100).toFixed(2).replace(".", ",")}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground mb-1">Total</p>
+                      <p className="text-lg font-bold text-primary">
+                        R$ {(order.total / 100).toFixed(2).replace(".", ",")}
+                      </p>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Conteúdo expandido */}
+                {isExpanded && (
+                  <div
+                    id={`order-${order.id}`}
+                    className="border-t border-border p-6"
+                  >
+                    <div className="flex flex-col lg:flex-row gap-6">
+                      {/* Main Content */}
+                      <div className="flex-1 space-y-4">
+                        {/* Customer Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Cliente</p>
+                            <p className="font-semibold">{order.customerName}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Contato</p>
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-muted-foreground" />
+                              <a
+                                href={`https://wa.me/${order.customerPhone.replace(/\D/g, "")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 transition-colors flex items-center gap-1"
+                                title="Abrir WhatsApp com o cliente"
+                              >
+                                {order.customerPhone}
+                                <MessageCircle className="h-3 w-3" />
+                              </a>
+                            </div>
+                            {order.customerEmail && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                <a
+                                  href={`mailto:${order.customerEmail}`}
+                                  className="link-text text-sm font-medium"
+                                  title="Enviar e-mail para o cliente"
+                                >
+                                  {order.customerEmail}
+                                </a>
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </div>
-                      <Badge className={`${statusColors[order.status] || statusColors.PENDENTE} border`}>
-                        {statusLabels[order.status]}
-                      </Badge>
-                    </div>
 
-                    {/* Customer Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Cliente</p>
-                        <p className="font-semibold">{order.customerName}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Contato</p>
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <a
-                            href={`https://wa.me/${order.customerPhone.replace(/\D/g, "")}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-semibold text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 transition-colors flex items-center gap-1"
-                            title="Abrir WhatsApp com o cliente"
-                          >
-                            {order.customerPhone}
-                            <MessageCircle className="h-3 w-3" />
-                          </a>
-                        </div>
-                        {order.customerEmail && (
-                          <div className="flex items-center gap-2 mt-1">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                            <a
-                              href={`mailto:${order.customerEmail}`}
-                              className="link-text text-sm font-medium"
-                              title="Enviar e-mail para o cliente"
-                            >
-                              {order.customerEmail}
-                            </a>
+                        {/* Order Items */}
+                        {orderItemsMap && orderItemsMap[order.id] && orderItemsMap[order.id].length > 0 && (
+                          <div>
+                            <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+                              <Package className="h-4 w-4" />
+                              Itens do Pedido ({orderItemsMap[order.id].length})
+                            </p>
+                            <div className="space-y-2">
+                              {orderItemsMap[order.id].map((item: any, index: number) => (
+                                <Card key={index} className="p-4 bg-muted/50">
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <p className="text-sm font-semibold mb-1">
+                                        {item.productName || "Produto"}
+                                      </p>
+                                      {item.productVariation && (
+                                        <p className="text-xs text-muted-foreground mb-2">
+                                          {item.productVariation.color && item.productVariation.size
+                                            ? `${item.productVariation.color} / ${item.productVariation.size}`
+                                            : item.productVariation.color || item.productVariation.size || ""}
+                                        </p>
+                                      )}
+                                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                        <span>Qtd: {item.quantity}</span>
+                                        <span>•</span>
+                                        <span>R$ {(item.price / 100).toFixed(2).replace(".", ",")} un.</span>
+                                        {item.productVariationId && (
+                                          <>
+                                            <span>•</span>
+                                            <span className="text-xs">ID: {item.productVariationId.slice(0, 8).toUpperCase()}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                                        R$ {((item.price * item.quantity) / 100).toFixed(2).replace(".", ",")}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </Card>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Notes */}
+                        {order.notes && (
+                          <div className="p-3 bg-muted rounded-lg">
+                            <p className="text-xs text-muted-foreground mb-1">Observações</p>
+                            <p className="text-sm">{order.notes}</p>
                           </div>
                         )}
                       </div>
+
+                      {/* Sidebar */}
+                      <div className="lg:w-80 space-y-4">
+                        {/* Total */}
+                        <Card className="p-4 bg-primary/5 border-primary/20">
+                          <p className="text-xs text-muted-foreground mb-1">Total do Pedido</p>
+                          <p className="text-2xl font-bold text-primary">
+                            R$ {(order.total / 100).toFixed(2).replace(".", ",")}
+                          </p>
+                        </Card>
+
+                        {/* Status Timeline */}
+                        <Card className="p-4">
+                          <OrderStatusTimeline
+                            currentStatus={order.status}
+                            createdAt={order.createdAt}
+                            updatedAt={order.updatedAt}
+                          />
+                        </Card>
+
+                        {/* Status Selector */}
+                        <Card className="p-4">
+                          <p className="text-xs text-muted-foreground mb-3 font-semibold">Alterar Status</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {Object.entries(statusLabels).map(([status, label]) => {
+                              const isSelected = order.status === status;
+                              const StatusIcon = statusIcons[status] || Package;
+                              const statusColor = statusColors[status] || statusColors.PENDENTE;
+                              
+                              const isLoadingButton =
+                                updateStatusMutation.isPending &&
+                                pendingStatusUpdate?.orderId === order.id &&
+                                pendingStatusUpdate?.status === status;
+
+                              const isDisabled =
+                                isSelected ||
+                                (updateStatusMutation.isPending && !isLoadingButton);
+
+                              return (
+                                <Button
+                                  key={status}
+                                  variant={isSelected ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => handleStatusChange(order.id, status)}
+                                  isLoading={isLoadingButton}
+                                  loadingText="Atualizando..."
+                                  disabled={isDisabled}
+                                  className={`${isSelected ? "" : "hover:bg-accent"} transition-all max-w-full`}
+                                  title={isSelected ? "Status atual" : `Alterar para ${label}`}
+                                >
+                                  <StatusIcon className="h-3 w-3 mr-1" />
+                                  <span className="text-xs">{label}</span>
+                                </Button>
+                              );
+                            })}
+                          </div>
+                          {updateStatusMutation.isPending && pendingStatusUpdate?.orderId === order.id && (
+                            <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              <span>Atualizando status...</span>
+                            </div>
+                          )}
+                          {updateStatusMutation.isError && pendingStatusUpdate?.orderId === order.id && (
+                            <p className="mt-2 text-xs text-destructive" aria-live="assertive">
+                              Não foi possível atualizar o status. Tente novamente.
+                            </p>
+                          )}
+                          {updateStatusMutation.isSuccess && !updateStatusMutation.isPending && lastUpdatedOrderId === order.id && (
+                            <p className="mt-2 text-xs text-success" aria-live="polite">
+                              Status atualizado com sucesso.
+                            </p>
+                          )}
+                        </Card>
+                      </div>
                     </div>
-
-                    {/* Order Items */}
-                    {orderItemsMap && orderItemsMap[order.id] && orderItemsMap[order.id].length > 0 && (
-                      <div>
-                        <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-                          <Package className="h-4 w-4" />
-                          Itens do Pedido ({orderItemsMap[order.id].length})
-                        </p>
-                        <div className="space-y-2">
-                          {orderItemsMap[order.id].map((item: any, index: number) => (
-                            <Card key={index} className="p-4 bg-muted/50">
-                              <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                  <p className="text-sm font-semibold mb-1">
-                                    {item.productName || "Produto"}
-                                  </p>
-                                  {item.productVariation && (
-                                    <p className="text-xs text-muted-foreground mb-2">
-                                      {item.productVariation.color && item.productVariation.size
-                                        ? `${item.productVariation.color} / ${item.productVariation.size}`
-                                        : item.productVariation.color || item.productVariation.size || ""}
-                                    </p>
-                                  )}
-                                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                    <span>Qtd: {item.quantity}</span>
-                                    <span>•</span>
-                                    <span>R$ {(item.price / 100).toFixed(2).replace(".", ",")} un.</span>
-                                    {item.productVariationId && (
-                                      <>
-                                        <span>•</span>
-                                        <span className="text-xs">ID: {item.productVariationId.slice(0, 8).toUpperCase()}</span>
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-sm font-semibold text-green-600 dark:text-green-400">
-                                    R$ {((item.price * item.quantity) / 100).toFixed(2).replace(".", ",")}
-                                  </p>
-                                </div>
-                              </div>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Notes */}
-                    {order.notes && (
-                      <div className="p-3 bg-muted rounded-lg">
-                        <p className="text-xs text-muted-foreground mb-1">Observações</p>
-                        <p className="text-sm">{order.notes}</p>
-                      </div>
-                    )}
                   </div>
-
-                  {/* Sidebar */}
-                  <div className="lg:w-80 space-y-4">
-                    {/* Total */}
-                    <Card className="p-4 bg-primary/5 border-primary/20">
-                      <p className="text-xs text-muted-foreground mb-1">Total do Pedido</p>
-                      <p className="text-2xl font-bold text-primary">
-                        R$ {(order.total / 100).toFixed(2).replace(".", ",")}
-                      </p>
-                    </Card>
-
-                    {/* Status Timeline */}
-                    <Card className="p-4">
-                      <OrderStatusTimeline
-                        currentStatus={order.status}
-                        createdAt={order.createdAt}
-                        updatedAt={order.updatedAt}
-                      />
-                    </Card>
-
-                    {/* Status Selector */}
-                    <Card className="p-4">
-                      <p className="text-xs text-muted-foreground mb-3 font-semibold">Alterar Status</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {Object.entries(statusLabels).map(([status, label]) => {
-                          const isSelected = order.status === status;
-                          const StatusIcon = statusIcons[status] || Package;
-                          const statusColor = statusColors[status] || statusColors.PENDENTE;
-                          
-                          const isLoadingButton =
-                            updateStatusMutation.isPending &&
-                            pendingStatusUpdate?.orderId === order.id &&
-                            pendingStatusUpdate?.status === status;
-
-                          const isDisabled =
-                            isSelected ||
-                            (updateStatusMutation.isPending && !isLoadingButton);
-
-                          return (
-                            <Button
-                              key={status}
-                              variant={isSelected ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => handleStatusChange(order.id, status)}
-                              isLoading={isLoadingButton}
-                              loadingText="Atualizando..."
-                              disabled={isDisabled}
-                              className={`${isSelected ? "" : "hover:bg-accent"} transition-all`}
-                              title={isSelected ? "Status atual" : `Alterar para ${label}`}
-                            >
-                              <StatusIcon className="h-3 w-3 mr-1" />
-                              <span className="text-xs">{label}</span>
-                            </Button>
-                          );
-                        })}
-                      </div>
-                      {updateStatusMutation.isPending && pendingStatusUpdate?.orderId === order.id && (
-                        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          <span>Atualizando status...</span>
-                        </div>
-                      )}
-                      {updateStatusMutation.isError && pendingStatusUpdate?.orderId === order.id && (
-                        <p className="mt-2 text-xs text-destructive" aria-live="assertive">
-                          Não foi possível atualizar o status. Tente novamente.
-                        </p>
-                      )}
-                      {updateStatusMutation.isSuccess && !updateStatusMutation.isPending && lastUpdatedOrderId === order.id && (
-                        <p className="mt-2 text-xs text-success" aria-live="polite">
-                          Status atualizado com sucesso.
-                        </p>
-                      )}
-                    </Card>
-                  </div>
-                </div>
+                )}
               </Card>
             );
           })}
@@ -427,4 +485,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-

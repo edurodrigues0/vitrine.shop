@@ -2,19 +2,13 @@
 
 import { useCart } from "@/contexts/cart-context";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   ShoppingCart,
   X,
-  Plus,
-  Minus,
-  Trash2,
 } from "lucide-react";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
-import Link from "next/link";
+import { useState, useMemo } from "react";
 import { CheckoutModal } from "@/components/checkout-modal";
+import { StoreCartSection } from "@/components/store-cart-section";
 
 interface CartProps {
   citySlug?: string;
@@ -22,21 +16,33 @@ interface CartProps {
 
 export function Cart({ citySlug }: CartProps) {
   const {
-    items,
-    storeId,
-    removeItem,
-    updateQuantity,
-    clearCart,
+    stores,
+    getStores,
     getTotal,
     getItemCount,
+    clearAll,
   } = useCart();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
 
-  const total = getTotal();
-  const itemCount = getItemCount();
+  const storeIds = useMemo(() => getStores(), [getStores]);
+  const total = useMemo(() => getTotal(), [getTotal]);
+  const itemCount = useMemo(() => getItemCount(), [getItemCount]);
 
-  if (items.length === 0) {
+  const handleCheckout = (storeId: string) => {
+    setSelectedStoreId(storeId);
+    setIsOpen(false);
+    setIsCheckoutOpen(true);
+  };
+
+  const handleCloseCheckout = () => {
+    setIsCheckoutOpen(false);
+    setSelectedStoreId(null);
+  };
+
+  if (storeIds.length === 0) {
     return (
       <div className="relative">
         <Button
@@ -97,120 +103,76 @@ export function Cart({ citySlug }: CartProps) {
             onClick={() => setIsOpen(false)}
           />
           <div 
-            className="absolute right-0 top-full mt-2 z-50 w-96 max-h-[600px] border border-border rounded-lg shadow-lg flex flex-col bg-background"
+            className="absolute right-0 top-full mt-2 z-50 w-96 max-h-[80vh] border border-border rounded-lg shadow-lg flex flex-col bg-background overflow-hidden"
             style={{ backgroundColor: 'hsl(var(--popover))' }}
           >
-            <div className="p-4 border-b border-border flex items-center justify-between">
-              <h3 className="font-semibold">Carrinho ({itemCount})</h3>
+            {/* Header */}
+            <div className="p-4 border-b border-border flex items-center justify-between flex-shrink-0">
+              <div>
+                <h3 className="font-semibold">Carrinho</h3>
+                <p className="text-xs text-muted-foreground">
+                  {itemCount} {itemCount === 1 ? "item" : "itens"} • {storeIds.length} {storeIds.length === 1 ? "loja" : "lojas"}
+                </p>
+              </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Fechar carrinho"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
+            {/* Conteúdo - Seções por Loja */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {items.map((item) => {
-                const price =
-                  item.variation.discountPrice || item.variation.price;
-                const itemTotal = price * item.quantity;
+              {storeIds.map((storeId) => {
+                const storeCart = stores[storeId];
+                if (!storeCart || storeCart.items.length === 0) return null;
 
                 return (
-                  <Card key={item.variation.id} className="p-4">
-                    <div className="flex gap-4">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-sm mb-1">
-                          {item.product.name}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {item.variation.color} - {item.variation.size}
-                        </p>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() =>
-                              updateQuantity(
-                                item.variation.id,
-                                item.quantity - 1,
-                              )
-                            }
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="text-sm font-medium w-8 text-center">
-                            {item.quantity}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() =>
-                              updateQuantity(
-                                item.variation.id,
-                                item.quantity + 1,
-                              )
-                            }
-                            disabled={item.quantity >= item.variation.stock}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <p className="text-sm font-semibold">
-                          R${" "}
-                          {(itemTotal / 100).toFixed(2).replace(".", ",")}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => removeItem(item.variation.id)}
-                        className="text-muted-foreground hover:text-destructive transition-colors"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </Card>
+                  <StoreCartSection
+                    key={storeId}
+                    storeCart={storeCart}
+                    citySlug={citySlug}
+                    onCheckout={handleCheckout}
+                  />
                 );
               })}
             </div>
 
-            <div className="p-4 border-t border-border space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Total:</span>
-                <span className="text-xl font-bold">
-                  R$ {(total / 100).toFixed(2).replace(".", ",")}
-                </span>
-              </div>
-              <div className="flex gap-2">
+            {/* Footer - Total Geral */}
+            {storeIds.length > 1 && (
+              <div className="p-4 border-t border-border space-y-3 flex-shrink-0 bg-muted/30">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Total Geral:</span>
+                  <span className="text-xl font-bold">
+                    R$ {(total / 100).toFixed(2).replace(".", ",")}
+                  </span>
+                </div>
                 <Button
                   variant="outline"
-                  className="flex-1"
-                  onClick={clearCart}
-                >
-                  Limpar
-                </Button>
-                <Button
-                  className="flex-1"
+                  className="w-full"
                   onClick={() => {
+                    clearAll();
                     setIsOpen(false);
-                    setIsCheckoutOpen(true);
                   }}
                 >
-                  Finalizar
+                  Limpar Tudo
                 </Button>
               </div>
-            </div>
+            )}
           </div>
         </>
       )}
       
-      <CheckoutModal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        citySlug={citySlug}
-      />
+      {selectedStoreId && (
+        <CheckoutModal
+          isOpen={isCheckoutOpen}
+          onClose={handleCloseCheckout}
+          storeId={selectedStoreId}
+          citySlug={citySlug}
+        />
+      )}
     </div>
   );
 }
-

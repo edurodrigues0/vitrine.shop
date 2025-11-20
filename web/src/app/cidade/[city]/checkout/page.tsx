@@ -1,10 +1,12 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCart } from "@/contexts/cart-context";
+import { useOrderNotifications } from "@/contexts/order-notifications-context";
 import { storesService } from "@/services/stores-service";
 import { ordersService } from "@/services/orders-service";
+import { productVariationsService } from "@/services/product-variations-service";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,11 +32,19 @@ type CustomerDataForm = z.infer<typeof customerDataSchema>;
 
 export default function CheckoutPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const citySlug = params.city as string;
-  const { items, storeId, getTotal, clearCart } = useCart();
+  const storeId = searchParams.get("storeId");
+  
+  const { stores, getTotal, markAsRequested } = useCart();
+  const { addNotification } = useOrderNotifications();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<"customer" | "confirm">("customer");
+
+  // Obter itens apenas da loja selecionada
+  const storeCart = storeId ? stores[storeId] : null;
+  const items = storeCart?.items || [];
 
   const { data: store, isLoading: isLoadingStore } = useQuery({
     queryKey: ["store", storeId],
@@ -43,7 +53,7 @@ export default function CheckoutPage() {
     retry: false, // Não tentar novamente se a loja não for encontrada (404)
   });
 
-  const total = getTotal();
+  const total = storeId ? getTotal(storeId) : 0;
 
   const {
     register,
@@ -60,24 +70,81 @@ export default function CheckoutPage() {
     mutationFn: async (data: CustomerDataForm) => {
       if (!storeId) throw new Error("Loja não encontrada");
 
+      // Verificar se há variações temporárias (IDs que começam com "default-")
+      const itemsWithRealVariations = await Promise.all(
+        items.map(async (item) => {
+          if (item.variation.id.startsWith("default-")) {
+            try {
+              const existingVariations = await productVariationsService.findByProductId(item.product.id);
+              
+              if (existingVariations.productVariations && existingVariations.productVariations.length > 0) {
+                const firstVariation = existingVariations.productVariations[0];
+                return {
+                  productVariationId: firstVariation.id,
+                  quantity: item.quantity,
+                };
+              }
+              
+              const defaultVariation = await productVariationsService.create({
+                productId: item.product.id,
+                color: item.variation.color || "Padrão",
+                size: item.variation.size || "Único",
+                price: item.variation.price,
+                stock: item.variation.stock,
+                discountPrice: item.variation.discountPrice || null,
+              });
+              
+              return {
+                productVariationId: defaultVariation.id,
+                quantity: item.quantity,
+              };
+            } catch (error) {
+              throw new Error(
+                "Não foi possível criar a variação do produto. Por favor, tente novamente ou entre em contato com o suporte."
+              );
+            }
+          }
+          
+          return {
+            productVariationId: item.variation.id,
+            quantity: item.quantity,
+          };
+        })
+      );
+
       return await ordersService.create({
         storeId,
         customerName: data.name,
         customerPhone: data.whatsapp,
-        items: items.map((item) => ({
-          productVariationId: item.variation.id,
-          quantity: item.quantity,
-        })),
+        items: itemsWithRealVariations,
       });
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["statistics"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      // Marcar loja como solicitada
+      if (storeId) {
+        markAsRequested(storeId, data.order.id);
+        // Adicionar notificação
+        if (store) {
+          addNotification(storeId, store.name, data.order.id);
+        }
+      }
       setStep("confirm");
       showSuccess("Pedido criado com sucesso!");
     },
-    onError: (error: Error) => {
-      showError(error.message || "Erro ao criar pedido");
+    onError: (error: any) => {
+      let errorMessage = "Erro ao criar pedido";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      showError(errorMessage);
     },
   });
 
@@ -243,7 +310,7 @@ export default function CheckoutPage() {
 
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full max-w-full"
                     size="lg"
                     disabled={createOrderMutation.isPending}
                   >
@@ -263,7 +330,7 @@ export default function CheckoutPage() {
               </p>
               <div className="space-y-2">
                 <Button
-                  className="w-full"
+                  className="w-full max-w-full"
                   size="lg"
                   asChild
                 >
@@ -271,12 +338,6 @@ export default function CheckoutPage() {
                     href={whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => {
-                      clearCart();
-                      setTimeout(() => {
-                        router.push(`/cidade/${citySlug}`);
-                      }, 1000);
-                    }}
                   >
                     <MessageCircle className="h-5 w-5 mr-2" />
                     Realizar pedido no WhatsApp
@@ -284,14 +345,12 @@ export default function CheckoutPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full max-w-full"
                   onClick={() => {
-                    clearCart();
                     router.push(`/cidade/${citySlug}`);
                   }}
                 >
-                  <Trash2 className="h-4 w-4 shrink-0" />
-                  <span>Limpar carrinho</span>
+                  Continuar Comprando
                 </Button>
               </div>
             </Card>

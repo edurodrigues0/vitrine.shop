@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { queryClient } from "@/lib/react-query";
 import { CityProvider } from "@/contexts/city-context";
 import { CartProvider } from "@/contexts/cart-context";
+import { OrderNotificationsProvider } from "@/contexts/order-notifications-context";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -15,8 +16,10 @@ export function Providers({ children }: ProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <CityProvider>
         <CartProvider>
-          {children}
-          <Toaster position="top-right" richColors />
+          <OrderNotificationsProvider>
+            {children}
+            <Toaster position="top-right" richColors />
+          </OrderNotificationsProvider>
         </CartProvider>
       </CityProvider>
     </QueryClientProvider>

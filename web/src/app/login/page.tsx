@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { LoginForm } from "@/components/login-form";
 import { Store, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -12,9 +11,9 @@ export default function LoginPage() {
       <div className="min-h-screen overflow-x-hidden">
       {/* Background with decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/25 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-pink-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }}></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/25 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/25 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-pink-400/20 rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative min-h-screen grid lg:grid-cols-2">
@@ -25,13 +24,13 @@ export default function LoginPage() {
             <div className="text-center space-y-3">
               <Link href="/" className="inline-flex items-center gap-2.5 font-bold text-2xl group">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-primary/30 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100 animate-pulse" />
-                  <div className="relative z-10 p-2 rounded-lg bg-gradient-to-br from-primary/10 to-purple-500/10 group-hover:from-primary/20 group-hover:to-purple-500/20 transition-all duration-300">
-                    <Store className="h-6 w-6 text-primary group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300 group-hover:scale-110 transform" />
+                  <div className="absolute inset-0 bg-primary/30 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
+                  <div className="relative z-10 p-2 rounded-lg bg-gradient-to-br from-primary/10 to-purple-500/10 group-hover:from-primary/20 group-hover:to-purple-500/20 transition-all duration-200">
+                    <Store className="h-6 w-6 text-primary group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200 group-hover:scale-110 transform" />
                   </div>
-                  <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse" />
+                  <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                 </div>
-                <span className="font-bold bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent bg-[length:200%_auto] group-hover:bg-[length:100%_auto] transition-all duration-500">
+                <span className="font-bold bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent bg-[length:200%_auto] group-hover:bg-[length:100%_auto] transition-all duration-300">
                   Vitrine.shop
                 </span>
               </Link>
@@ -69,8 +68,8 @@ export default function LoginPage() {
           
           {/* Decorative Elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-20 left-20 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }}></div>
+            <div className="absolute top-20 right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-20 left-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
           </div>
 
           {/* Content Overlay */}
@@ -87,15 +86,15 @@ export default function LoginPage() {
               </p>
               <div className="flex flex-wrap gap-4 justify-center">
                 <div className="flex items-center gap-2 text-white/90">
-                  <div className="w-2 h-2 rounded-full bg-white/60 animate-pulse"></div>
+                  <div className="w-2 h-2 rounded-full bg-white/60"></div>
                   <span className="text-sm">Sem comissões</span>
                 </div>
                 <div className="flex items-center gap-2 text-white/90">
-                  <div className="w-2 h-2 rounded-full bg-white/60 animate-pulse" style={{ animationDelay: "0.5s" }}></div>
+                  <div className="w-2 h-2 rounded-full bg-white/60"></div>
                   <span className="text-sm">Fácil de usar</span>
                 </div>
                 <div className="flex items-center gap-2 text-white/90">
-                  <div className="w-2 h-2 rounded-full bg-white/60 animate-pulse" style={{ animationDelay: "1s" }}></div>
+                  <div className="w-2 h-2 rounded-full bg-white/60"></div>
                   <span className="text-sm">100% online</span>
                 </div>
               </div>
