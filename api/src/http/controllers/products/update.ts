@@ -23,7 +23,11 @@ const updateProductBodySchema = z.object({
 		.min(0, "Quantidade não pode ser negativa")
 		.optional(),
 	categoryId: z.string().uuid("ID da categoria deve ser um UUID válido").optional(),
-	color: z.string().max(50, "Cor deve ter no máximo 50 caracteres").optional(),
+	color: z
+		.string()
+		.max(50, "Cor deve ter no máximo 50 caracteres")
+		.nullable()
+		.optional(),
 });
 
 /**
