@@ -1,7 +1,7 @@
-import { ArrowRight, MessageCircle, Package, ShoppingCart, Sparkles, Store } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import { Card } from "./ui/card";
+import { ProductSearch } from "./product-search";
 
 export function HeroSection() {
   return (
@@ -75,42 +75,9 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Right Content - Mockup */}
+          {/* Right Content - Product Search */}
           <div className="relative lg:block hidden">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-3xl blur-2xl transform rotate-6"></div>
-              <Card className="relative p-8 bg-white/90 dark:bg-card/90 backdrop-blur-sm border-2 border-border/50 shadow-2xl">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-                      <Store className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-foreground dark:text-foreground">Loja Exemplo</div>
-                      <div className="text-sm text-muted-foreground dark:text-muted-foreground">São Paulo, SP</div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                      <Package className="h-8 w-8 text-blue-600 dark:text-blue-400 mb-2" />
-                      <div className="text-sm font-medium text-foreground dark:text-foreground">Produtos</div>
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">150+</div>
-                    </div>
-                    <div className="p-4 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
-                      <ShoppingCart className="h-8 w-8 text-purple-600 dark:text-purple-400 mb-2" />
-                      <div className="text-sm font-medium text-foreground dark:text-foreground">Vendas</div>
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">324</div>
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t border-border">
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0" size="lg">
-                      <MessageCircle className="h-5 w-5 mr-2" />
-                      Comprar via WhatsApp
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </div>
+            <ProductSearch />
           </div>
         </div>
       </div>

@@ -163,7 +163,7 @@ export async function findAllStoresController(
 				description,
 				slug,
 				ownerId,
-				cityName,
+				cityId,
 				isPaid,
 			},
 		});
