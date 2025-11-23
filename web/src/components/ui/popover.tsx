@@ -62,10 +62,10 @@ function PopoverTrigger({
   };
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children, {
+    return React.cloneElement(children as React.ReactElement<any>, {
       ...props,
       onClick: handleClick,
-      className: cn(className, children.props.className),
+      className: cn(className, (children as React.ReactElement<any>).props.className),
     });
   }
 
@@ -148,7 +148,7 @@ function PopoverContent({
     <div
       ref={contentRef}
       className={cn(
-        "absolute z-50 min-w-[8rem] rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
+        "absolute z-50 min-w-[8rem] rounded-xl border bg-popover p-1 text-popover-foreground shadow-lg",
         className,
       )}
       style={{
@@ -178,7 +178,7 @@ const PopoverTriggerWithRef = React.forwardRef<
   };
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children, {
+    return React.cloneElement(children as React.ReactElement<any>, {
       ...props,
       ref: (node: HTMLElement) => {
         internalRef.current = node;
@@ -186,7 +186,7 @@ const PopoverTriggerWithRef = React.forwardRef<
         else if (ref) ref.current = node as HTMLButtonElement;
       },
       onClick: handleClick,
-      className: cn(className, children.props.className),
+      className: cn(className, (children as React.ReactElement<any>).props.className),
     });
   }
 
@@ -207,7 +207,7 @@ PopoverTriggerWithRef.displayName = "PopoverTrigger";
 
 export {
   Popover,
-  PopoverTrigger: PopoverTriggerWithRef,
+  PopoverTriggerWithRef as PopoverTrigger,
   PopoverContent,
 };
 

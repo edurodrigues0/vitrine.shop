@@ -9,7 +9,7 @@ import { categoriesService } from "@/services/categories-service";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search, Package, X, SlidersHorizontal } from "lucide-react";
+import { Loader2, Search, Package, X, SlidersHorizontal, MapPin } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -21,11 +21,37 @@ export default function ProdutosPage() {
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
     const [page, setPage] = useState(1);
-    const itemsPerPage = 12;
+    const itemsPerPage = 30;
+
+    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [isLocating, setIsLocating] = useState(false);
+
+    const requestLocation = () => {
+        setIsLocating(true);
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    });
+                    setIsLocating(false);
+                },
+                (error) => {
+                    console.error("Error getting location:", error);
+                    setIsLocating(false);
+                    // TODO: Show toast error
+                }
+            );
+        } else {
+            setIsLocating(false);
+            // TODO: Show toast error (geolocation not supported)
+        }
+    };
 
     // Buscar produtos
     const { data: productsData, isLoading: isLoadingProducts } = useQuery({
-        queryKey: ["products", "all", searchQuery, selectedStoreId, selectedCityId, selectedCategoryId, page],
+        queryKey: ["products", "all", searchQuery, selectedStoreId, selectedCityId, selectedCategoryId, page, userLocation],
         queryFn: () =>
             productsService.findAll({
                 page,
@@ -34,6 +60,8 @@ export default function ProdutosPage() {
                 storeId: selectedStoreId || undefined,
                 cityId: selectedCityId || undefined,
                 categoryId: selectedCategoryId || undefined,
+                latitude: userLocation?.lat,
+                longitude: userLocation?.lng,
             }),
     });
 
@@ -76,20 +104,32 @@ export default function ProdutosPage() {
         setSelectedCategoryId("");
         setMinPrice("");
         setMaxPrice("");
+        setUserLocation(null);
         setPage(1);
     };
 
-    const hasActiveFilters = searchQuery || selectedStoreId || selectedCityId || selectedCategoryId || minPrice || maxPrice;
+    const hasActiveFilters = searchQuery || selectedStoreId || selectedCityId || selectedCategoryId || minPrice || maxPrice || userLocation;
 
     return (
         <div className="min-h-screen py-8 px-4">
             <div className="container mx-auto max-w-7xl">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold mb-2">Todos os Produtos</h1>
-                    <p className="text-muted-foreground">
-                        Explore nossa seleção completa de produtos
-                    </p>
+                <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-4xl font-bold mb-2">Todos os Produtos</h1>
+                        <p className="text-muted-foreground">
+                            Explore nossa seleção completa de produtos
+                        </p>
+                    </div>
+                    <Button
+                        variant={userLocation ? "default" : "outline"}
+                        onClick={requestLocation}
+                        disabled={isLocating}
+                        className="flex items-center gap-2"
+                    >
+                        {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                        {userLocation ? "Localização Ativa" : "Usar minha localização"}
+                    </Button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -237,16 +277,28 @@ export default function ProdutosPage() {
                             </Card>
                         ) : (
                             <>
-                                <div className="mb-4">
+                                <div className="mb-4 flex items-center justify-between">
                                     <p className="text-sm text-muted-foreground">
                                         {products.length} {products.length === 1 ? "produto encontrado" : "produtos encontrados"}
                                     </p>
+                                    {userLocation && (
+                                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full flex items-center gap-1">
+                                            <MapPin className="h-3 w-3" />
+                                            Ordenado por proximidade
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                                     {products.map((product) => (
-                                        <Link key={product.id} href={`/produtos/${product.id}`}>
-                                            <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
+                                        <Link
+                                            key={product.id}
+                                            href={product.storeSlug && product.citySlug
+                                                ? `/cidade/${product.citySlug}/loja/${product.storeSlug}/produto/${product.id}`
+                                                : `/todos-produtos/${product.id}`
+                                            }
+                                        >
+                                            <Card className="h-full flex flex-col overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
                                                 <div className="aspect-square bg-muted relative">
                                                     {product.imageUrl ? (
                                                         <Image
@@ -261,24 +313,37 @@ export default function ProdutosPage() {
                                                         </div>
                                                     )}
                                                 </div>
-                                                <div className="p-4">
+                                                <div className="p-4 flex flex-col flex-1">
                                                     <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                                                         {product.name}
                                                     </h3>
+
+                                                    {product.color && (
+                                                        <p className="text-xs text-muted-foreground mb-2">
+                                                            Cor: {product.color}
+                                                        </p>
+                                                    )}
+
                                                     {product.description && (
-                                                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                                                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2 flex-1">
                                                             {product.description}
                                                         </p>
                                                     )}
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="text-xl font-bold text-primary">
-                                                            {formatPrice(product.price || 0)}
-                                                        </div>
-                                                        {product.quantity !== undefined && product.quantity > 0 && (
-                                                            <div className="text-xs text-muted-foreground">
-                                                                {product.quantity} em estoque
+
+                                                    <div className="mt-auto pt-2 space-y-3">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="text-xl font-bold text-primary">
+                                                                {formatPrice(product.price || 0)}
                                                             </div>
-                                                        )}
+                                                            {product.quantity !== undefined && product.quantity > 0 && (
+                                                                <div className="text-xs text-muted-foreground">
+                                                                    {product.quantity} em estoque
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <Button className="w-full" variant="secondary">
+                                                            Ver Detalhes
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             </Card>
@@ -287,7 +352,7 @@ export default function ProdutosPage() {
                                 </div>
 
                                 {/* Paginação */}
-                                {productsData?.pagination && productsData.pagination.totalPages > 1 && (
+                                {productsData?.meta && productsData.meta.totalPages > 1 && (
                                     <div className="flex items-center justify-center gap-2">
                                         <Button
                                             variant="outline"
@@ -298,17 +363,17 @@ export default function ProdutosPage() {
                                             Anterior
                                         </Button>
                                         <span className="text-sm text-muted-foreground">
-                                            Página {page} de {productsData.pagination.totalPages}
+                                            Página {page} de {productsData.meta.totalPages}
                                         </span>
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             onClick={() =>
                                                 setPage((p) =>
-                                                    Math.min(productsData.pagination.totalPages, p + 1),
+                                                    Math.min(productsData.meta.totalPages, p + 1),
                                                 )
                                             }
-                                            disabled={page === productsData.pagination.totalPages}
+                                            disabled={page === productsData.meta.totalPages}
                                         >
                                             Próxima
                                         </Button>

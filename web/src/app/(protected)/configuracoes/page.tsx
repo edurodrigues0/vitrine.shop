@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { usersService } from "@/services/users-service";
+import { storesService } from "@/services/stores-service";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -49,7 +50,7 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<"profile" | "password" | "notifications" | "subscription">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "password" | "notifications" | "subscription" | "theme">("profile");
 
   // Verificar se há uma aba específica na URL
   useEffect(() => {
@@ -158,11 +159,10 @@ export default function SettingsPage() {
             <nav className="space-y-2">
               <button
                 onClick={() => setActiveTab("profile")}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
-                  activeTab === "profile"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "hover:bg-accent"
-                }`}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-all ${activeTab === "profile"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "hover:bg-accent"
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <User className="h-5 w-5" />
@@ -171,11 +171,10 @@ export default function SettingsPage() {
               </button>
               <button
                 onClick={() => setActiveTab("password")}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
-                  activeTab === "password"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "hover:bg-accent"
-                }`}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-all ${activeTab === "password"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "hover:bg-accent"
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <Lock className="h-5 w-5" />
@@ -184,11 +183,10 @@ export default function SettingsPage() {
               </button>
               <button
                 onClick={() => setActiveTab("notifications")}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
-                  activeTab === "notifications"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "hover:bg-accent"
-                }`}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-all ${activeTab === "notifications"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "hover:bg-accent"
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <Bell className="h-5 w-5" />
@@ -197,15 +195,26 @@ export default function SettingsPage() {
               </button>
               <button
                 onClick={() => setActiveTab("subscription")}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
-                  activeTab === "subscription"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "hover:bg-accent"
-                }`}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-all ${activeTab === "subscription"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "hover:bg-accent"
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <CreditCard className="h-5 w-5" />
                   <span className="font-medium">Planos e Assinatura</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab("theme")}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-all ${activeTab === "theme"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "hover:bg-accent"
+                  }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Palette className="h-5 w-5" />
+                  <span className="font-medium">Aparência da Loja</span>
                 </div>
               </button>
             </nav>
@@ -357,6 +366,21 @@ export default function SettingsPage() {
             </Card>
           )}
 
+          {activeTab === "theme" && (
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+                  <Palette className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold">Aparência da Loja</h2>
+                  <p className="text-sm text-muted-foreground">Personalize as cores e o visual da sua loja</p>
+                </div>
+              </div>
+              <ThemeForm />
+            </Card>
+          )}
+
           {activeTab === "notifications" && (
             <NotificationPreferences />
           )}
@@ -367,6 +391,180 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function ThemeForm() {
+  const { selectedStore } = useSelectedStore();
+  const queryClient = useQueryClient();
+
+  const themeSchema = z.object({
+    primary: z.string().min(1, "Cor obrigatória"),
+    primaryGradient: z.string().optional(),
+    secondary: z.string().min(1, "Cor obrigatória"),
+    bg: z.string().min(1, "Cor obrigatória"),
+    surface: z.string().min(1, "Cor obrigatória"),
+    text: z.string().min(1, "Cor obrigatória"),
+    textSecondary: z.string().min(1, "Cor obrigatória"),
+    highlight: z.string().min(1, "Cor obrigatória"),
+    border: z.string().min(1, "Cor obrigatória"),
+    hover: z.string().min(1, "Cor obrigatória"),
+    overlay: z.string().optional(),
+  });
+
+  type ThemeFormData = z.infer<typeof themeSchema>;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<ThemeFormData>({
+    resolver: zodResolver(themeSchema),
+    defaultValues: selectedStore?.theme || {
+      primary: "#000000",
+      secondary: "#ffffff",
+      bg: "#ffffff",
+      surface: "#f3f4f6",
+      text: "#000000",
+      textSecondary: "#6b7280",
+      highlight: "#fbbf24",
+      border: "#e5e7eb",
+      hover: "#d1d5db",
+    },
+  });
+
+  useEffect(() => {
+    if (selectedStore?.theme) {
+      reset(selectedStore.theme);
+    }
+  }, [selectedStore, reset]);
+
+  const updateThemeMutation = useMutation({
+    mutationFn: async (data: ThemeFormData) => {
+      if (!selectedStore?.id) throw new Error("Loja não selecionada");
+      return storesService.update(selectedStore.id, {
+        theme: data,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
+      showSuccess("Tema atualizado com sucesso!");
+    },
+    onError: (error: Error) => {
+      showError(error.message || "Erro ao atualizar tema");
+    },
+  });
+
+  const onSubmit = (data: ThemeFormData) => {
+    updateThemeMutation.mutate(data);
+  };
+
+  if (!selectedStore) return null;
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Field>
+          <FieldLabel>Cor Primária</FieldLabel>
+          <div className="flex gap-2">
+            <Input type="color" className="w-12 h-10 p-1 cursor-pointer" {...register("primary")} />
+            <Input type="text" {...register("primary")} placeholder="#000000" />
+          </div>
+          {errors.primary && <p className="text-sm text-destructive">{errors.primary.message}</p>}
+        </Field>
+
+        <Field>
+          <FieldLabel>Gradiente Primário (Opcional)</FieldLabel>
+          <Input type="text" {...register("primaryGradient")} placeholder="linear-gradient(...)" />
+        </Field>
+
+        <Field>
+          <FieldLabel>Cor Secundária</FieldLabel>
+          <div className="flex gap-2">
+            <Input type="color" className="w-12 h-10 p-1 cursor-pointer" {...register("secondary")} />
+            <Input type="text" {...register("secondary")} placeholder="#ffffff" />
+          </div>
+          {errors.secondary && <p className="text-sm text-destructive">{errors.secondary.message}</p>}
+        </Field>
+
+        <Field>
+          <FieldLabel>Cor de Fundo</FieldLabel>
+          <div className="flex gap-2">
+            <Input type="color" className="w-12 h-10 p-1 cursor-pointer" {...register("bg")} />
+            <Input type="text" {...register("bg")} placeholder="#ffffff" />
+          </div>
+          {errors.bg && <p className="text-sm text-destructive">{errors.bg.message}</p>}
+        </Field>
+
+        <Field>
+          <FieldLabel>Cor de Superfície (Cards)</FieldLabel>
+          <div className="flex gap-2">
+            <Input type="color" className="w-12 h-10 p-1 cursor-pointer" {...register("surface")} />
+            <Input type="text" {...register("surface")} placeholder="#f3f4f6" />
+          </div>
+          {errors.surface && <p className="text-sm text-destructive">{errors.surface.message}</p>}
+        </Field>
+
+        <Field>
+          <FieldLabel>Cor do Texto Principal</FieldLabel>
+          <div className="flex gap-2">
+            <Input type="color" className="w-12 h-10 p-1 cursor-pointer" {...register("text")} />
+            <Input type="text" {...register("text")} placeholder="#000000" />
+          </div>
+          {errors.text && <p className="text-sm text-destructive">{errors.text.message}</p>}
+        </Field>
+
+        <Field>
+          <FieldLabel>Cor do Texto Secundário</FieldLabel>
+          <div className="flex gap-2">
+            <Input type="color" className="w-12 h-10 p-1 cursor-pointer" {...register("textSecondary")} />
+            <Input type="text" {...register("textSecondary")} placeholder="#6b7280" />
+          </div>
+          {errors.textSecondary && <p className="text-sm text-destructive">{errors.textSecondary.message}</p>}
+        </Field>
+
+        <Field>
+          <FieldLabel>Cor de Destaque</FieldLabel>
+          <div className="flex gap-2">
+            <Input type="color" className="w-12 h-10 p-1 cursor-pointer" {...register("highlight")} />
+            <Input type="text" {...register("highlight")} placeholder="#fbbf24" />
+          </div>
+          {errors.highlight && <p className="text-sm text-destructive">{errors.highlight.message}</p>}
+        </Field>
+
+        <Field>
+          <FieldLabel>Cor da Borda</FieldLabel>
+          <div className="flex gap-2">
+            <Input type="color" className="w-12 h-10 p-1 cursor-pointer" {...register("border")} />
+            <Input type="text" {...register("border")} placeholder="#e5e7eb" />
+          </div>
+          {errors.border && <p className="text-sm text-destructive">{errors.border.message}</p>}
+        </Field>
+
+        <Field>
+          <FieldLabel>Cor de Hover</FieldLabel>
+          <div className="flex gap-2">
+            <Input type="color" className="w-12 h-10 p-1 cursor-pointer" {...register("hover")} />
+            <Input type="text" {...register("hover")} placeholder="#d1d5db" />
+          </div>
+          {errors.hover && <p className="text-sm text-destructive">{errors.hover.message}</p>}
+        </Field>
+      </div>
+
+      <div className="flex gap-4 pt-4">
+        <Button type="submit" disabled={updateThemeMutation.isPending}>
+          {updateThemeMutation.isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Salvando...
+            </>
+          ) : (
+            "Salvar Aparência"
+          )}
+        </Button>
+      </div>
+    </form>
   );
 }
 
@@ -500,19 +698,17 @@ function NotificationPreferences() {
               </div>
               <button
                 onClick={() => handleToggle("browserNotifications")}
-                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${
-                  preferences.browserNotifications 
-                    ? "bg-primary dark:bg-primary shadow-xl shadow-primary/60 dark:shadow-primary/70 border-2 border-primary dark:border-primary ring-2 ring-primary/50 dark:ring-primary/60" 
-                    : "bg-slate-400 dark:bg-slate-700 border-2 border-slate-500 dark:border-slate-400 shadow-md"
-                }`}
+                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${preferences.browserNotifications
+                  ? "bg-primary dark:bg-primary shadow-xl shadow-primary/60 dark:shadow-primary/70 border-2 border-primary dark:border-primary ring-2 ring-primary/50 dark:ring-primary/60"
+                  : "bg-slate-400 dark:bg-slate-700 border-2 border-slate-500 dark:border-slate-400 shadow-md"
+                  }`}
                 aria-label={preferences.browserNotifications ? "Desativar notificações no navegador" : "Ativar notificações no navegador"}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full transition-all duration-300 ${
-                    preferences.browserNotifications 
-                      ? "translate-x-6 bg-white dark:bg-white shadow-lg border border-primary/30 dark:border-primary/40" 
-                      : "translate-x-1 bg-white dark:bg-slate-100 shadow-md border border-slate-400 dark:border-slate-500"
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full transition-all duration-300 ${preferences.browserNotifications
+                    ? "translate-x-6 bg-white dark:bg-white shadow-lg border border-primary/30 dark:border-primary/40"
+                    : "translate-x-1 bg-white dark:bg-slate-100 shadow-md border border-slate-400 dark:border-slate-500"
+                    }`}
                 />
               </button>
             </div>
@@ -528,19 +724,17 @@ function NotificationPreferences() {
               </div>
               <button
                 onClick={() => handleToggle("emailNotifications")}
-                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${
-                  preferences.emailNotifications 
-                    ? "bg-primary dark:bg-primary shadow-xl shadow-primary/60 dark:shadow-primary/70 border-2 border-primary dark:border-primary ring-2 ring-primary/50 dark:ring-primary/60" 
-                    : "bg-slate-400 dark:bg-slate-700 border-2 border-slate-500 dark:border-slate-400 shadow-md"
-                }`}
+                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${preferences.emailNotifications
+                  ? "bg-primary dark:bg-primary shadow-xl shadow-primary/60 dark:shadow-primary/70 border-2 border-primary dark:border-primary ring-2 ring-primary/50 dark:ring-primary/60"
+                  : "bg-slate-400 dark:bg-slate-700 border-2 border-slate-500 dark:border-slate-400 shadow-md"
+                  }`}
                 aria-label={preferences.emailNotifications ? "Desativar notificações por e-mail" : "Ativar notificações por e-mail"}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full transition-all duration-300 ${
-                    preferences.emailNotifications 
-                      ? "translate-x-6 bg-white dark:bg-white shadow-lg border border-primary/30 dark:border-primary/40" 
-                      : "translate-x-1 bg-white dark:bg-slate-100 shadow-md border border-slate-400 dark:border-slate-500"
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full transition-all duration-300 ${preferences.emailNotifications
+                    ? "translate-x-6 bg-white dark:bg-white shadow-lg border border-primary/30 dark:border-primary/40"
+                    : "translate-x-1 bg-white dark:bg-slate-100 shadow-md border border-slate-400 dark:border-slate-500"
+                    }`}
                 />
               </button>
             </div>
@@ -570,19 +764,17 @@ function NotificationPreferences() {
                   </div>
                   <button
                     onClick={() => handleToggle(type.key)}
-                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${
-                      isEnabled 
-                        ? "bg-primary dark:bg-primary shadow-xl shadow-primary/60 dark:shadow-primary/70 border-2 border-primary dark:border-primary ring-2 ring-primary/50 dark:ring-primary/60" 
-                        : "bg-slate-400 dark:bg-slate-700 border-2 border-slate-500 dark:border-slate-400 shadow-md"
-                    }`}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${isEnabled
+                      ? "bg-primary dark:bg-primary shadow-xl shadow-primary/60 dark:shadow-primary/70 border-2 border-primary dark:border-primary ring-2 ring-primary/50 dark:ring-primary/60"
+                      : "bg-slate-400 dark:bg-slate-700 border-2 border-slate-500 dark:border-slate-400 shadow-md"
+                      }`}
                     aria-label={isEnabled ? `Desativar ${type.label.toLowerCase()}` : `Ativar ${type.label.toLowerCase()}`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full transition-all duration-300 ${
-                        isEnabled 
-                          ? "translate-x-6 bg-white dark:bg-white shadow-lg border border-primary/30 dark:border-primary/40" 
-                          : "translate-x-1 bg-white dark:bg-slate-100 shadow-md border border-slate-400 dark:border-slate-500"
-                      }`}
+                      className={`inline-block h-4 w-4 transform rounded-full transition-all duration-300 ${isEnabled
+                        ? "translate-x-6 bg-white dark:bg-white shadow-lg border border-primary/30 dark:border-primary/40"
+                        : "translate-x-1 bg-white dark:bg-slate-100 shadow-md border border-slate-400 dark:border-slate-500"
+                        }`}
                     />
                   </button>
                 </div>
@@ -686,7 +878,7 @@ function SubscriptionPlans() {
 
   const subscription = subscriptionData?.subscription;
   const currentPlanId = subscription?.planId?.split("-")[0] as "basic" | "professional" | "enterprise" | undefined;
-  
+
   // Ordem dos planos para comparação
   const planOrder: Record<"basic" | "professional" | "enterprise", number> = {
     basic: 1,
@@ -699,14 +891,14 @@ function SubscriptionPlans() {
     if (!currentPlanId || subscription?.status !== "PAID") {
       return "assinar";
     }
-    
+
     if (currentPlanId === planId) {
       return "atual";
     }
-    
+
     const currentOrder = planOrder[currentPlanId];
     const planOrderValue = planOrder[planId];
-    
+
     if (planOrderValue > currentOrder) {
       return "upgrade";
     } else {
@@ -727,7 +919,7 @@ function SubscriptionPlans() {
         enterprise: "price_enterprise_monthly",
       };
 
-      const priceId = plan.priceId || priceIdMap[plan.id];
+      const priceId = priceIdMap[plan.id];
 
       if (!priceId) {
         throw new Error(`Price ID não configurado para o plano ${plan.name}`);
@@ -773,12 +965,12 @@ function SubscriptionPlans() {
 
   const handleSelectPlan = (plan: typeof plans[0]) => {
     const action = getPlanAction(plan.id);
-    
+
     if (action === "atual") {
       showError("Você já está neste plano");
       return;
     }
-    
+
     setSelectedPlan(plan.id);
     checkoutMutation.mutate(plan);
   };
@@ -889,11 +1081,10 @@ function SubscriptionPlans() {
             return (
               <Card
                 key={plan.id}
-                className={`relative p-6 transition-all duration-300 ${
-                  plan.popular
-                    ? "border-primary border-2 shadow-lg scale-105"
-                    : "hover:shadow-lg hover:scale-105"
-                } ${isCurrentPlan ? "ring-2 ring-green-500" : ""}`}
+                className={`relative p-6 transition-all duration-300 ${plan.popular
+                  ? "border-primary border-2 shadow-lg scale-105"
+                  : "hover:shadow-lg hover:scale-105"
+                  } ${isCurrentPlan ? "ring-2 ring-green-500" : ""}`}
               >
                 {plan.popular && (
                   <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">

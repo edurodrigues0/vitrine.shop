@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Package, MapPin, Loader2, ShoppingBag, Filter, X } from "lucide-react";
 import { Input } from "./ui/input";
+import { LazyImage } from "./lazy-image";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { productsService } from "@/services/products-service";
@@ -127,8 +128,13 @@ export function ProductSearch() {
         return details;
     };
 
-    const handleProductClick = (productId: string) => {
-        router.push(`/todos-produtos/${productId}`);
+    const handleProductClick = (product: ProductWithVariations) => {
+        if (product.storeSlug && product.citySlug) {
+            router.push(`/cidade/${product.citySlug}/loja/${product.storeSlug}/produto/${product.id}`);
+        } else {
+            // Fallback caso não tenha os slugs (compatibilidade)
+            router.push(`/todos-produtos/${product.id}`);
+        }
     };
 
     return (
@@ -243,45 +249,49 @@ export function ProductSearch() {
                             return (
                                 <div
                                     key={product.id}
-                                    onClick={() => handleProductClick(product.id)}
-                                    className="p-4 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border border-border hover:border-primary hover:shadow-lg transition-all cursor-pointer group"
+                                    onClick={() => handleProductClick(product)}
+                                    className="p-3 rounded-lg bg-card border border-border hover:border-primary hover:shadow-md transition-all cursor-pointer group flex items-center gap-4"
                                 >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                                                {product.name}
-                                            </h3>
+                                    {/* Thumbnail */}
+                                    <div className="h-16 w-16 flex-shrink-0 rounded-md overflow-hidden bg-muted border border-border">
+                                        <LazyImage
+                                            src={product.imageUrl || "/placeholder-product.png"}
+                                            alt={product.name}
+                                            width={64}
+                                            height={64}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    </div>
 
-                                            {details.length > 0 && (
-                                                <div className="mt-1 space-y-0.5">
-                                                    {details.map((detail, index) => (
-                                                        <p
-                                                            key={index}
-                                                            className="text-xs text-muted-foreground"
-                                                        >
-                                                            {detail}
-                                                        </p>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            {product.description && (
-                                                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                                                    {product.description}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                                            <div className="text-lg font-bold text-primary">
-                                                {formatPrice(price)}
+                                    {/* Title & Variations */}
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
+                                            {product.name}
+                                        </h3>
+                                        {details.length > 0 && (
+                                            <div className="mt-1 flex flex-wrap gap-2">
+                                                {details.map((detail, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded"
+                                                    >
+                                                        {detail}
+                                                    </span>
+                                                ))}
                                             </div>
-                                            {product.variations && product.variations.length > 1 && (
-                                                <div className="text-xs text-muted-foreground">
-                                                    {product.variations.length} variações
-                                                </div>
-                                            )}
+                                        )}
+                                    </div>
+
+                                    {/* Price */}
+                                    <div className="flex-shrink-0 text-right">
+                                        <div className="font-bold text-primary">
+                                            {formatPrice(price)}
                                         </div>
+                                        {product.variations && product.variations.length > 1 && (
+                                            <div className="text-xs text-muted-foreground">
+                                                {product.variations.length} opções
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             );

@@ -56,9 +56,17 @@ const updateStoreBodySchema = z.object({
 		.transform((val) => (val === "" ? undefined : val)),
 	theme: z
 		.object({
-			primaryColor: z.string().min(1, "Cor primária é obrigatória"),
-			secondaryColor: z.string().min(1, "Cor secundária é obrigatória"),
-			tertiaryColor: z.string().min(1, "Cor terciária é obrigatória"),
+			primary: z.string().min(1, "Cor primária é obrigatória"),
+			primaryGradient: z.string().optional(),
+			secondary: z.string().min(1, "Cor secundária é obrigatória"),
+			bg: z.string().min(1, "Cor de fundo é obrigatória"),
+			surface: z.string().min(1, "Cor de superfície é obrigatória"),
+			text: z.string().min(1, "Cor de texto é obrigatória"),
+			textSecondary: z.string().min(1, "Cor de texto secundário é obrigatória"),
+			highlight: z.string().min(1, "Cor de destaque é obrigatória"),
+			border: z.string().min(1, "Cor de borda é obrigatória"),
+			hover: z.string().min(1, "Cor de hover é obrigatória"),
+			overlay: z.string().optional(),
 		})
 		.optional(),
 	cityId: z.uuid("ID da cidade deve ser um UUID válido").optional(),
@@ -115,24 +123,6 @@ const updateStoreBodySchema = z.object({
  *               facebookUrl:
  *                 type: string
  *                 format: uri
- *               bannerUrl:
- *                 type: string
- *                 format: uri
- *               theme:
- *                 type: object
- *                 properties:
- *                   primaryColor:
- *                     type: string
- *                   secondaryColor:
- *                     type: string
- *                   tertiaryColor:
- *                     type: string
- *               cityId:
- *                 type: string
- *                 format: uuid
- *     responses:
- *       200:
- *         description: Loja atualizada com sucesso
  *         content:
  *           application/json:
  *             schema:

@@ -9,16 +9,18 @@ interface FindAllProductsUseCaseRequest {
 		name?: string;
 		description?: string;
 		categorySlug?: string;
+		latitude?: number;
+		longitude?: number;
 	};
 }
 
 interface FindAllProductsUseCaseResponse {
-	products: Product[];
+	products: (Product & { storeSlug: string; citySlug: string; imageUrl?: string | null })[];
 	pagination: Pagination;
 }
 
 export class FindAllProductsUseCase {
-	constructor(private readonly productsRepository: ProductsRespository) {}
+	constructor(private readonly productsRepository: ProductsRespository) { }
 
 	async execute({
 		page,

@@ -99,7 +99,7 @@ export default function ProductPage() {
   // Usar valores estáveis para garantir que o array de dependências tenha tamanho constante
   const variationId = selectedVariation?.id ?? null;
   const currentProductId = product?.id ?? null;
-  
+
   useEffect(() => {
     if (currentProductId) {
       setQuantity(1);
@@ -156,13 +156,13 @@ export default function ProductPage() {
     : product.price
       ? product.price
       : null;
-  
+
   const originalPrice = selectedVariation
     ? selectedVariation.discountPrice
       ? selectedVariation.price
       : null
     : null;
-  
+
   const discountPercentage = originalPrice && price
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
@@ -171,7 +171,7 @@ export default function ProductPage() {
   const availableStock = selectedVariation
     ? selectedVariation.stock
     : product.quantity ?? 0;
-  
+
   const maxQuantity = Math.min(availableStock, 10);
   const isAvailable = availableStock > 0;
 
@@ -200,7 +200,7 @@ export default function ProductPage() {
         size: "Único",
         discountPrice: null,
       };
-      
+
       try {
         addItem(product, defaultVariation, quantity);
         showSuccess(
@@ -238,7 +238,7 @@ export default function ProductPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div>
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
@@ -381,11 +381,10 @@ export default function ProductPage() {
                       return (
                         <Card
                           key={variation.id}
-                          className={`p-4 cursor-pointer transition-all duration-200 border-2 relative ${
-                            isSelected
+                          className={`p-4 cursor-pointer transition-all duration-200 border-2 relative ${isSelected
                               ? "border-primary bg-primary/10 dark:bg-primary/20 ring-2 ring-primary/30 shadow-md shadow-primary/10"
                               : "border-border hover:border-primary/50 hover:bg-accent/50 dark:hover:bg-accent/30"
-                          }`}
+                            }`}
                           onClick={() => {
                             setSelectedVariation(variation);
                           }}
@@ -398,13 +397,12 @@ export default function ProductPage() {
                               </div>
                             </div>
                           )}
-                          
+
                           <div className="flex justify-between items-center pr-8">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <p className={`font-semibold text-lg transition-colors ${
-                                  isSelected ? "text-primary" : "text-foreground"
-                                }`}>
+                                <p className={`font-semibold text-lg transition-colors ${isSelected ? "text-primary" : "text-foreground"
+                                  }`}>
                                   {variation.color} - {variation.size}
                                 </p>
                                 {hasDiscount && (
@@ -422,11 +420,10 @@ export default function ProductPage() {
                                 <p className="text-sm text-muted-foreground">
                                   Estoque:{" "}
                                   <span
-                                    className={`font-medium ${
-                                      variation.stock > 0
+                                    className={`font-medium ${variation.stock > 0
                                         ? "text-green-600 dark:text-green-400"
                                         : "text-destructive"
-                                    }`}
+                                      }`}
                                   >
                                     {variation.stock > 0
                                       ? `${variation.stock} unidades`
@@ -437,9 +434,8 @@ export default function ProductPage() {
                             </div>
                             <div className="text-right ml-4">
                               <div className="flex items-baseline gap-2">
-                                <span className={`text-xl font-bold transition-colors ${
-                                  isSelected ? "text-primary" : "text-foreground"
-                                }`}>
+                                <span className={`text-xl font-bold transition-colors ${isSelected ? "text-primary" : "text-foreground"
+                                  }`}>
                                   R${" "}
                                   {(variationPrice / 100)
                                     .toFixed(2)
@@ -508,11 +504,10 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              <div className={`flex items-center gap-2 p-3 rounded-lg ${
-                isAvailable 
-                  ? "bg-green-500/10 border border-green-500/20" 
+              <div className={`flex items-center gap-2 p-3 rounded-lg ${isAvailable
+                  ? "bg-green-500/10 border border-green-500/20"
                   : "bg-red-500/10 border border-red-500/20"
-              }`}>
+                }`}>
                 {isAvailable ? (
                   <>
                     <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -547,7 +542,7 @@ export default function ProductPage() {
                 onClick={handleAddToCart}
               >
                 <ShoppingCart className="h-5 w-5 mr-2" />
-                {isAvailable 
+                {isAvailable
                   ? variations.length > 0 && !selectedVariation
                     ? "Selecione uma variação"
                     : `Adicionar ${quantity} ${quantity === 1 ? "produto" : "produtos"} ao carrinho`
@@ -569,7 +564,7 @@ export default function ProductPage() {
         </div>
 
         {/* Related Products */}
-        <RelatedProducts 
+        <RelatedProducts
           currentProductId={product.id}
           categoryId={product.categoryId}
           storeId={product.storeId}
