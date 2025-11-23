@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,9 +19,10 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { createSlug } from "@/lib/slug";
 import { showSuccess, showError } from "@/lib/toast";
-import { Loader2, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, HelpCircle, Eye, Save, ArrowLeft, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 
 const storeSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(120, "Nome muito longo"),
@@ -34,9 +35,19 @@ const storeSchema = z.object({
   logoUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   bannerUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   cityId: z.string().uuid("Cidade é obrigatória"),
-  primaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Cor deve estar no formato hexadecimal (#RRGGBB)"),
-  secondaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Cor deve estar no formato hexadecimal (#RRGGBB)"),
-  tertiaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Cor deve estar no formato hexadecimal (#RRGGBB)"),
+
+  // Theme Colors - Complete palette
+  primaryColor: z.string().min(1, "Obrigatório"),
+  primaryGradient: z.string().optional(),
+  secondaryColor: z.string().min(1, "Obrigatório"),
+  bgColor: z.string().min(1, "Obrigatório"),
+  surfaceColor: z.string().min(1, "Obrigatório"),
+  textColor: z.string().min(1, "Obrigatório"),
+  textSecondaryColor: z.string().min(1, "Obrigatório"),
+  highlightColor: z.string().min(1, "Obrigatório"),
+  borderColor: z.string().min(1, "Obrigatório"),
+  hoverColor: z.string().min(1, "Obrigatório"),
+  overlayColor: z.string().optional(),
 });
 
 type StoreFormData = z.infer<typeof storeSchema>;
@@ -56,6 +67,20 @@ export default function StoreFormPage() {
   });
 
   const cities = citiesData?.cities || [];
+  const [selectedState, setSelectedState] = useState("");
+
+  const uniqueStates = useMemo(() => {
+    return cities.reduce((acc: string[], city) => {
+      if (!acc.includes(city.state)) {
+        acc.push(city.state);
+      }
+      return acc;
+    }, []).sort();
+  }, [cities]);
+
+  const filteredCities = useMemo(() => {
+    return cities.filter(city => city.state === selectedState).sort((a, b) => a.name.localeCompare(b.name));
+  }, [cities, selectedState]);
 
   // Get store if editing
   const { data: storeData, isLoading: isLoadingStore } = useQuery({
@@ -72,6 +97,7 @@ export default function StoreFormPage() {
     handleSubmit,
     watch,
     setValue,
+    getValues,
     reset,
     formState: { errors },
   } = useForm<StoreFormData>({
@@ -87,9 +113,17 @@ export default function StoreFormPage() {
       logoUrl: "",
       bannerUrl: "",
       cityId: "",
-      primaryColor: "#000000",
-      secondaryColor: "#FFFFFF",
-      tertiaryColor: "#808080",
+      primaryColor: "#2563eb",
+      primaryGradient: "",
+      secondaryColor: "#7c3aed",
+      bgColor: "#ffffff",
+      surfaceColor: "#f3f4f6",
+      textColor: "#1f2937",
+      textSecondaryColor: "#64748b",
+      highlightColor: "#f59e0b",
+      borderColor: "#e2e8f0",
+      hoverColor: "#dbeafe",
+      overlayColor: "rgba(0,0,0,0.5)",
     },
   });
 
@@ -107,12 +141,25 @@ export default function StoreFormPage() {
         logoUrl: storeData.logoUrl || "",
         bannerUrl: storeData.bannerUrl || "",
         cityId: storeData.cityId,
-        primaryColor: storeData.theme?.primaryColor || "#000000",
-        secondaryColor: storeData.theme?.secondaryColor || "#FFFFFF",
-        tertiaryColor: storeData.theme?.tertiaryColor || "#808080",
+        primaryColor: storeData.theme?.primary || "#2563eb",
+        primaryGradient: storeData.theme?.primaryGradient || "",
+        secondaryColor: storeData.theme?.secondary || "#7c3aed",
+        bgColor: storeData.theme?.bg || "#ffffff",
+        surfaceColor: storeData.theme?.surface || "#f3f4f6",
+        textColor: storeData.theme?.text || "#1f2937",
+        textSecondaryColor: storeData.theme?.textSecondary || "#64748b",
+        highlightColor: storeData.theme?.highlight || "#f59e0b",
+        borderColor: storeData.theme?.border || "#e2e8f0",
+        hoverColor: storeData.theme?.hover || "#dbeafe",
+        overlayColor: storeData.theme?.overlay || "rgba(0,0,0,0.5)",
       });
+
+      const city = cities.find(c => c.id === storeData.cityId);
+      if (city) {
+        setSelectedState(city.state);
+      }
     }
-  }, [storeData, isEditing, reset]);
+  }, [storeData, isEditing, reset, cities]);
 
   const watchedName = watch("name");
 
@@ -127,13 +174,26 @@ export default function StoreFormPage() {
 
   const createMutation = useMutation({
     mutationFn: (data: StoreFormData) => {
-      const { primaryColor, secondaryColor, tertiaryColor, ...storeData } = data;
+      const {
+        primaryColor, primaryGradient, secondaryColor, bgColor, surfaceColor,
+        textColor, textSecondaryColor, highlightColor, borderColor, hoverColor, overlayColor,
+        ...storeData
+      } = data;
+
       return storesService.create({
         ...storeData,
         theme: {
-          primaryColor,
-          secondaryColor,
-          tertiaryColor,
+          primary: primaryColor,
+          primaryGradient,
+          secondary: secondaryColor,
+          bg: bgColor,
+          surface: surfaceColor,
+          text: textColor,
+          textSecondary: textSecondaryColor,
+          highlight: highlightColor,
+          border: borderColor,
+          hover: hoverColor,
+          overlay: overlayColor,
         },
       });
     },
@@ -151,19 +211,29 @@ export default function StoreFormPage() {
 
   const updateMutation = useMutation({
     mutationFn: (data: StoreFormData) => {
-      const { primaryColor, secondaryColor, tertiaryColor, ...storeData } = data;
-      
-      // Campos opcionais que podem ser strings vazias - serão convertidos para undefined pelo backend
-      // O backend aceita strings vazias e as transforma em undefined automaticamente
-      const updateData: Record<string, any> = {
+      const {
+        primaryColor, primaryGradient, secondaryColor, bgColor, surfaceColor,
+        textColor, textSecondaryColor, highlightColor, borderColor, hoverColor, overlayColor,
+        ...storeData
+      } = data;
+
+      const updateData: any = {
         ...storeData,
         theme: {
-          primaryColor,
-          secondaryColor,
-          tertiaryColor,
+          primary: primaryColor,
+          primaryGradient,
+          secondary: secondaryColor,
+          bg: bgColor,
+          surface: surfaceColor,
+          text: textColor,
+          textSecondary: textSecondaryColor,
+          highlight: highlightColor,
+          border: borderColor,
+          hover: hoverColor,
+          overlay: overlayColor,
         },
       };
-      
+
       return storesService.update(storeId!, updateData);
     },
     onSuccess: () => {
@@ -172,12 +242,12 @@ export default function StoreFormPage() {
       queryClient.invalidateQueries({ queryKey: ["store", storeId] });
       queryClient.invalidateQueries({ queryKey: ["stores", "user"] }); // Invalidar query de lojas do usuário
       showSuccess("Loja atualizada com sucesso!");
-      router.push("/loja");
+      // Não redirecionar - manter usuário na página com as configurações salvas
     },
     onError: (error: any) => {
       // Melhorar tratamento de erros da API
       let errorMessage = "Erro ao atualizar loja";
-      
+
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (error?.data?.message) {
@@ -193,7 +263,7 @@ export default function StoreFormPage() {
       } else if (error?.status === 409) {
         errorMessage = error?.data?.message || "Os dados informados já estão em uso por outra loja";
       }
-      
+
       showError(errorMessage);
     },
   });
@@ -206,6 +276,35 @@ export default function StoreFormPage() {
     }
   };
 
+  const handlePreview = () => {
+    const data = getValues();
+    const previewData = {
+      ...data,
+      theme: {
+        primary: data.primaryColor,
+        primaryGradient: data.primaryGradient,
+        secondary: data.secondaryColor,
+        bg: data.bgColor,
+        surface: data.surfaceColor,
+        text: data.textColor,
+        textSecondary: data.textSecondaryColor,
+        highlight: data.highlightColor,
+        border: data.borderColor,
+        hover: data.hoverColor,
+        overlay: data.overlayColor,
+      }
+    };
+
+    // Find city name for preview
+    const city = cities.find(c => c.id === data.cityId);
+    if (city) {
+      (previewData as any).city = city;
+    }
+
+    localStorage.setItem("store_preview_data", JSON.stringify(previewData));
+    window.open("/loja/preview", "_blank");
+  };
+
   if (isLoadingStore || isLoadingCities) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -215,17 +314,49 @@ export default function StoreFormPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header */}
-      <div>
-        <h1 className="text-4xl font-bold mb-2">
-          {isEditing ? "Editar Loja" : "Criar Loja"}
-        </h1>
-        <p className="text-muted-foreground">
-          {isEditing 
-            ? "Atualize as informações da sua loja" 
-            : "Configure sua loja para começar a vender"}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Button variant="ghost" size="icon" asChild className="-ml-2">
+              <Link href="/loja">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {isEditing ? "Editar Loja" : "Criar Loja"}
+            </h1>
+          </div>
+          <p className="text-muted-foreground">
+            {isEditing
+              ? "Personalize cada detalhe da sua vitrine virtual."
+              : "Vamos configurar sua nova loja."}
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handlePreview}
+            className="gap-2"
+          >
+            <Eye className="h-4 w-4" />
+            Pré-visualizar
+          </Button>
+          <Button
+            onClick={handleSubmit(onSubmit)}
+            disabled={createMutation.isPending || updateMutation.isPending}
+            className="gap-2"
+          >
+            {createMutation.isPending || updateMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            {isEditing ? "Salvar Alterações" : "Criar Loja"}
+          </Button>
+        </div>
       </div>
 
       <Card className="p-6">
@@ -236,7 +367,7 @@ export default function StoreFormPage() {
               {/* Coluna Esquerda - Informações Básicas */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold mb-4 pb-2 border-b">Informações Básicas</h3>
-                
+
                 <Field>
                   <div className="flex items-center gap-2 mb-1.5">
                     <FieldLabel htmlFor="name">Nome da Loja *</FieldLabel>
@@ -475,78 +606,277 @@ export default function StoreFormPage() {
               </div>
             </div>
 
-            {/* Cores do Tema - Largura total */}
+            {/* Cores do Tema - Paleta Completa */}
             <div className="pt-6 border-t">
-              <h3 className="text-lg font-semibold mb-4">Cores do Tema</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Field>
-                  <FieldLabel htmlFor="primaryColor">Cor Primária *</FieldLabel>
-                  <div className="flex gap-2">
-                    <Input
-                      id="primaryColor"
-                      type="color"
-                      {...register("primaryColor")}
-                      className="w-20 h-10"
-                      aria-invalid={errors.primaryColor ? "true" : "false"}
-                    />
-                    <Input
-                      {...register("primaryColor")}
-                      placeholder="#000000"
-                      aria-invalid={errors.primaryColor ? "true" : "false"}
-                    />
-                  </div>
-                  {errors.primaryColor && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.primaryColor.message}
-                    </p>
-                  )}
-                </Field>
+              <h3 className="text-lg font-semibold mb-2">Identidade Visual</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Configure a paleta de cores completa da sua loja. Essas cores serão aplicadas automaticamente em toda a loja pública.
+              </p>
 
-                <Field>
-                  <FieldLabel htmlFor="secondaryColor">Cor Secundária *</FieldLabel>
-                  <div className="flex gap-2">
-                    <Input
-                      id="secondaryColor"
-                      type="color"
-                      {...register("secondaryColor")}
-                      className="w-20 h-10"
-                      aria-invalid={errors.secondaryColor ? "true" : "false"}
-                    />
-                    <Input
-                      {...register("secondaryColor")}
-                      placeholder="#FFFFFF"
-                      aria-invalid={errors.secondaryColor ? "true" : "false"}
-                    />
-                  </div>
-                  {errors.secondaryColor && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.secondaryColor.message}
-                    </p>
-                  )}
-                </Field>
+              {/* Cores Principais */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">Cores Principais</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="primaryColor">Cor Primária *</FieldLabel>
+                    <FieldDescription>Cor principal da marca, usada em botões e destaques</FieldDescription>
+                    <div className="flex gap-2">
+                      <Input
+                        id="primaryColor"
+                        type="color"
+                        {...register("primaryColor")}
+                        className="w-20 h-10"
+                        aria-invalid={errors.primaryColor ? "true" : "false"}
+                      />
+                      <Input
+                        {...register("primaryColor")}
+                        placeholder="#2563eb"
+                        aria-invalid={errors.primaryColor ? "true" : "false"}
+                      />
+                    </div>
+                    {errors.primaryColor && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.primaryColor.message}
+                      </p>
+                    )}
+                  </Field>
 
-                <Field>
-                  <FieldLabel htmlFor="tertiaryColor">Cor Terciária *</FieldLabel>
-                  <div className="flex gap-2">
+                  <Field>
+                    <FieldLabel htmlFor="secondaryColor">Cor Secundária *</FieldLabel>
+                    <FieldDescription>Cor de apoio para elementos secundários</FieldDescription>
+                    <div className="flex gap-2">
+                      <Input
+                        id="secondaryColor"
+                        type="color"
+                        {...register("secondaryColor")}
+                        className="w-20 h-10"
+                        aria-invalid={errors.secondaryColor ? "true" : "false"}
+                      />
+                      <Input
+                        {...register("secondaryColor")}
+                        placeholder="#7c3aed"
+                        aria-invalid={errors.secondaryColor ? "true" : "false"}
+                      />
+                    </div>
+                    {errors.secondaryColor && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.secondaryColor.message}
+                      </p>
+                    )}
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="highlightColor">Cor de Destaque *</FieldLabel>
+                    <FieldDescription>Usada para bordas de foco e anéis de seleção</FieldDescription>
+                    <div className="flex gap-2">
+                      <Input
+                        id="highlightColor"
+                        type="color"
+                        {...register("highlightColor")}
+                        className="w-20 h-10"
+                        aria-invalid={errors.highlightColor ? "true" : "false"}
+                      />
+                      <Input
+                        {...register("highlightColor")}
+                        placeholder="#f59e0b"
+                        aria-invalid={errors.highlightColor ? "true" : "false"}
+                      />
+                    </div>
+                    {errors.highlightColor && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.highlightColor.message}
+                      </p>
+                    )}
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="primaryGradient">Gradiente Primário (Opcional)</FieldLabel>
+                    <FieldDescription>CSS válido para background-image. Se vazio, usa a cor primária</FieldDescription>
                     <Input
-                      id="tertiaryColor"
-                      type="color"
-                      {...register("tertiaryColor")}
-                      className="w-20 h-10"
-                      aria-invalid={errors.tertiaryColor ? "true" : "false"}
+                      id="primaryGradient"
+                      {...register("primaryGradient")}
+                      placeholder="linear-gradient(to right, #...)"
                     />
+                  </Field>
+                </div>
+              </div>
+
+              <div className="h-px bg-border mb-6" />
+
+              {/* Cores de Fundo e Superfície */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">Fundos e Superfícies</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="bgColor">Cor de Fundo *</FieldLabel>
+                    <FieldDescription>Cor de fundo principal da página</FieldDescription>
+                    <div className="flex gap-2">
+                      <Input
+                        id="bgColor"
+                        type="color"
+                        {...register("bgColor")}
+                        className="w-20 h-10"
+                        aria-invalid={errors.bgColor ? "true" : "false"}
+                      />
+                      <Input
+                        {...register("bgColor")}
+                        placeholder="#ffffff"
+                        aria-invalid={errors.bgColor ? "true" : "false"}
+                      />
+                    </div>
+                    {errors.bgColor && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.bgColor.message}
+                      </p>
+                    )}
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="surfaceColor">Cor de Superfície *</FieldLabel>
+                    <FieldDescription>Cor de fundo de cards e painéis</FieldDescription>
+                    <div className="flex gap-2">
+                      <Input
+                        id="surfaceColor"
+                        type="color"
+                        {...register("surfaceColor")}
+                        className="w-20 h-10"
+                        aria-invalid={errors.surfaceColor ? "true" : "false"}
+                      />
+                      <Input
+                        {...register("surfaceColor")}
+                        placeholder="#f3f4f6"
+                        aria-invalid={errors.surfaceColor ? "true" : "false"}
+                      />
+                    </div>
+                    {errors.surfaceColor && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.surfaceColor.message}
+                      </p>
+                    )}
+                  </Field>
+                </div>
+              </div>
+
+              <div className="h-px bg-border mb-6" />
+
+              {/* Cores de Texto */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">Textos</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="textColor">Cor de Texto Principal *</FieldLabel>
+                    <FieldDescription>Cor do texto principal</FieldDescription>
+                    <div className="flex gap-2">
+                      <Input
+                        id="textColor"
+                        type="color"
+                        {...register("textColor")}
+                        className="w-20 h-10"
+                        aria-invalid={errors.textColor ? "true" : "false"}
+                      />
+                      <Input
+                        {...register("textColor")}
+                        placeholder="#1f2937"
+                        aria-invalid={errors.textColor ? "true" : "false"}
+                      />
+                    </div>
+                    {errors.textColor && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.textColor.message}
+                      </p>
+                    )}
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="textSecondaryColor">Cor de Texto Secundário *</FieldLabel>
+                    <FieldDescription>Cor para textos de apoio e descrições</FieldDescription>
+                    <div className="flex gap-2">
+                      <Input
+                        id="textSecondaryColor"
+                        type="color"
+                        {...register("textSecondaryColor")}
+                        className="w-20 h-10"
+                        aria-invalid={errors.textSecondaryColor ? "true" : "false"}
+                      />
+                      <Input
+                        {...register("textSecondaryColor")}
+                        placeholder="#64748b"
+                        aria-invalid={errors.textSecondaryColor ? "true" : "false"}
+                      />
+                    </div>
+                    {errors.textSecondaryColor && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.textSecondaryColor.message}
+                      </p>
+                    )}
+                  </Field>
+                </div>
+              </div>
+
+              <div className="h-px bg-border mb-6" />
+
+              {/* Cores de Interação */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">Interações</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="borderColor">Cor de Borda *</FieldLabel>
+                    <FieldDescription>Cor das bordas de elementos</FieldDescription>
+                    <div className="flex gap-2">
+                      <Input
+                        id="borderColor"
+                        type="color"
+                        {...register("borderColor")}
+                        className="w-20 h-10"
+                        aria-invalid={errors.borderColor ? "true" : "false"}
+                      />
+                      <Input
+                        {...register("borderColor")}
+                        placeholder="#e2e8f0"
+                        aria-invalid={errors.borderColor ? "true" : "false"}
+                      />
+                    </div>
+                    {errors.borderColor && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.borderColor.message}
+                      </p>
+                    )}
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="hoverColor">Cor de Hover *</FieldLabel>
+                    <FieldDescription>Cor de fundo ao passar o mouse</FieldDescription>
+                    <div className="flex gap-2">
+                      <Input
+                        id="hoverColor"
+                        type="color"
+                        {...register("hoverColor")}
+                        className="w-20 h-10"
+                        aria-invalid={errors.hoverColor ? "true" : "false"}
+                      />
+                      <Input
+                        {...register("hoverColor")}
+                        placeholder="#dbeafe"
+                        aria-invalid={errors.hoverColor ? "true" : "false"}
+                      />
+                    </div>
+                    {errors.hoverColor && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.hoverColor.message}
+                      </p>
+                    )}
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="overlayColor">Cor de Overlay (Opcional)</FieldLabel>
+                    <FieldDescription>Cor de sobreposição para modais e popups</FieldDescription>
                     <Input
-                      {...register("tertiaryColor")}
-                      placeholder="#808080"
-                      aria-invalid={errors.tertiaryColor ? "true" : "false"}
+                      id="overlayColor"
+                      {...register("overlayColor")}
+                      placeholder="rgba(0,0,0,0.5)"
                     />
-                  </div>
-                  {errors.tertiaryColor && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.tertiaryColor.message}
-                    </p>
-                  )}
-                </Field>
+                  </Field>
+                </div>
               </div>
             </div>
 
