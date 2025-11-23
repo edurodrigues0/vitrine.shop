@@ -21,7 +21,7 @@ import { createSlug } from "@/lib/slug";
 import { showSuccess, showError } from "@/lib/toast";
 import { Loader2, CheckCircle2, XCircle, HelpCircle, Eye, Save, ArrowLeft, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 
 const storeSchema = z.object({
@@ -91,6 +91,7 @@ export default function StoreFormPage() {
   });
 
   const isEditing = !!storeId;
+  const justSavedRef = useRef(false);
 
   const {
     register,
@@ -129,6 +130,12 @@ export default function StoreFormPage() {
 
   // Atualizar valores do formulário quando storeData for carregado
   useEffect(() => {
+    // Skip reset if form was just saved (to prevent overwriting with stale cache data)
+    if (justSavedRef.current) {
+      justSavedRef.current = false;
+      return;
+    }
+
     if (storeData && isEditing) {
       reset({
         name: storeData.name,
@@ -237,6 +244,9 @@ export default function StoreFormPage() {
       return storesService.update(storeId!, updateData);
     },
     onSuccess: () => {
+      // Set flag to prevent useEffect from resetting form with stale data
+      justSavedRef.current = true;
+
       // Invalidar todas as queries relacionadas a lojas
       queryClient.invalidateQueries({ queryKey: ["stores"] });
       queryClient.invalidateQueries({ queryKey: ["store", storeId] });
