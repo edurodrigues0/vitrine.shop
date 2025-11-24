@@ -10,6 +10,7 @@ import { CitySelector } from "./city-selector";
 import { SearchBar } from "./search-bar";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 export function Header() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -179,15 +180,41 @@ export function Header() {
                     <Link href="/login">Entrar</Link>
                   </Button>
                 )}
-                <Button
-                  size="sm"
-                  asChild
-                  className="bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary hover:via-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 relative overflow-hidden group font-semibold"
-                >
-                  <Link href="/register" className="relative z-10">
-                    <span className="relative z-10">Criar minha loja</span>
-                  </Link>
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button>
+                      Autenticação
+                    </Button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent>
+                    <div className="flex flex-col gap-2 px-2 py-2 w-full">
+                      <DropdownMenuItem className="p-0 m-0 rounded-none">
+                        <Button
+                          size="sm"
+                          asChild
+                          className="w-full justify-center font-semibold"
+                        >
+                          <Link href="/register">
+                            <span>Criar minha loja</span>
+                          </Link>
+                        </Button>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem className="p-0 m-0 rounded-none">
+                        <Button
+                          size="sm"
+                          asChild
+                          className="w-full justify-center font-semibold"
+                        >
+                          <Link href="/login">
+                            <span>Entrar</span>
+                          </Link>
+                        </Button>
+                      </DropdownMenuItem>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
 

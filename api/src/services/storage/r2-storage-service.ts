@@ -26,7 +26,7 @@ export class R2StorageService {
 		this.bucketName = bucketName;
 		
 		// Usar R2_PUBLIC_URL se configurada, caso contrário usar formato padrão
-		this.publicUrl = publicUrl || `https://pub-${accountId}.r2.dev`;
+		this.publicUrl =`https://pub-${accountId}.r2.dev`;
 
 		this.s3Client = new S3Client({
 			region: "auto",
