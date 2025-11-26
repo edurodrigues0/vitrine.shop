@@ -112,7 +112,7 @@ export default function StorePage() {
 
     return filtered;
   }, [products, searchTerm, selectedCategoryId]);
-  
+
   // Paginação de produtos
   const [productsPage, setProductsPage] = useState(1);
   const itemsPerPage = 12;
@@ -210,9 +210,15 @@ export default function StorePage() {
     : "#";
 
   const themeColors = store.theme || {
-    primaryColor: "#4f46e5",
-    secondaryColor: "#7c3aed",
-    tertiaryColor: "#ec4899",
+    primary: "#4f46e5",
+    secondary: "#7c3aed",
+    bg: "#ffffff",
+    surface: "#f3f4f6",
+    text: "#1f2937",
+    textSecondary: "#4b5563",
+    highlight: "#fbbf24",
+    border: "#e5e7eb",
+    hover: "#dbeafe",
   };
 
   return (
@@ -236,7 +242,7 @@ export default function StorePage() {
           <div
             className="h-64 md:h-80 lg:h-96 w-full flex items-center justify-center relative overflow-hidden"
             style={{
-              background: `linear-gradient(135deg, ${themeColors.primaryColor}15 0%, ${themeColors.secondaryColor}15 50%, ${themeColors.tertiaryColor}15 100%)`,
+              background: `linear-gradient(135deg, ${themeColors.primary}15 0%, ${themeColors.secondary}15 50%, ${themeColors.highlight}15 100%)`,
             }}
           >
             <div className="absolute inset-0 bg-grid-pattern opacity-5" />
@@ -265,7 +271,7 @@ export default function StorePage() {
                 <div
                   className="h-24 w-24 md:h-32 md:w-32 flex-shrink-0 rounded-2xl flex items-center justify-center border-4 border-background shadow-lg"
                   style={{
-                    background: `linear-gradient(135deg, ${themeColors.primaryColor} 0%, ${themeColors.secondaryColor} 100%)`,
+                    background: `linear-gradient(135deg, ${themeColors.primary} 0%, ${themeColors.secondary} 100%)`,
                   }}
                 >
                   <Store className="h-12 w-12 md:h-16 md:w-16 text-white" />
@@ -357,8 +363,8 @@ export default function StorePage() {
               {filteredProducts.length > 0
                 ? `${filteredProducts.length} ${filteredProducts.length === 1 ? "produto encontrado" : "produtos encontrados"}`
                 : products.length > 0
-                ? "Nenhum produto encontrado com os filtros aplicados"
-                : "Navegue pelos nossos produtos"}
+                  ? "Nenhum produto encontrado com os filtros aplicados"
+                  : "Navegue pelos nossos produtos"}
             </p>
           </div>
         </div>

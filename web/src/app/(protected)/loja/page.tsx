@@ -56,10 +56,10 @@ export default function StoreDashboardPage() {
       INACTIVE: { label: "Inativa", icon: XCircle, className: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20" },
       PENDING: { label: "Pendente", icon: Clock, className: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20" },
     };
-    
+
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.INACTIVE;
     const Icon = config.icon;
-    
+
     return (
       <Badge className={`${config.className} border flex items-center gap-1.5 px-3 py-1`}>
         <Icon className="h-3.5 w-3.5" />
@@ -69,233 +69,223 @@ export default function StoreDashboardPage() {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Minha Loja</h1>
-          <p className="text-muted-foreground">Gerencie as informações da sua loja</p>
+          <h1 className="text-3xl font-bold tracking-tight">Minha Loja</h1>
+          <p className="text-muted-foreground">Gerencie as informações e a aparência da sua vitrine.</p>
         </div>
-        <Button asChild>
-          <Link href={`/loja/cadastro?id=${selectedStore.id}`} className="flex items-center justify-center gap-2 whitespace-nowrap">
-            <Edit className="h-4 w-4 shrink-0" />
-            <span>Editar</span>
-          </Link>
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" asChild>
+            <Link href={`/cidade/${storeCity?.slug || 'cidade'}/loja/${selectedStore.slug}`} target="_blank" className="gap-2">
+              <ExternalLink className="h-4 w-4" />
+              Ver Loja
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href={`/loja/cadastro?id=${selectedStore.id}`} className="gap-2">
+              <Edit className="h-4 w-4" />
+              Editar Loja
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Banner e Logo */}
-      <div className="mb-6">
-        <Card className="overflow-hidden">
+      <div className="relative group">
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10 pointer-events-none" />
+        <Card className="overflow-hidden border-none shadow-xl bg-muted/30">
           {selectedStore.bannerUrl ? (
-            <div className="relative h-48 md:h-64 w-full top-[-24px]">
+            <div className="relative h-64 w-full">
               <Image
                 src={selectedStore.bannerUrl}
                 alt={selectedStore.name}
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
                 unoptimized
               />
             </div>
           ) : (
-            <div className="relative h-48 md:h-64 w-full top-[-24px] bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
-              <Store className="h-16 w-16 text-primary opacity-50" />
+            <div className="relative h-64 w-full bg-gradient-to-br from-primary/20 via-purple-500/10 to-blue-500/20 flex items-center justify-center">
+              <Store className="h-20 w-20 text-primary/40" />
             </div>
           )}
 
-          <div className="p-6 -mt-12 relative">
-            <div className="flex items-end gap-4">
+          <div className="relative z-20 px-8 pb-8 -mt-20 flex flex-col md:flex-row items-start md:items-end gap-6">
+            <div className="relative shrink-0">
               {selectedStore.logoUrl ? (
-                <div className="relative h-24 w-24 rounded-lg border-4 border-background shadow-lg bg-background">
+                <div className="h-32 w-32 rounded-2xl border-4 border-background shadow-2xl bg-background overflow-hidden relative">
                   <Image
                     src={selectedStore.logoUrl}
                     alt={selectedStore.name}
                     fill
-                    className="object-fill rounded"
+                    className="object-cover"
                     unoptimized
                   />
                 </div>
               ) : (
-                <div className="h-24 w-24 rounded-lg border-4 border-background shadow-lg bg-primary/10 flex items-center justify-center">
+                <div className="h-32 w-32 rounded-2xl border-4 border-background shadow-2xl bg-primary/10 flex items-center justify-center backdrop-blur-sm">
                   <Store className="h-12 w-12 text-primary" />
                 </div>
               )}
-              <div className="flex-1 pb-2">
-                <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-2xl font-bold">{selectedStore.name}</h2>
-                  {getStatusBadge(selectedStore.status)}
-                </div>
-                {storeCity && (
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{storeCity.name}, {storeCity.state}</span>
-                  </div>
-                )}
+              <div className="absolute -bottom-2 -right-2">
+                {getStatusBadge(selectedStore.status)}
               </div>
+            </div>
+
+            <div className="flex-1 space-y-2 mb-2">
+              <h2 className="text-4xl font-bold text-foreground drop-shadow-sm">{selectedStore.name}</h2>
+              {storeCity && (
+                <div className="flex items-center gap-2 text-muted-foreground bg-background/50 backdrop-blur-md px-3 py-1 rounded-full w-fit border shadow-sm">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span className="font-medium">{storeCity.name}, {storeCity.state}</span>
+                </div>
+              )}
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Informações em Grid 2x2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-fr">
+      {/* Informações em Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Informações Básicas */}
-        <Card className="p-6 h-full flex flex-col">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Store className="h-5 w-5" />
-            Informações Básicas
-          </h2>
-          <div className="space-y-4 flex-1">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Nome da Loja</p>
-              <p className="font-semibold text-lg">{selectedStore.name}</p>
+        <Card className="p-6 flex flex-col hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary/50">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Store className="h-5 w-5 text-primary" />
             </div>
+            <h3 className="font-semibold text-lg">Detalhes</h3>
+          </div>
+
+          <div className="space-y-4 flex-1">
             {selectedStore.description && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Descrição</p>
+              <div className="bg-muted/50 p-3 rounded-lg border">
+                <p className="text-sm text-muted-foreground mb-1 font-medium">Descrição</p>
                 <p className="text-sm leading-relaxed">{selectedStore.description}</p>
               </div>
             )}
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Slug</p>
-              <p className="font-mono text-sm bg-muted px-3 py-1.5 rounded-md inline-block border border-border">
+              <p className="text-sm text-muted-foreground mb-1 font-medium">Slug (URL)</p>
+              <code className="text-xs bg-muted px-2 py-1 rounded border block w-fit">
                 {selectedStore.slug}
-              </p>
+              </code>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Status</p>
-              {getStatusBadge(selectedStore.status)}
-            </div>
+            {selectedStore.cnpjcpf && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-1 font-medium">CNPJ/CPF</p>
+                <p className="font-mono text-sm">{selectedStore.cnpjcpf}</p>
+              </div>
+            )}
           </div>
         </Card>
 
         {/* Contato */}
-        <Card className="p-6 h-full flex flex-col">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <MessageCircle className="h-5 w-5" />
-            Contato
-          </h2>
-          <div className="space-y-4 flex-1">
-            <div>
-              <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                <MessageCircle className="h-4 w-4" />
-                WhatsApp
-              </p>
+        <Card className="p-6 flex flex-col hover:shadow-lg transition-all duration-300 border-l-4 border-l-green-500/50">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-green-500/10 rounded-lg">
+              <MessageCircle className="h-5 w-5 text-green-600" />
+            </div>
+            <h3 className="font-semibold text-lg">Contato</h3>
+          </div>
+
+          <div className="space-y-3 flex-1">
+            <a
+              href={`https://wa.me/${selectedStore.whatsapp.replace(/\D/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between p-3 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-100 dark:border-green-900 hover:border-green-300 transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="bg-green-500 text-white p-1.5 rounded-full">
+                  <MessageCircle className="h-4 w-4" />
+                </div>
+                <span className="font-medium text-green-900 dark:text-green-100">{selectedStore.whatsapp}</span>
+              </div>
+              <ExternalLink className="h-4 w-4 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </a>
+
+            {selectedStore.instagramUrl && (
               <a
-                href={`https://wa.me/${selectedStore.whatsapp.replace(/\D/g, "")}`}
+                href={selectedStore.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-green-500/10 dark:hover:bg-green-500/20"
+                className="flex items-center justify-between p-3 rounded-xl bg-pink-50 dark:bg-pink-950/30 border border-pink-100 dark:border-pink-900 hover:border-pink-300 transition-colors group"
               >
-                {selectedStore.whatsapp}
-                <ExternalLink className="h-4 w-4" />
+                <div className="flex items-center gap-3">
+                  <div className="bg-pink-500 text-white p-1.5 rounded-full">
+                    <Instagram className="h-4 w-4" />
+                  </div>
+                  <span className="font-medium text-pink-900 dark:text-pink-100 truncate max-w-[150px]">
+                    {selectedStore.instagramUrl.replace(/^https?:\/\/(www\.)?instagram\.com\//, "@")}
+                  </span>
+                </div>
+                <ExternalLink className="h-4 w-4 text-pink-500 opacity-0 group-hover:opacity-100 transition-opacity" />
               </a>
-            </div>
-            {selectedStore.instagramUrl && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                  <Instagram className="h-4 w-4" />
-                  Instagram
-                </p>
-                <a
-                  href={selectedStore.instagramUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-pink-500/10 dark:hover:bg-pink-500/20"
-                >
-                  {selectedStore.instagramUrl.replace(/^https?:\/\//, "")}
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </div>
             )}
+
             {selectedStore.facebookUrl && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                  <Facebook className="h-4 w-4" />
-                  Facebook
-                </p>
-                <a
-                  href={selectedStore.facebookUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-2 transition-colors p-2 rounded-md hover:bg-blue-500/10 dark:hover:bg-blue-500/20"
-                >
-                  {selectedStore.facebookUrl.replace(/^https?:\/\//, "")}
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </div>
+              <a
+                href={selectedStore.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 hover:border-blue-300 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-600 text-white p-1.5 rounded-full">
+                    <Facebook className="h-4 w-4" />
+                  </div>
+                  <span className="font-medium text-blue-900 dark:text-blue-100 truncate max-w-[150px]">Facebook</span>
+                </div>
+                <ExternalLink className="h-4 w-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </a>
             )}
           </div>
         </Card>
 
-        {/* Localização */}
-        {storeCity && (
-          <Card className="p-6 h-full flex flex-col">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Localização
-            </h2>
-            <div className="space-y-3 flex-1">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Cidade</p>
-                <p className="font-semibold">{storeCity.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Estado</p>
-                <p className="font-semibold">{storeCity.state}</p>
-              </div>
+        {/* Aparência */}
+        <Card className="p-6 flex flex-col hover:shadow-lg transition-all duration-300 border-l-4 border-l-purple-500/50">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-purple-500/10 rounded-lg">
+              <Store className="h-5 w-5 text-purple-600" />
             </div>
-          </Card>
-        )}
+            <h3 className="font-semibold text-lg">Aparência</h3>
+          </div>
 
-        {/* Informações Adicionais */}
-        <Card className="p-6 h-full flex flex-col">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Store className="h-5 w-5" />
-            Informações Adicionais
-          </h2>
           <div className="space-y-4 flex-1">
-            {selectedStore.cnpjcpf && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">CNPJ/CPF</p>
-                <p className="font-mono text-sm bg-muted px-3 py-1.5 rounded-md inline-block border border-border">
-                  {selectedStore.cnpjcpf}
-                </p>
-              </div>
-            )}
-            {selectedStore.theme && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-3">Cores do Tema</p>
-                <div className="flex gap-3">
-                  {selectedStore.theme.primaryColor && (
-                    <div className="flex flex-col items-center gap-1">
-                      <div
-                        className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
-                        style={{ backgroundColor: selectedStore.theme.primaryColor }}
-                      />
-                      <span className="text-xs text-muted-foreground">Primária</span>
-                    </div>
-                  )}
-                  {selectedStore.theme.secondaryColor && (
-                    <div className="flex flex-col items-center gap-1">
-                      <div
-                        className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
-                        style={{ backgroundColor: selectedStore.theme.secondaryColor }}
-                      />
-                      <span className="text-xs text-muted-foreground">Secundária</span>
-                    </div>
-                  )}
-                  {selectedStore.theme.tertiaryColor && (
-                    <div className="flex flex-col items-center gap-1">
-                      <div
-                        className="w-12 h-12 rounded-md border-2 border-border shadow-sm"
-                        style={{ backgroundColor: selectedStore.theme.tertiaryColor }}
-                      />
-                      <span className="text-xs text-muted-foreground">Terciária</span>
-                    </div>
-                  )}
+            {selectedStore.theme ? (
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2 text-center">
+                  <div
+                    className="w-full aspect-square rounded-xl shadow-sm border ring-2 ring-offset-2 ring-transparent hover:ring-primary/20 transition-all"
+                    style={{ backgroundColor: selectedStore.theme.primary || '#000000' }}
+                  />
+                  <span className="text-xs font-medium text-muted-foreground">Primária</span>
+                </div>
+                <div className="space-y-2 text-center">
+                  <div
+                    className="w-full aspect-square rounded-xl shadow-sm border ring-2 ring-offset-2 ring-transparent hover:ring-primary/20 transition-all"
+                    style={{ backgroundColor: selectedStore.theme.secondary || '#ffffff' }}
+                  />
+                  <span className="text-xs font-medium text-muted-foreground">Secundária</span>
+                </div>
+                <div className="space-y-2 text-center">
+                  <div
+                    className="w-full aspect-square rounded-xl shadow-sm border ring-2 ring-offset-2 ring-transparent hover:ring-primary/20 transition-all"
+                    style={{ backgroundColor: selectedStore.theme.highlight || '#808080' }}
+                  />
+                  <span className="text-xs font-medium text-muted-foreground">Destaque</span>
                 </div>
               </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Nenhum tema configurado.</p>
+              </div>
             )}
+            <div className="pt-4 mt-auto">
+              <Button variant="outline" className="w-full" asChild>
+                <Link href={`/loja/cadastro?id=${selectedStore.id}`}>Personalizar Tema</Link>
+              </Button>
+            </div>
           </div>
         </Card>
       </div>

@@ -89,16 +89,16 @@ async function seed() {
 		const createdCities = await DrizzleORM
 			.insert(cities)
 			.values([
-				{ name: "São Paulo", state: "SP" },
-				{ name: "Rio de Janeiro", state: "RJ" },
-				{ name: "Belo Horizonte", state: "MG" },
-				{ name: "Curitiba", state: "PR" },
-				{ name: "Porto Alegre", state: "RS" },
-				{ name: "Salvador", state: "BA" },
-				{ name: "Brasília", state: "DF" },
-				{ name: "Fortaleza", state: "CE" },
-				{ name: "Recife", state: "PE" },
-				{ name: "Manaus", state: "AM" },
+				{ name: "São Paulo", state: "SP", slug: "sao-paulo" },
+				{ name: "Rio de Janeiro", state: "RJ", slug: "rio-de-janeiro" },
+				{ name: "Belo Horizonte", state: "MG", slug: "belo-horizonte" },
+				{ name: "Curitiba", state: "PR", slug: "curitiba" },
+				{ name: "Porto Alegre", state: "RS", slug: "porto-alegre" },
+				{ name: "Salvador", state: "BA", slug: "salvador" },
+				{ name: "Brasília", state: "DF", slug: "brasilia" },
+				{ name: "Fortaleza", state: "CE", slug: "fortaleza" },
+				{ name: "Recife", state: "PE", slug: "recife" },
+				{ name: "Manaus", state: "AM", slug: "manaus" },
 			])
 			.returning();
 		if (createdCities.length < 10) {

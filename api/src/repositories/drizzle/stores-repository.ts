@@ -9,7 +9,7 @@ import type {
 } from "../stores-repository";
 
 export class DrizzleStoresRepository implements StoresRepository {
-	constructor(private readonly drizzle: typeof DrizzleORM) {}
+	constructor(private readonly drizzle: typeof DrizzleORM) { }
 
 	async create({
 		name,
@@ -36,9 +36,15 @@ export class DrizzleStoresRepository implements StoresRepository {
 				ownerId,
 				cityId,
 				theme: theme ?? {
-					primaryColor: "#000000",
-					secondaryColor: "#FFFFFF",
-					tertiaryColor: "#808080",
+					primary: "#000000",
+					secondary: "#FFFFFF",
+					bg: "#FFFFFF",
+					surface: "#F3F4F6",
+					text: "#000000",
+					textSecondary: "#6B7280",
+					highlight: "#FBBF24",
+					border: "#E5E7EB",
+					hover: "#DBEAFE",
 				},
 				facebookUrl,
 				description,
@@ -130,7 +136,6 @@ export class DrizzleStoresRepository implements StoresRepository {
 		}
 
 		if (filters.ownerId) {
-			console.log("DrizzleStoresRepository.findAll - Filtrando por ownerId:", filters.ownerId);
 			conditions.push(eq(stores.ownerId, filters.ownerId));
 		}
 

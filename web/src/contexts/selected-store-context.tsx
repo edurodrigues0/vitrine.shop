@@ -29,16 +29,13 @@ export function SelectedStoreProvider({ children }: { children: ReactNode }) {
     queryKey: ["stores", "user", user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.warn("Tentando buscar lojas sem user.id");
         return { stores: [], meta: { totalItems: 0, totalPages: 0, currentPage: 1, perPage: 100 } };
       }
-      console.log("Buscando lojas para usuário:", user.id, user.email);
       const result = await storesService.findAll({ 
         ownerId: user.id,
         page: 1,
         limit: 100, // Buscar até 100 lojas do usuário
       });
-      console.log("Lojas encontradas:", result.stores.length, result.stores.map(s => ({ id: s.id, name: s.name, ownerId: s.ownerId })));
       return result;
     },
     enabled: !!user?.id,

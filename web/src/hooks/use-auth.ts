@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { authService } from "@/services/auth-service";
-import type { LoginRequest } from "@/dtos/user";
+import type { LoginRequest, User } from "@/dtos/user";
 import { showError, showSuccess } from "@/lib/toast";
 
 const AUTH_KEY = ["auth", "me"];
@@ -22,7 +22,7 @@ export function useAuth() {
     data: user,
     isLoading,
     error,
-  } = useQuery({
+  } = useQuery<User | null>({
     queryKey: AUTH_KEY,
     queryFn: async () => {
       try {
@@ -48,13 +48,7 @@ export function useAuth() {
     refetchOnMount: hasToken,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    // Não mostrar erro no console para 401 (token inválido é esperado)
-    onError: (error: any) => {
-      if (error?.status === 401 || error?.response?.status === 401) {
-        // Erro 401 é esperado quando o token é inválido, não precisa logar
-        return;
-      }
-    },
+
   });
 
   const loginMutation = useMutation({

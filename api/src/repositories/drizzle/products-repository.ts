@@ -1,10 +1,14 @@
-import { and, count, desc, eq, ilike } from "drizzle-orm";
+import { and, count, desc, eq, ilike, sql } from "drizzle-orm";
 import type { DrizzleORM } from "~/database/connection";
 import {
 	type Product,
 	type ProductVariation,
 	products,
 	productsVariations,
+	productsImages,
+	stores,
+	cities,
+	addresses,
 } from "~/database/schema";
 import type {
 	CreateProductParams,
@@ -18,7 +22,7 @@ import type {
 } from "../product-variations";
 
 export class DrizzleProductsRepository implements ProductsRespository {
-	constructor(private readonly drizzle: typeof DrizzleORM) {}
+	constructor(private readonly drizzle: typeof DrizzleORM) { }
 
 	async create({
 		name,
@@ -77,7 +81,7 @@ export class DrizzleProductsRepository implements ProductsRespository {
 	}
 
 	async findAll({ page, limit, filters }: FindAllProductsParams): Promise<{
-		products: Product[];
+		products: (Product & { storeSlug: string; citySlug: string; imageUrl?: string | null })[];
 		pagination: {
 			totalItems: number;
 			totalPages: number;
@@ -117,13 +121,43 @@ export class DrizzleProductsRepository implements ProductsRespository {
 				description: products.description,
 				categoryId: products.categoryId,
 				storeId: products.storeId,
+				price: products.price,
+				quantity: products.quantity,
+				color: products.color,
 				createdAt: products.createdAt,
+				storeSlug: stores.slug,
+				citySlug: cities.slug,
+				imageUrl: sql<string>`(
+					SELECT ${productsImages.url}
+					FROM ${productsImages}
+					INNER JOIN ${productsVariations} ON ${productsImages.productVariationId} = ${productsVariations.id}
+					WHERE ${productsVariations.productId} = ${products.id}
+					LIMIT 1
+				)`.as("imageUrl"),
 			})
 			.from(products)
+			.innerJoin(stores, eq(products.storeId, stores.id))
+			.innerJoin(cities, eq(stores.cityId, cities.id))
+			.leftJoin(addresses, and(eq(addresses.storeId, stores.id), eq(addresses.isMain, true)))
 			.where(whereClause)
-			.orderBy(desc(products.createdAt))
+			.orderBy(
+				filters.latitude && filters.longitude
+					? sql`
+						(6371 * acos(
+							cos(radians(${filters.latitude})) * cos(radians(${addresses.latitude}::float)) * cos(radians(${addresses.longitude}::float) - radians(${filters.longitude})) +
+							sin(radians(${filters.latitude})) * sin(radians(${addresses.latitude}::float))
+						)) ASC
+					`
+					: desc(products.createdAt)
+			)
 			.limit(limit)
 			.offset(offset);
+
+		const typedProducts = productsResult as unknown as (Product & {
+			storeSlug: string;
+			citySlug: string;
+			imageUrl?: string | null;
+		})[];
 
 		// Contar total de itens
 		const [totalResult] = await this.drizzle
@@ -135,7 +169,7 @@ export class DrizzleProductsRepository implements ProductsRespository {
 		const totalPages = Math.ceil(totalItems / limit);
 
 		return {
-			products: productsResult,
+			products: typedProducts,
 			pagination: {
 				totalItems,
 				totalPages,

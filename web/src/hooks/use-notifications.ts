@@ -160,7 +160,6 @@ export function useNotifications() {
 		};
 
 		return () => {
-			console.log("Cleaning up SSE connection");
 			if (eventSourceRef.current && eventSourceRef.current.readyState !== EventSource.CLOSED) {
 				eventSourceRef.current.close();
 			}

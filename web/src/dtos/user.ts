@@ -48,5 +48,6 @@ export interface AuthUserResponse {
   role: string;
   storeId: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 

@@ -15,6 +15,8 @@ export const addresses = pgTable("addresses", {
 	neighborhood: varchar("neighborhood", { length: 100 }).notNull(),
 	zipCode: varchar("zip_code", { length: 8 }).notNull(),
 	country: varchar("country", { length: 50 }).notNull(),
+	latitude: varchar("latitude", { length: 50 }),
+	longitude: varchar("longitude", { length: 50 }),
 	isMain: boolean("is_main").default(false).notNull(),
 });
 

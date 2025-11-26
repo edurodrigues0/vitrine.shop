@@ -30,6 +30,8 @@ export function PublicLayout({ children }: PublicLayoutProps) {
     "/configuracoes",
     "/perfil",
     "/notificacoes",
+    "/planos",
+    "/assinatura",
   ];
 
   // Verifica se a rota atual é uma rota protegida

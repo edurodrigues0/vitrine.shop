@@ -15,9 +15,17 @@ interface CreateStoreUseCaseRequest {
 	facebookUrl?: string | null;
 	bannerUrl?: string | null;
 	theme: {
-		primaryColor: string;
-		secondaryColor: string;
-		tertiaryColor: string;
+		primary: string;
+		primaryGradient?: string;
+		secondary: string;
+		bg: string;
+		surface: string;
+		text: string;
+		textSecondary: string;
+		highlight: string;
+		border: string;
+		hover: string;
+		overlay?: string;
 	};
 	cityId: string;
 	ownerId: string;
@@ -28,7 +36,7 @@ interface CreateStoreUseCaseRespose {
 }
 
 export class CreateStoreUseCase {
-	constructor(private readonly storesRepository: StoresRepository) {}
+	constructor(private readonly storesRepository: StoresRepository) { }
 
 	async execute({
 		name,

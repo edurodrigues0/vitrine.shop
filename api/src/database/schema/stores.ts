@@ -30,9 +30,17 @@ export const stores = pgTable("stores", {
 	bannerUrl: text("banner_url"),
 	theme: jsonb("theme")
 		.$type<{
-			primaryColor: string;
-			secondaryColor: string;
-			tertiaryColor: string;
+			primary: string;
+			primaryGradient?: string;
+			secondary: string;
+			bg: string;
+			surface: string;
+			text: string;
+			textSecondary: string;
+			highlight: string;
+			border: string;
+			hover: string;
+			overlay?: string;
 		}>()
 		.notNull(),
 	cityId: uuid("city_id")

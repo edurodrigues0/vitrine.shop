@@ -1,6 +1,7 @@
 export interface City {
   id: string;
   name: string;
+  slug: string;
   state: string;
   createdAt: string;
   updatedAt: string;

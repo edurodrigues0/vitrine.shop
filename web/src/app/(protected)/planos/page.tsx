@@ -117,9 +117,9 @@ export default function PlansPage() {
       // TODO: Obter priceId do Stripe baseado no plano
       // Por enquanto, vamos usar um mock - estes devem ser substituídos pelos IDs reais do Stripe
       const priceIdMap: Record<PlanId, string> = {
-        basic: "price_basic_monthly", // Substituir pelos IDs reais do Stripe
-        professional: "price_professional_monthly",
-        enterprise: "price_enterprise_monthly",
+        basic: process.env.NEXT_PUBLIC_STRIPE_BASIC_MONTHLY_PRICE_ID!,
+        professional: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID!,
+        enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY_PRICE_ID!,
       };
 
       const priceId = plan.priceId || priceIdMap[plan.id];
@@ -270,7 +270,7 @@ export default function PlansPage() {
       )}
 
       {/* Planos */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {plans.map((plan) => {
           const Icon = plan.icon;
           const isCurrentPlan = currentPlanId === plan.id && subscription?.status === "PAID";
@@ -279,7 +279,7 @@ export default function PlansPage() {
           return (
             <Card
               key={plan.id}
-              className={`relative p-6 transition-all duration-300 ${
+              className={`relative p-6 transition-all duration-300 flex flex-col h-full ${
                 plan.popular
                   ? "border-primary border-2 shadow-lg scale-105"
                   : "hover:shadow-lg hover:scale-105"
@@ -296,7 +296,7 @@ export default function PlansPage() {
                 </Badge>
               )}
 
-              <div className="space-y-4">
+              <div className="flex flex-col h-full space-y-4">
                 {/* Header */}
                 <div>
                   <div className="flex items-center gap-3 mb-2">
@@ -317,7 +317,7 @@ export default function PlansPage() {
                 </div>
 
                 {/* Features */}
-                <ul className="space-y-3">
+                <ul className="space-y-3 flex-1">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <Check className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
@@ -328,7 +328,7 @@ export default function PlansPage() {
 
                 {/* CTA */}
                 <Button
-                  className="w-full"
+                  className="w-full mt-auto"
                   variant={plan.popular ? "default" : "outline"}
                   onClick={() => handleSelectPlan(plan)}
                   disabled={isCurrentPlan || checkoutMutation.isPending || isSelected}

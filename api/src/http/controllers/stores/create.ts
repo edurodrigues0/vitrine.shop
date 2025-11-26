@@ -29,9 +29,17 @@ const createStoreBodySchema = z.object({
 	facebookUrl: z.url("Facebook URL deve ser uma URL válida").optional(),
 	bannerUrl: z.url("Banner URL deve ser uma URL válida").optional(),
 	theme: z.object({
-		primaryColor: z.string().min(1, "Cor primária é obrigatória"),
-		secondaryColor: z.string().min(1, "Cor secundária é obrigatória"),
-		tertiaryColor: z.string().min(1, "Cor terciária é obrigatória"),
+		primary: z.string().min(1, "Cor primária é obrigatória"),
+		primaryGradient: z.string().optional(),
+		secondary: z.string().min(1, "Cor secundária é obrigatória"),
+		bg: z.string().min(1, "Cor de fundo é obrigatória"),
+		surface: z.string().min(1, "Cor de superfície é obrigatória"),
+		text: z.string().min(1, "Cor de texto é obrigatória"),
+		textSecondary: z.string().min(1, "Cor de texto secundário é obrigatória"),
+		highlight: z.string().min(1, "Cor de destaque é obrigatória"),
+		border: z.string().min(1, "Cor de borda é obrigatória"),
+		hover: z.string().min(1, "Cor de hover é obrigatória"),
+		overlay: z.string().optional(),
 	}),
 	cityId: z.uuid("ID da cidade deve ser um UUID válido"),
 });
@@ -99,31 +107,6 @@ const createStoreBodySchema = z.object({
  *                 format: uri
  *                 description: URL do Facebook
  *               bannerUrl:
- *                 type: string
- *                 format: uri
- *                 description: URL do banner
- *               theme:
- *                 type: object
- *                 required:
- *                   - primaryColor
- *                   - secondaryColor
- *                   - tertiaryColor
- *                 properties:
- *                   primaryColor:
- *                     type: string
- *                     example: "#FF5733"
- *                   secondaryColor:
- *                     type: string
- *                     example: "#33FF57"
- *                   tertiaryColor:
- *                     type: string
- *                     example: "#5733FF"
- *               cityId:
- *                 type: string
- *                 format: uuid
- *                 description: ID da cidade
- *     responses:
- *       201:
  *         description: Loja criada com sucesso
  *         content:
  *           application/json:
