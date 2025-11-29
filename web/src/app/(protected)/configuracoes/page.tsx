@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Loader2, User, Lock, Bell, Palette, ShoppingBag, Package, Eye, Store, AlertTriangle, Info, CreditCard } from "lucide-react";
+import { Loader2, User, Lock, Bell, Palette, ShoppingBag, Package, Eye, Store, AlertTriangle, Info, CreditCard, MapPin } from "lucide-react";
 import { showError, showSuccess } from "@/lib/toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSelectedStore } from "@/hooks/use-selected-store";
 import { subscriptionsService } from "@/services/subscriptions-service";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,9 @@ import { Check, Sparkles, Zap, Building2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { useConfirm } from "@/hooks/use-confirm";
+import { addressesService } from "@/services/addresses-service";
+import { citiesService } from "@/services/cities-service";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const profileSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(120, "Nome muito longo"),
@@ -50,13 +53,15 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<"profile" | "password" | "notifications" | "subscription" | "theme">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "password" | "notifications" | "subscription" | "theme" | "address">("profile");
 
   // Verificar se há uma aba específica na URL
   useEffect(() => {
     const tab = searchParams.get("tab");
     if (tab === "subscription") {
       setActiveTab("subscription");
+    } else if (tab === "address") {
+      setActiveTab("address");
     }
   }, [searchParams]);
 
@@ -217,6 +222,18 @@ export default function SettingsPage() {
                   <span className="font-medium">Aparência da Loja</span>
                 </div>
               </button>
+              <button
+                onClick={() => setActiveTab("address")}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-all ${activeTab === "address"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "hover:bg-accent"
+                  }`}
+              >
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5" />
+                  <span className="font-medium">Endereço da Loja</span>
+                </div>
+              </button>
             </nav>
           </Card>
         </div>
@@ -225,7 +242,7 @@ export default function SettingsPage() {
         <div className="lg:col-span-3">
           {activeTab === "profile" && (
             <Card className="p-6">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-6 pb-6 border-b">
                 <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
                   <User className="h-5 w-5 text-primary" />
                 </div>
@@ -234,7 +251,7 @@ export default function SettingsPage() {
                   <p className="text-sm text-muted-foreground">Atualize suas informações pessoais</p>
                 </div>
               </div>
-              <form onSubmit={handleSubmitProfile(onSubmitProfile)} className="space-y-6">
+              <form onSubmit={handleSubmitProfile(onSubmitProfile)} className="space-y-6 mt-6">
                 <FieldGroup>
                   <Field>
                     <FieldLabel htmlFor="name">Nome *</FieldLabel>
@@ -287,7 +304,7 @@ export default function SettingsPage() {
 
           {activeTab === "password" && (
             <Card className="p-6">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-6 pb-6 border-b">
                 <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
                   <Lock className="h-5 w-5 text-primary" />
                 </div>
@@ -296,7 +313,7 @@ export default function SettingsPage() {
                   <p className="text-sm text-muted-foreground">Mantenha sua conta segura</p>
                 </div>
               </div>
-              <form onSubmit={handleSubmitPassword(onSubmitPassword)} className="space-y-6">
+              <form onSubmit={handleSubmitPassword(onSubmitPassword)} className="space-y-6 mt-6">
                 <FieldGroup>
                   <Field>
                     <FieldLabel htmlFor="currentPassword">Senha Atual *</FieldLabel>
@@ -368,7 +385,7 @@ export default function SettingsPage() {
 
           {activeTab === "theme" && (
             <Card className="p-6">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-6 pb-6 border-b">
                 <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
                   <Palette className="h-5 w-5 text-primary" />
                 </div>
@@ -377,7 +394,9 @@ export default function SettingsPage() {
                   <p className="text-sm text-muted-foreground">Personalize as cores e o visual da sua loja</p>
                 </div>
               </div>
-              <ThemeForm />
+              <div className="mt-6">
+                <ThemeForm />
+              </div>
             </Card>
           )}
 
@@ -387,6 +406,12 @@ export default function SettingsPage() {
 
           {activeTab === "subscription" && (
             <SubscriptionPlans />
+          )}
+
+          {activeTab === "address" && (
+            <Card className="p-6">
+              <AddressForm />
+            </Card>
           )}
         </div>
       </div>
@@ -1207,6 +1232,374 @@ function SubscriptionPlans() {
 
       {/* Confirm Dialog */}
       {ConfirmDialog}
+    </>
+  );
+}
+
+// Componente de Endereço da Loja
+function AddressForm() {
+  const { selectedStore } = useSelectedStore();
+  const queryClient = useQueryClient();
+
+  const addressSchema = z.object({
+    street: z.string().min(1, "Rua é obrigatória").max(255, "Rua deve ter no máximo 255 caracteres"),
+    number: z.string().min(1, "Número é obrigatório").max(10, "Número deve ter no máximo 10 caracteres"),
+    complement: z.string().max(255, "Complemento deve ter no máximo 255 caracteres").optional().or(z.literal("")),
+    neighborhood: z.string().min(1, "Bairro é obrigatório").max(100, "Bairro deve ter no máximo 100 caracteres"),
+    cityId: z.string().uuid("Cidade é obrigatória"),
+    zipCode: z.string().length(8, "CEP deve ter 8 caracteres").regex(/^\d+$/, "CEP deve conter apenas números"),
+    country: z.string().min(1, "País é obrigatório").max(50, "País deve ter no máximo 50 caracteres"),
+  });
+
+  type AddressFormData = z.infer<typeof addressSchema>;
+
+  // Buscar cidades
+  const { data: citiesData, isLoading: isLoadingCities } = useQuery({
+    queryKey: ["cities"],
+    queryFn: () => citiesService.findAll(),
+    staleTime: 1000 * 60 * 60,
+  });
+
+  const cities = citiesData?.cities || [];
+  const [selectedState, setSelectedState] = useState("");
+
+  const uniqueStates = useMemo(() => {
+    return cities.reduce((acc: string[], city) => {
+      if (!acc.includes(city.state)) {
+        acc.push(city.state);
+      }
+      return acc;
+    }, []).sort();
+  }, [cities]);
+
+  const filteredCities = useMemo(() => {
+    return cities.filter(city => city.state === selectedState).sort((a, b) => a.name.localeCompare(b.name));
+  }, [cities, selectedState]);
+
+  // Buscar endereço da loja
+  const { data: addressesData, isLoading: isLoadingAddress } = useQuery({
+    queryKey: ["addresses", selectedStore?.id],
+    queryFn: async () => {
+      if (!selectedStore?.id) return null;
+      const response = await addressesService.findAll({ limit: 100 });
+      // Filtrar endereços da loja e pegar o principal ou o primeiro
+      const storeAddresses = response.addresses.filter(addr => addr.storeId === selectedStore.id);
+      return storeAddresses.find(addr => addr.isMain) || storeAddresses[0] || null;
+    },
+    enabled: !!selectedStore?.id,
+  });
+
+  const storeAddress = addressesData;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch,
+  } = useForm<AddressFormData>({
+    resolver: zodResolver(addressSchema),
+    defaultValues: {
+      street: "",
+      number: "",
+      complement: "",
+      neighborhood: "",
+      cityId: "",
+      zipCode: "",
+      country: "Brasil",
+    },
+  });
+
+  const watchedCityId = watch("cityId");
+
+  // Atualizar estado quando cidade for selecionada
+  useEffect(() => {
+    if (watchedCityId) {
+      const city = cities.find(c => c.id === watchedCityId);
+      if (city) {
+        setSelectedState(city.state);
+      }
+    }
+  }, [watchedCityId, cities]);
+
+  // Carregar dados do endereço quando disponível
+  useEffect(() => {
+    if (storeAddress) {
+      reset({
+        street: storeAddress.street,
+        number: storeAddress.number,
+        complement: storeAddress.complement || "",
+        neighborhood: storeAddress.neighborhood,
+        cityId: storeAddress.cityId,
+        zipCode: storeAddress.zipCode,
+        country: storeAddress.country,
+      });
+      const city = cities.find(c => c.id === storeAddress.cityId);
+      if (city) {
+        setSelectedState(city.state);
+      }
+    }
+  }, [storeAddress, reset, cities]);
+
+  const createAddressMutation = useMutation({
+    mutationFn: async (data: AddressFormData) => {
+      if (!selectedStore?.id) throw new Error("Loja não selecionada");
+      return addressesService.create({
+        ...data,
+        storeId: selectedStore.id,
+        isMain: true,
+        complement: data.complement || null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["addresses"] });
+      showSuccess("Endereço criado com sucesso!");
+    },
+    onError: (error: Error) => {
+      showError(error.message || "Erro ao criar endereço");
+    },
+  });
+
+  const updateAddressMutation = useMutation({
+    mutationFn: async (data: AddressFormData) => {
+      if (!storeAddress?.id) throw new Error("Endereço não encontrado");
+      return addressesService.update(storeAddress.id, {
+        ...data,
+        complement: data.complement || null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["addresses"] });
+      showSuccess("Endereço atualizado com sucesso!");
+    },
+    onError: (error: Error) => {
+      showError(error.message || "Erro ao atualizar endereço");
+    },
+  });
+
+  const onSubmit = (data: AddressFormData) => {
+    if (storeAddress) {
+      updateAddressMutation.mutate(data);
+    } else {
+      createAddressMutation.mutate(data);
+    }
+  };
+
+  // Formatar CEP
+  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 8);
+    setValue("zipCode", value);
+  };
+
+  if (!selectedStore) {
+    return (
+      <div className="text-center py-12">
+        <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <p className="text-muted-foreground mb-4">
+          Você precisa criar uma loja antes de configurar o endereço
+        </p>
+        <Button asChild>
+          <a href="/loja/cadastro">Criar Loja</a>
+        </Button>
+      </div>
+    );
+  }
+
+  if (isLoadingAddress || isLoadingCities) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+            <MapPin className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold">Endereço da Loja</h2>
+            <p className="text-sm text-muted-foreground">Configure o endereço completo da sua loja</p>
+          </div>
+        </div>
+        <SkeletonCard className="h-96" />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="flex items-center gap-3 mb-6 pb-6 border-b">
+        <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+          <MapPin className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-semibold">Endereço da Loja</h2>
+          <p className="text-sm text-muted-foreground">Configure o endereço completo da sua loja</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6">
+        <FieldGroup>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Field>
+              <FieldLabel htmlFor="zipCode">CEP *</FieldLabel>
+              <Input
+                id="zipCode"
+                {...register("zipCode")}
+                onChange={handleZipCodeChange}
+                placeholder="00000000"
+                maxLength={8}
+                aria-invalid={errors.zipCode ? "true" : "false"}
+              />
+              {errors.zipCode && (
+                <p className="text-sm text-destructive mt-1">
+                  {errors.zipCode.message}
+                </p>
+              )}
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="country">País *</FieldLabel>
+              <Input
+                id="country"
+                {...register("country")}
+                aria-invalid={errors.country ? "true" : "false"}
+              />
+              {errors.country && (
+                <p className="text-sm text-destructive mt-1">
+                  {errors.country.message}
+                </p>
+              )}
+            </Field>
+          </div>
+
+          <Field>
+            <FieldLabel htmlFor="street">Rua *</FieldLabel>
+            <Input
+              id="street"
+              {...register("street")}
+              placeholder="Nome da rua"
+              aria-invalid={errors.street ? "true" : "false"}
+            />
+            {errors.street && (
+              <p className="text-sm text-destructive mt-1">
+                {errors.street.message}
+              </p>
+            )}
+          </Field>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Field>
+              <FieldLabel htmlFor="number">Número *</FieldLabel>
+              <Input
+                id="number"
+                {...register("number")}
+                placeholder="123"
+                aria-invalid={errors.number ? "true" : "false"}
+              />
+              {errors.number && (
+                <p className="text-sm text-destructive mt-1">
+                  {errors.number.message}
+                </p>
+              )}
+            </Field>
+
+            <Field className="md:col-span-2">
+              <FieldLabel htmlFor="complement">Complemento</FieldLabel>
+              <Input
+                id="complement"
+                {...register("complement")}
+                placeholder="Apartamento, bloco, etc. (opcional)"
+                aria-invalid={errors.complement ? "true" : "false"}
+              />
+              {errors.complement && (
+                <p className="text-sm text-destructive mt-1">
+                  {errors.complement.message}
+                </p>
+              )}
+            </Field>
+          </div>
+
+          <Field>
+            <FieldLabel htmlFor="neighborhood">Bairro *</FieldLabel>
+            <Input
+              id="neighborhood"
+              {...register("neighborhood")}
+              placeholder="Nome do bairro"
+              aria-invalid={errors.neighborhood ? "true" : "false"}
+            />
+            {errors.neighborhood && (
+              <p className="text-sm text-destructive mt-1">
+                {errors.neighborhood.message}
+              </p>
+            )}
+          </Field>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Field>
+              <FieldLabel htmlFor="state">Estado *</FieldLabel>
+              <Select value={selectedState} onValueChange={setSelectedState}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniqueStates.map((state) => (
+                    <SelectItem key={state} value={state}>
+                      {state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!selectedState && (
+                <p className="text-sm text-destructive mt-1">
+                  Selecione um estado
+                </p>
+              )}
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="cityId">Cidade *</FieldLabel>
+              <Select
+                value={watch("cityId")}
+                onValueChange={(value) => setValue("cityId", value)}
+                disabled={!selectedState}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={selectedState ? "Selecione a cidade" : "Selecione o estado primeiro"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCities.map((city) => (
+                    <SelectItem key={city.id} value={city.id}>
+                      {city.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.cityId && (
+                <p className="text-sm text-destructive mt-1">
+                  {errors.cityId.message}
+                </p>
+              )}
+            </Field>
+          </div>
+
+          <div className="flex gap-4 pt-4 border-t">
+            <Button
+              type="submit"
+              disabled={createAddressMutation.isPending || updateAddressMutation.isPending}
+            >
+              {(createAddressMutation.isPending || updateAddressMutation.isPending) ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <MapPin className="h-4 w-4 mr-2" />
+                  {storeAddress ? "Atualizar Endereço" : "Salvar Endereço"}
+                </>
+              )}
+            </Button>
+          </div>
+        </FieldGroup>
+      </form>
     </>
   );
 }

@@ -12,8 +12,8 @@ export const citiesService = {
     return response;
   },
 
-  findAll: async (): Promise<CitiesResponse> => {
-    const response = await api.get<CitiesResponse>("/cities");
+  findAll: async (params?: { state?: string; name?: string; limit?: number; page?: number }): Promise<CitiesResponse> => {
+    const response = await api.get<CitiesResponse>("/cities", params);
     return response;
   },
 

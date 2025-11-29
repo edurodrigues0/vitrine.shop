@@ -68,7 +68,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
 		<>
 			{/* Backdrop */}
 			<div 
-				className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+				className="fixed inset-0 z-40 bg-background"
 				onClick={onClose}
 			/>
 			{/* Modal */}

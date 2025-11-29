@@ -205,12 +205,29 @@ export class DrizzleStoresRepository implements StoresRepository {
 	}
 
 	async update({ id, data }: UpdateStoreParams): Promise<Store | null> {
+		// Preparar dados para atualização, garantindo que campos undefined não sobrescrevam valores existentes
+		const updateData: Record<string, unknown> = {
+			updatedAt: new Date(),
+		};
+
+		// Atualizar apenas campos que foram fornecidos
+		if (data.name !== undefined) updateData.name = data.name;
+		if (data.description !== undefined) updateData.description = data.description;
+		if (data.cnpjcpf !== undefined) updateData.cnpjcpf = data.cnpjcpf;
+		if (data.logoUrl !== undefined) updateData.logoUrl = data.logoUrl;
+		if (data.whatsapp !== undefined) updateData.whatsapp = data.whatsapp;
+		if (data.slug !== undefined) updateData.slug = data.slug;
+		if (data.instagramUrl !== undefined) updateData.instagramUrl = data.instagramUrl;
+		if (data.facebookUrl !== undefined) updateData.facebookUrl = data.facebookUrl;
+		if (data.bannerUrl !== undefined) updateData.bannerUrl = data.bannerUrl;
+		if (data.theme !== undefined) updateData.theme = data.theme;
+		if (data.cityId !== undefined) updateData.cityId = data.cityId;
+		if (data.status !== undefined) updateData.status = data.status;
+		if (data.isPaid !== undefined) updateData.isPaid = data.isPaid;
+
 		const [updatedStore] = await this.drizzle
 			.update(stores)
-			.set({
-				...data,
-				updatedAt: new Date(),
-			})
+			.set(updateData)
 			.where(eq(stores.id, id))
 			.returning();
 

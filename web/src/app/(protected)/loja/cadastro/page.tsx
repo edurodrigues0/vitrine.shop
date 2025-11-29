@@ -19,10 +19,13 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { createSlug } from "@/lib/slug";
 import { showSuccess, showError } from "@/lib/toast";
-import { Loader2, CheckCircle2, XCircle, HelpCircle, Eye, Save, ArrowLeft, AlertTriangle } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, HelpCircle, Eye, Save, ArrowLeft, AlertTriangle, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BRAZIL_STATES } from "@/lib/brasil-states";
+import { AddressSection } from "./address-section";
 
 const storeSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(120, "Nome muito longo"),
@@ -91,6 +94,7 @@ export default function StoreFormPage() {
   });
 
   const isEditing = !!storeId;
+  const formInitializedRef = useRef(false);
   const justSavedRef = useRef(false);
 
   const {
@@ -128,7 +132,7 @@ export default function StoreFormPage() {
     },
   });
 
-  // Atualizar valores do formulário quando storeData for carregado
+  // Atualizar valores do formulário quando storeData for carregado (apenas na primeira carga)
   useEffect(() => {
     // Skip reset if form was just saved (to prevent overwriting with stale cache data)
     if (justSavedRef.current) {
@@ -136,7 +140,8 @@ export default function StoreFormPage() {
       return;
     }
 
-    if (storeData && isEditing) {
+    // Só inicializar o formulário uma vez quando os dados forem carregados
+    if (storeData && isEditing && !formInitializedRef.current) {
       reset({
         name: storeData.name,
         description: storeData.description || "",
@@ -165,6 +170,8 @@ export default function StoreFormPage() {
       if (city) {
         setSelectedState(city.state);
       }
+
+      formInitializedRef.current = true;
     }
   }, [storeData, isEditing, reset, cities]);
 
@@ -246,14 +253,42 @@ export default function StoreFormPage() {
 
       return storesService.update(storeId!, updateData);
     },
-    onSuccess: () => {
+    onSuccess: (updatedStore) => {
       // Set flag to prevent useEffect from resetting form with stale data
       justSavedRef.current = true;
 
-      // Invalidar todas as queries relacionadas a lojas
+      // Atualizar o cache diretamente com os dados retornados da mutation
+      queryClient.setQueryData(["store", storeId], updatedStore);
+      queryClient.setQueryData(["store", "slug", updatedStore.slug], updatedStore);
+
+      // Atualizar o formulário com os dados retornados para garantir que está sincronizado
+      // Usar setValue em vez de reset para preservar o estado do formulário
+      setValue("name", updatedStore.name);
+      setValue("description", updatedStore.description || "");
+      setValue("slug", updatedStore.slug);
+      setValue("cnpjcpf", updatedStore.cnpjcpf || "");
+      setValue("whatsapp", updatedStore.whatsapp || "");
+      setValue("instagramUrl", updatedStore.instagramUrl || "");
+      setValue("facebookUrl", updatedStore.facebookUrl || "");
+      setValue("logoUrl", updatedStore.logoUrl || "");
+      setValue("bannerUrl", updatedStore.bannerUrl || "");
+      setValue("cityId", updatedStore.cityId);
+      setValue("primaryColor", updatedStore.theme?.primary || "#2563eb");
+      setValue("primaryGradient", updatedStore.theme?.primaryGradient || "");
+      setValue("secondaryColor", updatedStore.theme?.secondary || "#7c3aed");
+      setValue("bgColor", updatedStore.theme?.bg || "#ffffff");
+      setValue("surfaceColor", updatedStore.theme?.surface || "#f3f4f6");
+      setValue("textColor", updatedStore.theme?.text || "#1f2937");
+      setValue("textSecondaryColor", updatedStore.theme?.textSecondary || "#64748b");
+      setValue("highlightColor", updatedStore.theme?.highlight || "#f59e0b");
+      setValue("borderColor", updatedStore.theme?.border || "#e2e8f0");
+      setValue("hoverColor", updatedStore.theme?.hover || "#dbeafe");
+      setValue("overlayColor", updatedStore.theme?.overlay || "rgba(0,0,0,0.5)");
+
+      // Invalidar outras queries relacionadas (mas não a query atual que já atualizamos)
       queryClient.invalidateQueries({ queryKey: ["stores"] });
-      queryClient.invalidateQueries({ queryKey: ["store", storeId] });
-      queryClient.invalidateQueries({ queryKey: ["stores", "user"] }); // Invalidar query de lojas do usuário
+      queryClient.invalidateQueries({ queryKey: ["stores", "user"] });
+      
       showSuccess("Loja atualizada com sucesso!");
       // Não redirecionar - manter usuário na página com as configurações salvas
     },
@@ -372,14 +407,17 @@ export default function StoreFormPage() {
         </div>
       </div>
 
-      <Card className="p-6">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <FieldGroup>
-            {/* Layout em 2 colunas */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Coluna Esquerda - Informações Básicas */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4 pb-2 border-b">Informações Básicas</h3>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <FieldGroup>
+          {/* Layout em 2 colunas */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Coluna Esquerda - Informações Básicas */}
+            <Card className="p-6 shadow-sm">
+              <div className="space-y-6">
+                <div className="pb-4 border-b">
+                  <h3 className="text-xl font-semibold">Informações Básicas</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Dados principais da sua loja</p>
+                </div>
 
                 <Field>
                   <div className="flex items-center gap-2 mb-1.5">
@@ -405,7 +443,7 @@ export default function StoreFormPage() {
                   </div>
                   {watch("name") && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      {watch("name").length}/120 caracteres
+                      {watch("name").length} / 120 caracteres
                     </p>
                   )}
                   {errors.name && (
@@ -449,7 +487,7 @@ export default function StoreFormPage() {
                   </FieldDescription>
                   {watch("slug") && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      {watch("slug").length}/120 caracteres
+                      {watch("slug").length} / 120 caracteres
                     </p>
                   )}
                   {errors.slug && (
@@ -509,34 +547,16 @@ export default function StoreFormPage() {
                     </p>
                   )}
                 </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="cityId">Cidade *</FieldLabel>
-                  <select
-                    id="cityId"
-                    {...register("cityId")}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    style={{ backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}
-                    aria-invalid={errors.cityId ? "true" : "false"}
-                  >
-                    <option value="">Selecione uma cidade</option>
-                    {cities.map((city) => (
-                      <option key={city.id} value={city.id}>
-                        {city.name} - {city.state}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.cityId && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.cityId.message}
-                    </p>
-                  )}
-                </Field>
               </div>
+            </Card>
 
-              {/* Coluna Direita - Contato e Visual */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4 pb-2 border-b">Contato e Visual</h3>
+            {/* Coluna Direita - Contato e Visual */}
+            <Card className="p-6 shadow-sm">
+              <div className="space-y-6">
+                <div className="pb-4 border-b">
+                  <h3 className="text-xl font-semibold">Contato e Visual</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Informações de contato e imagens</p>
+                </div>
 
                 <Field>
                   <FieldLabel htmlFor="whatsapp">WhatsApp *</FieldLabel>
@@ -617,14 +637,38 @@ export default function StoreFormPage() {
                   )}
                 </Field>
               </div>
-            </div>
+            </Card>
+          </div>
 
-            {/* Cores do Tema - Paleta Completa */}
-            <div className="pt-6 border-t">
-              <h3 className="text-lg font-semibold mb-2">Identidade Visual</h3>
-              <p className="text-sm text-muted-foreground mb-6">
-                Configure a paleta de cores completa da sua loja. Essas cores serão aplicadas automaticamente em toda a loja pública.
-              </p>
+          {/* Seção de Endereço - Apenas no modo de edição */}
+          {isEditing && (
+            <Card className="p-6 shadow-sm">
+              <div className="space-y-6">
+                <div className="pb-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    <div>
+                      <h3 className="text-xl font-semibold">Endereço da Loja</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Configure o endereço completo da sua loja. Este endereço será exibido na página pública da loja.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <AddressSection storeId={storeId!} />
+              </div>
+            </Card>
+          )}
+
+          {/* Cores do Tema - Paleta Completa */}
+          <Card className="p-6 shadow-sm">
+            <div className="space-y-6">
+                <div className="pb-4 border-b">
+                  <h3 className="text-xl font-semibold">Identidade Visual</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Configure a paleta de cores completa da sua loja. Essas cores serão aplicadas automaticamente em toda a loja pública.
+                  </p>
+                </div>
 
               {/* Cores Principais */}
               <div className="mb-6">
@@ -708,7 +752,7 @@ export default function StoreFormPage() {
                     <Input
                       id="primaryGradient"
                       {...register("primaryGradient")}
-                      placeholder="linear-gradient(to right, #...)"
+                      placeholder="linear-gradient(to right, #cor1, #cor2)"
                     />
                   </Field>
                 </div>
@@ -892,33 +936,38 @@ export default function StoreFormPage() {
                 </div>
               </div>
             </div>
+          </Card>
 
-            {/* Botões de ação */}
-            <div className="flex gap-4 pt-6 border-t">
-              <Button
-                type="submit"
-                disabled={createMutation.isPending || updateMutation.isPending}
-              >
-                {createMutation.isPending || updateMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
-                    <span>{isEditing ? "Salvando..." : "Criando..."}</span>
-                  </>
-                ) : (
-                  isEditing ? "Salvar Alterações" : "Criar Loja"
-                )}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.push("/loja")}
-              >
-                Cancelar
-              </Button>
+          {/* Botões de ação */}
+          <Card className="p-6 shadow-sm">
+            <div className="flex gap-4">
+                <Button
+                  type="submit"
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                  size="lg"
+                >
+                  {createMutation.isPending || updateMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                      <span>{isEditing ? "Salvando..." : "Criando..."}</span>
+                    </>
+                  ) : (
+                    isEditing ? "Salvar Alterações" : "Criar Loja"
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/loja")}
+                  size="lg"
+                >
+                  Cancelar
+                </Button>
             </div>
-          </FieldGroup>
+          </Card>
+        </FieldGroup>
         </form>
-      </Card>
+      </div>
     </div>
   );
 }

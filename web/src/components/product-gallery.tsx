@@ -128,7 +128,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
       {isZoomed && (
         <>
           <div
-            className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-background"
             onClick={() => setIsZoomed(false)}
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
