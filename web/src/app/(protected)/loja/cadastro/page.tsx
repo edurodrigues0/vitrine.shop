@@ -241,6 +241,9 @@ export default function StoreFormPage() {
         },
       };
 
+      console.log("🔵 Dados sendo enviados para o backend:", updateData);
+      console.log("🎨 Theme sendo enviado:", updateData.theme);
+
       return storesService.update(storeId!, updateData);
     },
     onSuccess: () => {
