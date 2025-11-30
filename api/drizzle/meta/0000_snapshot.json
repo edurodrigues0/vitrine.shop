@@ -1,5 +1,5 @@
 {
-  "id": "ba8ae756-b63c-4568-8da5-3fa092373e19",
+  "id": "e088487c-25e3-4d8c-a861-dadd3e5d52f5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -17,12 +17,6 @@
         },
         "store_id": {
           "name": "store_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "branch_id": {
-          "name": "branch_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
@@ -69,6 +63,18 @@
           "primaryKey": false,
           "notNull": true
         },
+        "latitude": {
+          "name": "latitude",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "is_main": {
           "name": "is_main",
           "type": "boolean",
@@ -90,19 +96,6 @@
             "id"
           ],
           "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "addresses_branch_id_store_branches_id_fk": {
-          "name": "addresses_branch_id_store_branches_id_fk",
-          "tableFrom": "addresses",
-          "tableTo": "store_branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "addresses_city_id_cities_id_fk": {
@@ -196,6 +189,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "slug": {
+          "name": "slug",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "state": {
           "name": "state",
           "type": "varchar(2)",
@@ -213,7 +212,15 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "cities_slug_unique": {
+          "name": "cities_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -507,25 +514,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "price": {
-          "name": "price",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "quantity": {
-          "name": "quantity",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "color": {
-          "name": "color",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -711,104 +699,6 @@
           "tableTo": "products",
           "columnsFrom": [
             "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.store_branches": {
-      "name": "store_branches",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "parent_store_id": {
-          "name": "parent_store_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(120)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "city_id": {
-          "name": "city_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "is_main": {
-          "name": "is_main",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "whatsapp": {
-          "name": "whatsapp",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "store_branches_parent_store_id_stores_id_fk": {
-          "name": "store_branches_parent_store_id_stores_id_fk",
-          "tableFrom": "store_branches",
-          "tableTo": "stores",
-          "columnsFrom": [
-            "parent_store_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "store_branches_city_id_cities_id_fk": {
-          "name": "store_branches_city_id_cities_id_fk",
-          "tableFrom": "store_branches",
-          "tableTo": "cities",
-          "columnsFrom": [
-            "city_id"
           ],
           "columnsTo": [
             "id"
@@ -1050,8 +940,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "store_id": {
-          "name": "store_id",
+        "user_id": {
+          "name": "user_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -1128,12 +1018,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "subscriptions_store_id_stores_id_fk": {
-          "name": "subscriptions_store_id_stores_id_fk",
+        "subscriptions_user_id_users_id_fk": {
+          "name": "subscriptions_user_id_users_id_fk",
           "tableFrom": "subscriptions",
-          "tableTo": "stores",
+          "tableTo": "users",
           "columnsFrom": [
-            "store_id"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -1269,7 +1159,8 @@
       "values": [
         "PAID",
         "PENDING",
-        "CANCELLED"
+        "CANCELLED",
+        "REFUNDED"
       ]
     },
     "public.user_role": {
