@@ -145,6 +145,11 @@ export async function createAddressController(
 	response: Response,
 ) {
 	try {
+		console.log("📥 Recebendo requisição para criar endereço:", {
+			body: request.body,
+			userId: request.user?.id,
+		});
+
 		const {
 			street,
 			number,
@@ -157,8 +162,21 @@ export async function createAddressController(
 			isMain,
 		} = createAddressBodySchema.parse(request.body);
 
+		console.log("✅ Dados validados:", {
+			street,
+			number,
+			complement,
+			neighborhood,
+			cityId,
+			zipCode,
+			country,
+			storeId,
+			isMain,
+		});
+
 		const createAddressUseCase = makeCreateAddressUseCase();
 
+		console.log("🔄 Executando use case para criar endereço...");
 		const { address } = await createAddressUseCase.execute({
 			street,
 			number,
@@ -170,6 +188,8 @@ export async function createAddressController(
 			storeId,
 			isMain,
 		});
+
+		console.log("✅ Endereço criado com sucesso:", address.id);
 
 		return response.status(201).json({
 			address: {

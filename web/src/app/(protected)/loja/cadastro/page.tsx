@@ -25,7 +25,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BRAZIL_STATES } from "@/lib/brasil-states";
-import { AddressSection } from "./address-section";
+import { AddressSection, type AddressSectionRef } from "./address-section";
 
 const storeSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(120, "Nome muito longo"),
@@ -96,6 +96,7 @@ export default function StoreFormPage() {
   const isEditing = !!storeId;
   const formInitializedRef = useRef(false);
   const justSavedRef = useRef(false);
+  const addressSectionRef = useRef<AddressSectionRef>(null);
 
   const {
     register,
@@ -316,7 +317,30 @@ export default function StoreFormPage() {
     },
   });
 
-  const onSubmit = (data: StoreFormData) => {
+  const onSubmit = async (data: StoreFormData) => {
+    console.log("🚀 Iniciando salvamento da loja...", { isEditing });
+    
+    // Salvar endereço primeiro, se estiver editando e houver AddressSection
+    if (isEditing && addressSectionRef.current) {
+      console.log("📍 Tentando salvar endereço...");
+      try {
+        await addressSectionRef.current.saveAddress();
+        console.log("✅ Endereço salvo com sucesso antes de salvar a loja");
+      } catch (error: any) {
+        console.error("❌ Erro ao salvar endereço:", error);
+        // Se houver erro ao salvar endereço, verificar se é erro de validação
+        if (error?.message?.includes("obrigatórios")) {
+          showError(error.message);
+          return; // Não salvar a loja se o endereço não estiver válido
+        }
+        // Outros erros não devem bloquear o salvamento da loja
+        // Mas vamos avisar o usuário
+        console.warn("⚠️ Erro ao salvar endereço, mas continuando com salvamento da loja");
+      }
+    }
+    
+    console.log("💾 Salvando dados da loja...");
+    // Salvar loja
     if (isEditing) {
       updateMutation.mutate(data);
     } else {
@@ -655,7 +679,7 @@ export default function StoreFormPage() {
                     </div>
                   </div>
                 </div>
-                <AddressSection storeId={storeId!} />
+                <AddressSection ref={addressSectionRef} storeId={storeId!} />
               </div>
             </Card>
           )}
@@ -966,8 +990,7 @@ export default function StoreFormPage() {
             </div>
           </Card>
         </FieldGroup>
-        </form>
-      </div>
+      </form>
     </div>
   );
 }

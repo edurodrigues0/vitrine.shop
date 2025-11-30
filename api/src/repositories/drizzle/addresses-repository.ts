@@ -22,6 +22,18 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 		storeId,
 		isMain,
 	}: CreateAddressParams): Promise<Address> {
+		console.log("💾 Repository: Criando endereço no banco de dados", {
+			street,
+			number,
+			complement,
+			neighborhood,
+			cityId,
+			zipCode,
+			country,
+			storeId,
+			isMain,
+		});
+
 		const [address] = await this.drizzle
 			.insert(addresses)
 			.values({
@@ -38,9 +50,11 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 			.returning();
 
 		if (!address) {
+			console.error("❌ Repository: Falha ao criar endereço - nenhum endereço retornado");
 			throw new Error("Failed to create address");
 		}
 
+		console.log("✅ Repository: Endereço criado com sucesso no banco:", address.id);
 		return address;
 	}
 
@@ -176,6 +190,11 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 	}
 
 	async update({ id, data }: UpdateAddressParams): Promise<Address | null> {
+		console.log("💾 Repository: Atualizando endereço no banco de dados", {
+			id,
+			data,
+		});
+
 		// Preparar dados para atualização, tratando undefined como null para campos opcionais
 		const updateData: Record<string, unknown> = {};
 
@@ -189,13 +208,21 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 		if (data.storeId !== undefined) updateData.storeId = data.storeId ?? null;
 		if (data.isMain !== undefined) updateData.isMain = data.isMain;
 
+		console.log("💾 Repository: Dados preparados para atualização:", updateData);
+
 		const [updatedAddress] = await this.drizzle
 			.update(addresses)
 			.set(updateData)
 			.where(eq(addresses.id, id))
 			.returning();
 
-		return updatedAddress ?? null;
+		if (!updatedAddress) {
+			console.error("❌ Repository: Endereço não encontrado para atualização:", id);
+			return null;
+		}
+
+		console.log("✅ Repository: Endereço atualizado com sucesso no banco:", updatedAddress.id);
+		return updatedAddress;
 	}
 
 	async delete({ id }: { id: string }): Promise<void> {

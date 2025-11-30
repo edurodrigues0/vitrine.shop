@@ -143,10 +143,23 @@ export class DrizzleProductsRepository implements ProductsRespository {
 			.orderBy(
 				filters.latitude && filters.longitude
 					? sql`
-						(6371 * acos(
-							cos(radians(${filters.latitude})) * cos(radians(${addresses.latitude}::float)) * cos(radians(${addresses.longitude}::float) - radians(${filters.longitude})) +
-							sin(radians(${filters.latitude})) * sin(radians(${addresses.latitude}::float))
-						)) ASC
+						CASE 
+							WHEN ${addresses.latitude} IS NULL OR ${addresses.longitude} IS NULL OR 
+							     ${addresses.latitude} = '' OR ${addresses.longitude} = ''
+							THEN 999999
+							ELSE (
+								6371 * acos(
+									LEAST(1.0, GREATEST(-1.0,
+										cos(radians(${filters.latitude})) * 
+										cos(radians(CAST(${addresses.latitude} AS float))) * 
+										cos(radians(CAST(${addresses.longitude} AS float)) - radians(${filters.longitude})) +
+										sin(radians(${filters.latitude})) * 
+										sin(radians(CAST(${addresses.latitude} AS float)))
+									))
+								)
+							)
+						END ASC,
+						${products.createdAt} DESC
 					`
 					: desc(products.createdAt)
 			)

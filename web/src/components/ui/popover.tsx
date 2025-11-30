@@ -148,13 +148,13 @@ function PopoverContent({
     <div
       ref={contentRef}
       className={cn(
-        "absolute z-50 min-w-[8rem] rounded-xl border bg-popover p-1 text-popover-foreground shadow-lg",
+        "absolute z-50 min-w-[8rem] rounded-xl border bg-background p-1 text-foreground shadow-lg",
         className,
       )}
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
-        backgroundColor: 'hsl(var(--popover))',
+        backgroundColor: 'hsl(var(--background))',
       }}
       {...props}
     >
