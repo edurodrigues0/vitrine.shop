@@ -134,6 +134,12 @@ export async function updateAddressController(
 	try {
 		const { id } = request.params;
 
+		console.log("📥 Recebendo requisição para atualizar endereço:", {
+			id,
+			body: request.body,
+			userId: request.user?.id,
+		});
+
 		if (!id) {
 			return response.status(400).json({
 				message: "ID do endereço é obrigatório",
@@ -141,6 +147,7 @@ export async function updateAddressController(
 		}
 
 		const body = updateAddressBodySchema.parse(request.body);
+		console.log("✅ Dados validados para atualização:", body);
 
 		// Remover campos undefined para não enviar dados desnecessários
 		const updateData = Object.fromEntries(
@@ -155,16 +162,20 @@ export async function updateAddressController(
 
 		const updateAddressUseCase = makeUpdateAddressUseCase();
 
+		console.log("🔄 Executando use case para atualizar endereço...");
 		const { address } = await updateAddressUseCase.execute({
 			id,
 			data: updateData,
 		});
 
 		if (!address) {
+			console.log("❌ Endereço não encontrado para atualização");
 			return response.status(404).json({
 				message: "Endereço não encontrado",
 			});
 		}
+
+		console.log("✅ Endereço atualizado com sucesso:", address.id);
 
 		return response.status(200).json({
 			address: {

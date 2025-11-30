@@ -18,7 +18,10 @@
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
 		"db:seed": "tsx --env-file=.env src/database/run-seed.ts",
+		"db:seed-cities": "tsx --env-file=.env src/database/run-seed-cities.ts",
+		"db:seed-cities-all": "tsx --env-file=.env src/database/run-seed-cities-ibge.ts",
 		"db:clear": "tsx --env-file=.env src/database/run-clear.ts",
+		"db:migrate-theme": "tsx --env-file=.env src/database/run-migrate-theme.ts",
 		"db:add-color": "tsx --env-file=.env src/database/add-color-column.ts",
 		"db:create-notifications": "tsx --env-file=.env src/database/create-notifications-table.ts"
 	},

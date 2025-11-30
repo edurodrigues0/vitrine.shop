@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSelectedStore } from "@/hooks/use-selected-store";
+import { useAuth } from "@/hooks/use-auth";
 import { subscriptionsService } from "@/services/subscriptions-service";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,6 +79,7 @@ export default function PlansPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const { selectedStore, isLoading: isLoadingStore } = useSelectedStore();
   const [selectedPlan, setSelectedPlan] = useState<PlanId | null>(null);
   const { confirm, ConfirmDialog } = useConfirm();
@@ -99,9 +101,9 @@ export default function PlansPage() {
 
   // Buscar assinatura atual
   const { data: subscriptionData, isLoading: isLoadingSubscription } = useQuery({
-    queryKey: ["subscription", selectedStore?.id],
-    queryFn: () => subscriptionsService.findByStoreId(selectedStore!.id),
-    enabled: !!selectedStore?.id,
+    queryKey: ["subscription", user?.id],
+    queryFn: () => subscriptionsService.findByUserId(user!.id),
+    enabled: !!user?.id,
   });
 
   const subscription = subscriptionData?.subscription;

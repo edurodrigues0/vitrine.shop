@@ -2,7 +2,7 @@ import { api } from "@/lib/api-client";
 
 export interface Subscription {
   id: string;
-  storeId: string;
+  userId: string;
   planName: string;
   planId: string;
   provider: string;
@@ -28,8 +28,8 @@ export interface CreateCheckoutSessionResponse {
 }
 
 export const subscriptionsService = {
-  async findByStoreId(storeId: string): Promise<{ subscription: Subscription | null }> {
-    const response = await api.get<{ subscription: Subscription | null }>(`/subscriptions/store/${storeId}`);
+  async findByUserId(userId: string): Promise<{ subscription: Subscription | null }> {
+    const response = await api.get<{ subscription: Subscription | null }>(`/subscriptions/user/${userId}`);
     return response;
   },
 

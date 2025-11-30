@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useImperativeHandle, forwardRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,9 +12,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, MapPin, Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { showSuccess, showError } from "@/lib/toast";
 import { BRAZIL_STATES } from "@/lib/brasil-states";
 
@@ -30,41 +29,19 @@ const addressSchema = z.object({
 
 type AddressFormData = z.infer<typeof addressSchema>;
 
-export function AddressSection({ storeId }: { storeId: string }) {
+export interface AddressSectionRef {
+  saveAddress: () => Promise<void>;
+}
+
+export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>(
+  ({ storeId }, ref) => {
   const queryClient = useQueryClient();
   const [addressState, setAddressState] = useState("");
   const [citySearchTerm, setCitySearchTerm] = useState("");
+  const addressIdRef = useRef<string | null>(null);
 
-  // Buscar cidades do estado selecionado
-  const { data: citiesData, isLoading: isLoadingCities } = useQuery({
-    queryKey: ["cities", addressState],
-    queryFn: async () => {
-      if (!addressState) return { cities: [], meta: { totalItems: 0, totalPages: 0, currentPage: 1, perPage: 1000 } };
-      return citiesService.findAll({ state: addressState, limit: 1000 });
-    },
-    enabled: !!addressState,
-    staleTime: 1000 * 60 * 60,
-  });
-
-  const cities = citiesData?.cities || [];
-
-  // Filtrar cidades por termo de busca
-  const filteredCities = useMemo(() => {
-    let result = cities.sort((a, b) => a.name.localeCompare(b.name));
-    
-    if (citySearchTerm.trim()) {
-      const searchLower = citySearchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      result = result.filter(city => {
-        const cityName = city.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        return cityName.includes(searchLower);
-      });
-    }
-    
-    return result;
-  }, [cities, citySearchTerm]);
-
-  // Buscar endereço da loja
-  const { data: addressesData, isLoading: isLoadingAddress } = useQuery({
+  // Buscar endereço da loja PRIMEIRO
+  const { data: storeAddress, isLoading: isLoadingAddress } = useQuery({
     queryKey: ["addresses", storeId],
     queryFn: async () => {
       const response = await addressesService.findAll({ limit: 100 });
@@ -73,7 +50,102 @@ export function AddressSection({ storeId }: { storeId: string }) {
     },
   });
 
-  const storeAddress = addressesData;
+  // Buscar cidade para obter o estado quando há endereço existente
+  // Buscar todas as cidades e filtrar pelo ID (limitado a 100 pelo backend)
+  const { data: cityForAddress, isLoading: isLoadingCity } = useQuery({
+    queryKey: ["city-for-address", storeAddress?.cityId],
+    queryFn: async () => {
+      if (!storeAddress?.cityId) return null;
+      try {
+        // Buscar cidades com limite máximo de 100 (limite do backend)
+        const response = await citiesService.findAll({ limit: 100, page: 1 });
+        const city = response.cities.find(c => c.id === storeAddress.cityId);
+        
+        // Se não encontrou na primeira página, tentar buscar em outras páginas
+        if (!city && response.meta.totalPages > 1) {
+          for (let page = 2; page <= response.meta.totalPages; page++) {
+            const pageResponse = await citiesService.findAll({ limit: 100, page });
+            const foundCity = pageResponse.cities.find(c => c.id === storeAddress.cityId);
+            if (foundCity) return foundCity;
+          }
+        }
+        
+        return city || null;
+      } catch (error) {
+        console.error("Erro ao buscar cidade para endereço:", error);
+        return null;
+      }
+    },
+    enabled: !!storeAddress?.cityId,
+  });
+
+  // Buscar cidades do estado selecionado
+  const { data: citiesData, isLoading: isLoadingCities, error: citiesError } = useQuery({
+    queryKey: ["cities", addressState],
+    queryFn: async () => {
+      if (!addressState) {
+        return { cities: [], meta: { totalItems: 0, totalPages: 0, currentPage: 1, perPage: 100 } };
+      }
+      try {
+        // O limite máximo da API é 100, então vamos buscar todas as páginas se necessário
+        const result = await citiesService.findAll({ state: addressState, limit: 100, page: 1 });
+        
+        console.log(`Cidades encontradas para ${addressState}:`, {
+          primeiraPagina: result.cities.length,
+          totalItems: result.meta.totalItems,
+          totalPages: result.meta.totalPages,
+        });
+        
+        // Se houver mais páginas, buscar todas
+        if (result.meta.totalPages > 1) {
+          const allCities = [...result.cities];
+          for (let page = 2; page <= result.meta.totalPages; page++) {
+            const pageResult = await citiesService.findAll({ 
+              state: addressState, 
+              limit: 100, 
+              page 
+            });
+            allCities.push(...pageResult.cities);
+          }
+          console.log(`Total de cidades carregadas para ${addressState}:`, allCities.length);
+          return {
+            cities: allCities,
+            meta: {
+              ...result.meta,
+              totalItems: allCities.length,
+            },
+          };
+        }
+        
+        console.log(`Total de cidades carregadas para ${addressState}:`, result.cities.length);
+        return result;
+      } catch (error) {
+        console.error("Erro ao buscar cidades:", error);
+        throw error;
+      }
+    },
+    enabled: !!addressState,
+    staleTime: 1000 * 60 * 60,
+    retry: 2,
+    refetchOnMount: true,
+  });
+
+  const cities = citiesData?.cities || [];
+
+  // Filtrar cidades por termo de busca
+  const filteredCities = useMemo(() => {
+    const sorted = [...cities].sort((a, b) => a.name.localeCompare(b.name));
+    
+    if (citySearchTerm.trim()) {
+      const searchLower = citySearchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      return sorted.filter(city => {
+        const cityName = city.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return cityName.includes(searchLower);
+      });
+    }
+    
+    return sorted;
+  }, [cities, citySearchTerm]);
 
   const {
     register,
@@ -82,6 +154,8 @@ export function AddressSection({ storeId }: { storeId: string }) {
     reset,
     setValue,
     watch,
+    trigger,
+    getValues,
   } = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
@@ -95,33 +169,13 @@ export function AddressSection({ storeId }: { storeId: string }) {
     },
   });
 
-  const watchedCityId = watch("cityId");
-
-  // Atualizar estado quando cidade for selecionada
+  // Inicializar o formulário quando o endereço e cidade forem carregados
+  // Usa addressIdRef para rastrear se já foi inicializado para este endereço específico
   useEffect(() => {
-    if (watchedCityId && cities.length > 0) {
-      const city = cities.find(c => c.id === watchedCityId);
-      if (city) {
-        setAddressState(city.state);
-      }
-    }
-  }, [watchedCityId, cities]);
-
-  // Buscar cidade para carregar estado ao carregar endereço
-  const { data: cityForAddress } = useQuery({
-    queryKey: ["city", storeAddress?.cityId],
-    queryFn: async () => {
-      if (!storeAddress?.cityId) return null;
-      // Buscar a cidade pelo ID para obter o estado
-      const allCities = await citiesService.findAll({ limit: 1000 });
-      return allCities.cities.find(c => c.id === storeAddress.cityId) || null;
-    },
-    enabled: !!storeAddress?.cityId && cities.length === 0,
-  });
-
-  // Carregar dados do endereço quando disponível
-  useEffect(() => {
-    if (storeAddress) {
+    if (storeAddress && cityForAddress && addressIdRef.current !== storeAddress.id) {
+      addressIdRef.current = storeAddress.id;
+      // Garantir que o estado seja setado antes de resetar o formulário
+      setAddressState(cityForAddress.state);
       reset({
         street: storeAddress.street,
         number: storeAddress.number,
@@ -131,22 +185,56 @@ export function AddressSection({ storeId }: { storeId: string }) {
         zipCode: storeAddress.zipCode,
         country: storeAddress.country,
       });
-      // Tentar obter o estado da cidade
-      const city = cities.find(c => c.id === storeAddress.cityId) || cityForAddress;
-      if (city) {
-        setAddressState(city.state);
+    }
+  }, [storeAddress, cityForAddress, reset]);
+
+  // Garantir que quando o estado mudar manualmente, o cityId seja limpo
+  useEffect(() => {
+    if (addressState) {
+      // Limpar o cityId quando o estado mudar
+      const currentCityId = watch("cityId");
+      if (currentCityId) {
+        // Verificar se a cidade atual pertence ao novo estado
+        const currentCity = cities.find(c => c.id === currentCityId);
+        if (!currentCity || currentCity.state !== addressState) {
+          setValue("cityId", "");
+        }
       }
     }
-  }, [storeAddress, reset, cities, cityForAddress]);
+  }, [addressState, cities, watch, setValue]);
 
   const createAddressMutation = useMutation({
     mutationFn: async (data: AddressFormData) => {
-      return addressesService.create({
-        ...data,
+      const payload: any = {
+        street: data.street,
+        number: data.number,
+        neighborhood: data.neighborhood,
+        cityId: data.cityId,
+        zipCode: data.zipCode,
+        country: data.country,
         storeId: storeId,
         isMain: true,
-        complement: data.complement || null,
-      });
+      };
+      // Enviar complemento apenas se tiver valor, senão omitir (o backend trata como opcional)
+      if (data.complement && data.complement.trim()) {
+        payload.complement = data.complement.trim();
+      }
+      
+      console.log("📤 Criando endereço com payload:", JSON.stringify(payload, null, 2));
+      try {
+        const result = await addressesService.create(payload);
+        console.log("✅ Endereço criado com sucesso no service:", result);
+        return result;
+      } catch (error: any) {
+        console.error("❌ Erro no service ao criar endereço:", error);
+        console.error("❌ Detalhes do erro:", {
+          message: error?.message,
+          status: error?.status,
+          data: error?.data,
+          response: error?.response,
+        });
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
@@ -160,10 +248,36 @@ export function AddressSection({ storeId }: { storeId: string }) {
   const updateAddressMutation = useMutation({
     mutationFn: async (data: AddressFormData) => {
       if (!storeAddress?.id) throw new Error("Endereço não encontrado");
-      return addressesService.update(storeAddress.id, {
-        ...data,
-        complement: data.complement || null,
-      });
+      const payload: any = {
+        street: data.street,
+        number: data.number,
+        neighborhood: data.neighborhood,
+        cityId: data.cityId,
+        zipCode: data.zipCode,
+        country: data.country,
+      };
+      // Enviar complemento apenas se tiver valor, senão null para limpar
+      if (data.complement && data.complement.trim()) {
+        payload.complement = data.complement.trim();
+      } else {
+        payload.complement = null; // Para limpar o campo se estiver vazio
+      }
+      
+      console.log("📤 Atualizando endereço com payload:", JSON.stringify(payload, null, 2));
+      try {
+        const result = await addressesService.update(storeAddress.id, payload);
+        console.log("✅ Endereço atualizado com sucesso no service:", result);
+        return result;
+      } catch (error: any) {
+        console.error("❌ Erro no service ao atualizar endereço:", error);
+        console.error("❌ Detalhes do erro:", {
+          message: error?.message,
+          status: error?.status,
+          data: error?.data,
+          response: error?.response,
+        });
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
@@ -182,13 +296,76 @@ export function AddressSection({ storeId }: { storeId: string }) {
     }
   };
 
+  // Expor função para salvar endereço externamente
+  useImperativeHandle(ref, () => ({
+    saveAddress: async () => {
+      const data = getValues();
+      console.log("📦 Dados do endereço coletados:", data);
+      
+      // Verificar se há dados preenchidos (pelo menos um campo obrigatório)
+      const hasData = data.street && data.number && data.neighborhood && data.cityId && data.zipCode && data.country;
+      
+      if (!hasData) {
+        console.log("⚠️ Endereço não tem dados suficientes, pulando salvamento");
+        // Se não houver dados, não fazer nada (endereço é opcional ao salvar a loja)
+        return;
+      }
+      
+      console.log("✅ Endereço tem dados, validando...");
+      
+      // Validar todos os campos se houver dados
+      const isValid = await trigger();
+      if (!isValid) {
+        console.error("❌ Validação do endereço falhou");
+        throw new Error("Por favor, preencha todos os campos obrigatórios do endereço");
+      }
+      
+      console.log("✅ Validação passou, salvando endereço...", { 
+        isUpdate: !!storeAddress,
+        addressId: storeAddress?.id 
+      });
+      
+      // Retornar promise que resolve quando a mutation for bem-sucedida
+      return new Promise<void>((resolve, reject) => {
+        if (storeAddress) {
+          console.log("🔄 Atualizando endereço existente...");
+          updateAddressMutation.mutate(data, {
+            onSuccess: () => {
+              console.log("✅ Endereço atualizado com sucesso");
+              resolve();
+            },
+            onError: (error) => {
+              console.error("❌ Erro ao atualizar endereço:", error);
+              reject(error);
+            },
+          });
+        } else {
+          console.log("➕ Criando novo endereço...");
+          createAddressMutation.mutate(data, {
+            onSuccess: () => {
+              console.log("✅ Endereço criado com sucesso");
+              resolve();
+            },
+            onError: (error) => {
+              console.error("❌ Erro ao criar endereço:", error);
+              reject(error);
+            },
+          });
+        }
+      });
+    },
+  }), [storeAddress, trigger, getValues, updateAddressMutation, createAddressMutation]);
+
   // Formatar CEP
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 8);
     setValue("zipCode", value);
   };
 
-  if (isLoadingAddress) {
+  // Mostrar loading enquanto carrega endereço ou cidade (quando há endereço existente)
+  const isInitializing = isLoadingAddress || (storeAddress?.cityId && isLoadingCity);
+  
+  if (isInitializing) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin" />
@@ -354,10 +531,19 @@ export function AddressSection({ storeId }: { storeId: string }) {
                 {isLoadingCities ? (
                   <div className="flex items-center justify-center py-4">
                     <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="ml-2 text-sm text-muted-foreground">Carregando cidades...</span>
+                  </div>
+                ) : citiesError ? (
+                  <div className="px-2 py-4 text-sm text-destructive text-center">
+                    Erro ao carregar cidades. Tente novamente.
                   </div>
                 ) : filteredCities.length === 0 ? (
                   <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                    {citySearchTerm ? "Nenhuma cidade encontrada" : "Nenhuma cidade disponível"}
+                    {citySearchTerm 
+                      ? "Nenhuma cidade encontrada com esse termo" 
+                      : cities.length === 0
+                      ? "Nenhuma cidade disponível para este estado"
+                      : "Nenhuma cidade encontrada"}
                   </div>
                 ) : (
                   filteredCities.map((city) => (
@@ -381,27 +567,9 @@ export function AddressSection({ storeId }: { storeId: string }) {
           )}
         </Field>
       </div>
-
-      <div className="flex gap-4 pt-4 border-t">
-        <Button
-          type="button"
-          onClick={handleSubmit(onSubmit)}
-          disabled={createAddressMutation.isPending || updateAddressMutation.isPending}
-        >
-          {(createAddressMutation.isPending || updateAddressMutation.isPending) ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Salvando...
-            </>
-          ) : (
-            <>
-              <MapPin className="h-4 w-4 mr-2" />
-              {storeAddress ? "Atualizar Endereço" : "Salvar Endereço"}
-            </>
-          )}
-        </Button>
-      </div>
     </div>
   );
-}
+});
+
+AddressSection.displayName = "AddressSection";
 

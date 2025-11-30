@@ -896,9 +896,9 @@ function SubscriptionPlans() {
 
   // Buscar assinatura atual
   const { data: subscriptionData, isLoading: isLoadingSubscription } = useQuery({
-    queryKey: ["subscription", selectedStore?.id],
-    queryFn: () => subscriptionsService.findByStoreId(selectedStore!.id),
-    enabled: !!selectedStore?.id,
+    queryKey: ["subscription", user?.id],
+    queryFn: () => subscriptionsService.findByUserId(user!.id),
+    enabled: !!user?.id,
   });
 
   const subscription = subscriptionData?.subscription;
