@@ -27,6 +27,10 @@ export class InMemoryCitiesRepository implements CitiesRepository {
 		};
 	}
 
+	async findById({ id }: { id: string }): Promise<City | null> {
+		return this.items.find((item) => item.id === id) ?? null;
+	}
+
 	async findByNameAndState({
 		name,
 		state,

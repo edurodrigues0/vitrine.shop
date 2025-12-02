@@ -25,6 +25,8 @@ export interface UpdateCityParams {
 export interface CitiesRepository {
 	create({ name, state }: CreateCityParams): Promise<{ city: City }>;
 
+	findById({ id }: { id: string }): Promise<City | null>;
+
 	findByNameAndState({
 		name,
 		state,

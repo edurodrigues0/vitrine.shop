@@ -1,17 +1,6 @@
 import { DrizzleORM } from "./connection";
 import { cities } from "./schema";
-
-/**
- * Gera um slug a partir do nome da cidade
- */
-function generateSlug(name: string): string {
-	return name
-		.toLowerCase()
-		.normalize("NFD")
-		.replace(/[\u0300-\u036f]/g, "") // Remove acentos
-		.replace(/[^a-z0-9]+/g, "-") // Substitui caracteres especiais por hífen
-		.replace(/^-+|-+$/g, ""); // Remove hífens do início e fim
-}
+import { generateSlug } from "~/utils/slug";
 
 /**
  * Busca todas as cidades do Brasil da API do IBGE

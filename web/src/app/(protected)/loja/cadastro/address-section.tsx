@@ -7,6 +7,7 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { citiesService } from "@/services/cities-service";
 import { addressesService } from "@/services/addresses-service";
+import { ibgeService, type IBGECity } from "@/services/ibge-service";
 import {
   Field,
   FieldLabel,
@@ -22,7 +23,15 @@ const addressSchema = z.object({
   number: z.string().min(1, "Número é obrigatório").max(10, "Número deve ter no máximo 10 caracteres"),
   complement: z.string().max(255, "Complemento deve ter no máximo 255 caracteres").optional().or(z.literal("")),
   neighborhood: z.string().min(1, "Bairro é obrigatório").max(100, "Bairro deve ter no máximo 100 caracteres"),
-  cityId: z.string().uuid("Cidade é obrigatória"),
+  cityId: z.string()
+    .refine((val) => {
+      // Se estiver vazio, permitir (validação de obrigatoriedade será feita no saveAddress)
+      if (!val || val === "") return true;
+      // Se tiver valor, deve ser um UUID válido
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89abAB][0-9a-f]{3}-[0-9a-f]{12}$/i.test(val);
+    }, {
+      message: "Cidade inválida"
+    }),
   zipCode: z.string().length(8, "CEP deve ter 8 caracteres").regex(/^\d+$/, "CEP deve conter apenas números"),
   country: z.string().min(1, "País é obrigatório").max(50, "País deve ter no máximo 50 caracteres"),
 });
@@ -38,6 +47,8 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
   const queryClient = useQueryClient();
   const [addressState, setAddressState] = useState("");
   const [citySearchTerm, setCitySearchTerm] = useState("");
+  const [selectedIBGECityId, setSelectedIBGECityId] = useState<number | null>(null); // ID do IBGE da cidade selecionada
+  const [isLoadingCityUuid, setIsLoadingCityUuid] = useState(false);
   const addressIdRef = useRef<string | null>(null);
 
   // Buscar endereço da loja PRIMEIRO
@@ -51,90 +62,59 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
   });
 
   // Buscar cidade para obter o estado quando há endereço existente
-  // Buscar todas as cidades e filtrar pelo ID (limitado a 100 pelo backend)
   const { data: cityForAddress, isLoading: isLoadingCity } = useQuery({
     queryKey: ["city-for-address", storeAddress?.cityId],
     queryFn: async () => {
       if (!storeAddress?.cityId) return null;
       try {
-        // Buscar cidades com limite máximo de 100 (limite do backend)
-        const response = await citiesService.findAll({ limit: 100, page: 1 });
-        const city = response.cities.find(c => c.id === storeAddress.cityId);
-        
-        // Se não encontrou na primeira página, tentar buscar em outras páginas
-        if (!city && response.meta.totalPages > 1) {
-          for (let page = 2; page <= response.meta.totalPages; page++) {
-            const pageResponse = await citiesService.findAll({ limit: 100, page });
-            const foundCity = pageResponse.cities.find(c => c.id === storeAddress.cityId);
-            if (foundCity) return foundCity;
-          }
+        console.log("🔍 Buscando cidade por ID:", storeAddress.cityId);
+        const city = await citiesService.findById(storeAddress.cityId);
+        console.log("✅ Cidade encontrada:", city?.name, city?.state);
+        return city;
+      } catch (error: any) {
+        console.error("❌ Erro ao buscar cidade por ID:", error);
+        // Se não encontrou, retornar null (a cidade pode ter sido removida ou não existe mais)
+        if (error?.status === 404) {
+          console.warn(`⚠️ Cidade com ID ${storeAddress.cityId} não encontrada no banco`);
         }
-        
-        return city || null;
-      } catch (error) {
-        console.error("Erro ao buscar cidade para endereço:", error);
         return null;
       }
     },
     enabled: !!storeAddress?.cityId,
+    staleTime: 1000 * 60 * 5, // Cache por 5 minutos
   });
 
-  // Buscar cidades do estado selecionado
-  const { data: citiesData, isLoading: isLoadingCities, error: citiesError } = useQuery({
-    queryKey: ["cities", addressState],
+  // Buscar cidades do estado selecionado usando API do IBGE
+  const { data: ibgeCities, isLoading: isLoadingCities, error: citiesError } = useQuery({
+    queryKey: ["ibge-cities", addressState],
     queryFn: async () => {
       if (!addressState) {
-        return { cities: [], meta: { totalItems: 0, totalPages: 0, currentPage: 1, perPage: 100 } };
+        return [];
       }
       try {
-        // O limite máximo da API é 100, então vamos buscar todas as páginas se necessário
-        const result = await citiesService.findAll({ state: addressState, limit: 100, page: 1 });
-        
-        console.log(`Cidades encontradas para ${addressState}:`, {
-          primeiraPagina: result.cities.length,
-          totalItems: result.meta.totalItems,
-          totalPages: result.meta.totalPages,
-        });
-        
-        // Se houver mais páginas, buscar todas
-        if (result.meta.totalPages > 1) {
-          const allCities = [...result.cities];
-          for (let page = 2; page <= result.meta.totalPages; page++) {
-            const pageResult = await citiesService.findAll({ 
-              state: addressState, 
-              limit: 100, 
-              page 
-            });
-            allCities.push(...pageResult.cities);
-          }
-          console.log(`Total de cidades carregadas para ${addressState}:`, allCities.length);
-          return {
-            cities: allCities,
-            meta: {
-              ...result.meta,
-              totalItems: allCities.length,
-            },
-          };
-        }
-        
-        console.log(`Total de cidades carregadas para ${addressState}:`, result.cities.length);
-        return result;
+        console.log(`📡 Buscando municípios do IBGE para o estado ${addressState}...`);
+        const cities = await ibgeService.getMunicipiosByEstado(addressState);
+        console.log(`✅ ${cities.length} municípios encontrados no IBGE para ${addressState}`);
+        return cities;
       } catch (error) {
-        console.error("Erro ao buscar cidades:", error);
+        console.error("❌ Erro ao buscar municípios do IBGE:", error);
         throw error;
       }
     },
     enabled: !!addressState,
-    staleTime: 1000 * 60 * 60,
+    staleTime: 1000 * 60 * 60 * 24, // Cache por 24 horas (dados do IBGE mudam raramente)
     retry: 2,
     refetchOnMount: true,
   });
 
-  const cities = citiesData?.cities || [];
+  const ibgeCitiesList = ibgeCities || [];
 
-  // Filtrar cidades por termo de busca
+  // Estado para armazenar o mapeamento entre cidades do IBGE e UUIDs do banco
+  const [cityUuidMap, setCityUuidMap] = useState<Map<string, string>>(new Map()); // key: "nome-estado", value: uuid
+
+  // Filtrar cidades do IBGE por termo de busca
   const filteredCities = useMemo(() => {
-    const sorted = [...cities].sort((a, b) => a.name.localeCompare(b.name));
+    const sorted = [...ibgeCitiesList].sort((a, b) => a.name.localeCompare(b.name));
     
     if (citySearchTerm.trim()) {
       const searchLower = citySearchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -145,7 +125,7 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
     }
     
     return sorted;
-  }, [cities, citySearchTerm]);
+  }, [ibgeCitiesList, citySearchTerm]);
 
   const {
     register,
@@ -156,6 +136,7 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
     watch,
     trigger,
     getValues,
+    clearErrors,
   } = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
@@ -174,8 +155,20 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
   useEffect(() => {
     if (storeAddress && cityForAddress && addressIdRef.current !== storeAddress.id) {
       addressIdRef.current = storeAddress.id;
-      // Garantir que o estado seja setado antes de resetar o formulário
-      setAddressState(cityForAddress.state);
+      console.log("📝 Inicializando formulário com endereço e cidade:", {
+        addressId: storeAddress.id,
+        cityName: cityForAddress.name,
+        cityState: cityForAddress.state,
+        cityId: storeAddress.cityId,
+      });
+      
+      // IMPORTANTE: Setar o estado PRIMEIRO e de forma síncrona
+      // Isso vai disparar o carregamento das cidades do IBGE
+      if (cityForAddress.state) {
+        console.log("✅ Definindo estado:", cityForAddress.state);
+        setAddressState(cityForAddress.state);
+      }
+      
       reset({
         street: storeAddress.street,
         number: storeAddress.number,
@@ -185,31 +178,101 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
         zipCode: storeAddress.zipCode,
         country: storeAddress.country,
       });
+      
+      console.log("✅ Formulário inicializado completamente com estado:", cityForAddress.state);
     }
   }, [storeAddress, cityForAddress, reset]);
 
-  // Garantir que quando o estado mudar manualmente, o cityId seja limpo
+  // Garantir que o estado seja sempre definido quando a cidade for carregada
+  // Este useEffect tem prioridade para garantir que o estado seja sempre setado
   useEffect(() => {
-    if (addressState) {
-      // Limpar o cityId quando o estado mudar
-      const currentCityId = watch("cityId");
-      if (currentCityId) {
-        // Verificar se a cidade atual pertence ao novo estado
-        const currentCity = cities.find(c => c.id === currentCityId);
-        if (!currentCity || currentCity.state !== addressState) {
-          setValue("cityId", "");
+    if (cityForAddress?.state) {
+      // Sempre definir o estado quando a cidade for carregada
+      // Isso garante que após recarregar a página, o estado seja restaurado
+      console.log("🔄 Garantindo que o estado está definido:", {
+        cidadeState: cityForAddress.state,
+        currentState: addressState,
+        willSet: addressState !== cityForAddress.state,
+      });
+      
+      // Usar uma função para garantir que o estado seja sempre atualizado
+      setAddressState((current) => {
+        if (current !== cityForAddress.state) {
+          console.log("✅ Estado atualizado de", current, "para", cityForAddress.state);
+          return cityForAddress.state;
         }
+        return current;
+      });
+    }
+  }, [cityForAddress?.state]);
+
+  // Mapear cidade existente ao ID do IBGE quando endereço e cidades do IBGE forem carregados
+  useEffect(() => {
+    if (cityForAddress && ibgeCitiesList.length > 0 && storeAddress && addressState === cityForAddress.state) {
+      // Buscar cidade do IBGE correspondente pelo nome e estado
+      const matchingIBGECity = ibgeCitiesList.find(
+        c => c.name === cityForAddress.name && c.state === cityForAddress.state
+      );
+      
+      if (matchingIBGECity) {
+        console.log("🗺️ Cidade existente mapeada para ID do IBGE:", {
+          ibgeId: matchingIBGECity.id,
+          cityName: cityForAddress.name,
+          cityState: cityForAddress.state,
+          cityUuid: cityForAddress.id,
+        });
+        setSelectedIBGECityId(matchingIBGECity.id);
+        setCityUuidMap(prev => new Map(prev.set(`${cityForAddress.name}-${cityForAddress.state}`, cityForAddress.id)));
+      } else {
+        console.warn("⚠️ Cidade não encontrada na lista do IBGE:", {
+          cityName: cityForAddress.name,
+          cityState: cityForAddress.state,
+          ibgeCitiesCount: ibgeCitiesList.length,
+        });
       }
     }
-  }, [addressState, cities, watch, setValue]);
+  }, [cityForAddress, ibgeCitiesList, storeAddress, addressState]);
+
+  // Garantir que quando o estado mudar manualmente, o cityId seja limpo
+  // Mas NÃO limpar quando estiver inicializando com um endereço existente
+  const previousStateRef = useRef<string>("");
+  
+  useEffect(() => {
+    // Só limpar se:
+    // 1. Há um estado definido
+    // 2. O estado realmente mudou (não é apenas a inicialização)
+    // 3. NÃO há endereço existente sendo editado com esse mesmo estado
+    // 4. O estado anterior era diferente do atual
+    
+    if (addressState && addressState !== previousStateRef.current) {
+      const isStateFromExistingAddress = storeAddress && cityForAddress?.state === addressState;
+      
+      if (!isStateFromExistingAddress && previousStateRef.current !== "") {
+        // Estado mudou manualmente pelo usuário, não é inicialização
+        console.log("🔄 Estado mudou manualmente, limpando seleção de cidade");
+        setValue("cityId", "", { shouldValidate: false });
+        clearErrors("cityId");
+        setSelectedIBGECityId(null);
+        setCitySearchTerm("");
+      }
+      
+      previousStateRef.current = addressState;
+    }
+  }, [addressState, setValue, clearErrors, storeAddress, cityForAddress?.state]);
 
   const createAddressMutation = useMutation({
     mutationFn: async (data: AddressFormData) => {
+      // Validar cityId antes de criar payload
+      if (!data.cityId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.cityId)) {
+        console.error("❌ cityId inválido no createAddressMutation:", data.cityId);
+        throw new Error("ID da cidade inválido. Por favor, selecione uma cidade.");
+      }
+
       const payload: any = {
         street: data.street,
         number: data.number,
         neighborhood: data.neighborhood,
-        cityId: data.cityId,
+        cityId: data.cityId, // Garantir que cityId está presente
         zipCode: data.zipCode,
         country: data.country,
         storeId: storeId,
@@ -221,6 +284,12 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
       }
       
       console.log("📤 Criando endereço com payload:", JSON.stringify(payload, null, 2));
+      console.log("🔍 Validação do payload:", {
+        hasCityId: !!payload.cityId,
+        cityIdType: typeof payload.cityId,
+        cityIdValue: payload.cityId,
+        isUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(payload.cityId),
+      });
       try {
         const result = await addressesService.create(payload);
         console.log("✅ Endereço criado com sucesso no service:", result);
@@ -236,8 +305,11 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (address) => {
+      console.log("✅ Endereço criado - invalidando queries:", address);
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
+      queryClient.invalidateQueries({ queryKey: ["addresses", storeId] });
+      queryClient.invalidateQueries({ queryKey: ["city-for-address", address.cityId] });
       showSuccess("Endereço criado com sucesso!");
     },
     onError: (error: Error) => {
@@ -248,11 +320,18 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
   const updateAddressMutation = useMutation({
     mutationFn: async (data: AddressFormData) => {
       if (!storeAddress?.id) throw new Error("Endereço não encontrado");
+      
+      // Validar cityId antes de criar payload
+      if (!data.cityId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.cityId)) {
+        console.error("❌ cityId inválido no updateAddressMutation:", data.cityId);
+        throw new Error("ID da cidade inválido. Por favor, selecione uma cidade.");
+      }
+
       const payload: any = {
         street: data.street,
         number: data.number,
         neighborhood: data.neighborhood,
-        cityId: data.cityId,
+        cityId: data.cityId, // Garantir que cityId está presente
         zipCode: data.zipCode,
         country: data.country,
       };
@@ -264,6 +343,12 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
       }
       
       console.log("📤 Atualizando endereço com payload:", JSON.stringify(payload, null, 2));
+      console.log("🔍 Validação do payload:", {
+        hasCityId: !!payload.cityId,
+        cityIdType: typeof payload.cityId,
+        cityIdValue: payload.cityId,
+        isUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(payload.cityId),
+      });
       try {
         const result = await addressesService.update(storeAddress.id, payload);
         console.log("✅ Endereço atualizado com sucesso no service:", result);
@@ -279,12 +364,26 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (address) => {
+      console.log("✅ Endereço atualizado - invalidando queries:", address);
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
+      queryClient.invalidateQueries({ queryKey: ["addresses", storeId] });
+      queryClient.invalidateQueries({ queryKey: ["city-for-address", address.cityId] });
       showSuccess("Endereço atualizado com sucesso!");
     },
-    onError: (error: Error) => {
-      showError(error.message || "Erro ao atualizar endereço");
+    onError: (error: any) => {
+      console.error("❌ Erro ao atualizar endereço:", error);
+      
+      // Tratamento específico para erros de conexão
+      if (error?.message?.includes("conexão") || error?.message?.includes("Failed to fetch") || error instanceof TypeError) {
+        showError("Erro de conexão com a API. Verifique se o servidor está rodando e tente novamente.");
+      } else if (error?.status === 404) {
+        showError("Endereço não encontrado. Por favor, recarregue a página.");
+      } else if (error?.status === 400) {
+        showError(error?.data?.message || "Dados inválidos. Verifique os campos preenchidos.");
+      } else {
+        showError(error?.message || "Erro ao atualizar endereço. Tente novamente.");
+      }
     },
   });
 
@@ -300,15 +399,35 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
   useImperativeHandle(ref, () => ({
     saveAddress: async () => {
       const data = getValues();
-      console.log("📦 Dados do endereço coletados:", data);
+      console.log("📦 Dados do endereço coletados do formulário:", {
+        ...data,
+        cityId: data.cityId,
+        hasCityId: !!data.cityId,
+        cityIdLength: data.cityId?.length,
+      });
+      console.log("📍 Estado selecionado:", addressState);
+      console.log("🏙️ Cidades disponíveis:", filteredCities.length);
       
       // Verificar se há dados preenchidos (pelo menos um campo obrigatório)
       const hasData = data.street && data.number && data.neighborhood && data.cityId && data.zipCode && data.country;
       
       if (!hasData) {
-        console.log("⚠️ Endereço não tem dados suficientes, pulando salvamento");
+        console.log("⚠️ Endereço não tem dados suficientes, pulando salvamento", {
+          street: !!data.street,
+          number: !!data.number,
+          neighborhood: !!data.neighborhood,
+          cityId: !!data.cityId,
+          zipCode: !!data.zipCode,
+          country: !!data.country,
+        });
         // Se não houver dados, não fazer nada (endereço é opcional ao salvar a loja)
         return;
+      }
+      
+      // Verificar se cityId é um UUID válido
+      if (!data.cityId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.cityId)) {
+        console.error("❌ cityId inválido ou não é um UUID:", data.cityId);
+        throw new Error("Por favor, selecione uma cidade válida");
       }
       
       console.log("✅ Endereço tem dados, validando...");
@@ -316,13 +435,18 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
       // Validar todos os campos se houver dados
       const isValid = await trigger();
       if (!isValid) {
-        console.error("❌ Validação do endereço falhou");
+        console.error("❌ Validação do endereço falhou", {
+          errors: Object.keys(errors),
+          cityIdError: errors.cityId?.message,
+        });
         throw new Error("Por favor, preencha todos os campos obrigatórios do endereço");
       }
       
       console.log("✅ Validação passou, salvando endereço...", { 
         isUpdate: !!storeAddress,
-        addressId: storeAddress?.id 
+        addressId: storeAddress?.id,
+        cityId: data.cityId,
+        state: addressState,
       });
       
       // Retornar promise que resolve quando a mutation for bem-sucedida
@@ -473,12 +597,23 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
       <div className="space-y-4">
         <Field>
           <FieldLabel htmlFor="state">Estado *</FieldLabel>
-          <Select 
-            value={addressState} 
+          <Select
+            value={addressState || ""} 
             onValueChange={(value) => {
-              setAddressState(value);
-              setCitySearchTerm("");
-              setValue("cityId", "");
+              console.log("📍 Estado selecionado pelo usuário:", value);
+              // Não limpar se estamos apenas restaurando o estado do endereço existente
+              if (storeAddress && cityForAddress?.state === value) {
+                console.log("📍 Estado restaurado do endereço existente, mantendo cidade");
+                setAddressState(value);
+              } else {
+                // Estado mudou manualmente, limpar seleção de cidade
+                setAddressState(value);
+                setCitySearchTerm("");
+                setValue("cityId", "", { shouldValidate: false });
+                clearErrors("cityId");
+                setSelectedIBGECityId(null);
+                console.log("✅ Estado atualizado, cityId limpo");
+              }
             }}
           >
             <SelectTrigger>
@@ -514,9 +649,94 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
               </div>
             )}
             <Select
-              value={watch("cityId")}
-              onValueChange={(value) => setValue("cityId", value)}
-              disabled={!addressState}
+              value={selectedIBGECityId ? selectedIBGECityId.toString() : ""}
+              onValueChange={async (value) => {
+                // Validar se há estado selecionado e se não está carregando
+                if (!addressState || isLoadingCities || isLoadingCityUuid) {
+                  console.log("📍 Select de cidade desabilitado, ignorando mudança de valor");
+                  return;
+                }
+
+                // Validar se o valor não está vazio ou é uma string inválida
+                if (!value || typeof value !== "string" || value.trim() === "" || value === "undefined" || value === "null") {
+                  // Se o valor está vazio, apenas limpar a seleção silenciosamente
+                  setSelectedIBGECityId(null);
+                  setValue("cityId", "", { shouldValidate: false });
+                  clearErrors("cityId");
+                  return;
+                }
+
+                // Validar se é um número válido (ID do IBGE)
+                const ibgeCityId = parseInt(value, 10);
+                if (isNaN(ibgeCityId) || ibgeCityId <= 0) {
+                  console.warn("⚠️ Valor inválido recebido no Select de cidade (não é um número válido):", value);
+                  return;
+                }
+
+                // Verificar se há cidades disponíveis
+                if (filteredCities.length === 0) {
+                  console.warn("⚠️ Nenhuma cidade disponível para seleção");
+                  return;
+                }
+
+                const selectedCity = filteredCities.find(c => c.id === ibgeCityId);
+                
+                if (!selectedCity) {
+                  console.error("❌ Cidade do IBGE não encontrada na lista:", {
+                    ibgeId: ibgeCityId,
+                    value,
+                    filteredCitiesCount: filteredCities.length,
+                    firstFewCities: filteredCities.slice(0, 3).map(c => ({ id: c.id, name: c.name })),
+                  });
+                  return;
+                }
+
+                console.log("🏙️ Cidade do IBGE selecionada:", selectedCity.name, selectedCity.state);
+                setSelectedIBGECityId(ibgeCityId);
+                setIsLoadingCityUuid(true);
+                setValue("cityId", "", { shouldValidate: false }); // Limpar temporariamente
+
+                try {
+                  // Buscar cidade no banco pelo nome e estado para obter o UUID
+                  console.log("🔍 Buscando UUID da cidade no banco...");
+                  let cityInDb;
+                  try {
+                    cityInDb = await citiesService.findByNameAndState(selectedCity.name, selectedCity.state);
+                    console.log("✅ Cidade encontrada no banco com UUID:", cityInDb.id);
+                  } catch (searchError: any) {
+                    // Se não encontrou (404), tentar criar a cidade
+                    if (searchError?.status === 404) {
+                      console.log("📝 Cidade não encontrada no banco, criando...");
+                      try {
+                        cityInDb = await citiesService.create({
+                          name: selectedCity.name,
+                          state: selectedCity.state,
+                        });
+                        console.log("✅ Cidade criada no banco com UUID:", cityInDb.id);
+                      } catch (createError: any) {
+                        console.error("❌ Erro ao criar cidade no banco:", createError);
+                        throw new Error(`Não foi possível criar a cidade "${selectedCity.name}" no banco de dados. Por favor, tente novamente.`);
+                      }
+                    } else {
+                      throw searchError;
+                    }
+                  }
+                  
+                  // Atualizar o formulário com o UUID do banco
+                  setValue("cityId", cityInDb.id, { shouldValidate: false });
+                  clearErrors("cityId");
+                  setCityUuidMap(prev => new Map(prev.set(`${selectedCity.name}-${selectedCity.state}`, cityInDb.id)));
+                } catch (error: any) {
+                  console.error("❌ Erro ao buscar/criar cidade no banco:", error);
+                  showError(error?.message || `Erro ao processar a cidade "${selectedCity.name}". Por favor, tente novamente.`);
+                  setSelectedIBGECityId(null);
+                  setValue("cityId", "", { shouldValidate: false });
+                } finally {
+                  setIsLoadingCityUuid(false);
+                }
+              }}
+              disabled={!addressState || isLoadingCities || isLoadingCityUuid}
+              key={`${addressState}-${selectedIBGECityId || 'none'}`} // Forçar re-render quando estado ou cidade mudar
             >
               <SelectTrigger>
                 <SelectValue placeholder={
@@ -524,6 +744,10 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
                     ? "Selecione o estado primeiro"
                     : isLoadingCities 
                     ? "Carregando cidades..." 
+                    : isLoadingCityUuid
+                    ? "Buscando cidade no banco..."
+                    : selectedIBGECityId && cityForAddress
+                    ? cityForAddress.name // Mostrar nome da cidade se já estiver selecionada
                     : "Selecione a cidade"
                 } />
               </SelectTrigger>
@@ -541,13 +765,13 @@ export const AddressSection = forwardRef<AddressSectionRef, { storeId: string }>
                   <div className="px-2 py-4 text-sm text-muted-foreground text-center">
                     {citySearchTerm 
                       ? "Nenhuma cidade encontrada com esse termo" 
-                      : cities.length === 0
+                      : ibgeCitiesList.length === 0
                       ? "Nenhuma cidade disponível para este estado"
                       : "Nenhuma cidade encontrada"}
                   </div>
                 ) : (
                   filteredCities.map((city) => (
-                    <SelectItem key={city.id} value={city.id}>
+                    <SelectItem key={city.id} value={city.id.toString()}>
                       {city.name}
                     </SelectItem>
                   ))

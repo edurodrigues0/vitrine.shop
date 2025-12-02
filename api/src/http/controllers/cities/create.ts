@@ -104,8 +104,15 @@ export async function createCityController(
 			});
 		}
 
+		// Log detalhado do erro para debug
+		console.error("❌ Erro ao criar cidade:", {
+			message: error instanceof Error ? error.message : "Unknown error",
+			stack: error instanceof Error ? error.stack : undefined,
+			error,
+		});
+
 		return response.status(500).json({
-			message: "Internal server error",
+			message: error instanceof Error ? error.message : "Internal server error",
 		});
 	}
 }

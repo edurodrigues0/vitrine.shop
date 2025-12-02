@@ -7,14 +7,42 @@ import type {
 	FindAllCitiesParams,
 	UpdateCityParams,
 } from "~/repositories/cities-repository";
+import { generateSlug } from "~/utils/slug";
 
 export class DrizzleCitiesRepository implements CitiesRepository {
 	constructor(private readonly drizzle: typeof DrizzleORM) {}
 
 	async create({ name, state }: CreateCityParams): Promise<{ city: City }> {
+		// Gerar slug a partir do nome da cidade
+		let baseSlug = generateSlug(`${name}-${state}`);
+		let slug = baseSlug;
+		let counter = 1;
+
+		// Verificar se o slug já existe e gerar um único se necessário
+		while (true) {
+			const existingCity = await this.drizzle
+				.select()
+				.from(cities)
+				.where(eq(cities.slug, slug))
+				.limit(1);
+
+			if (existingCity.length === 0) {
+				break; // Slug é único, pode usar
+			}
+
+			// Slug já existe, tentar com um sufixo numérico
+			slug = `${baseSlug}-${counter}`;
+			counter++;
+
+			// Limitar a 10 tentativas para evitar loop infinito
+			if (counter > 10) {
+				throw new Error(`Não foi possível gerar um slug único para a cidade "${name}" após várias tentativas.`);
+			}
+		}
+
 		const [city] = await this.drizzle
 			.insert(cities)
-			.values({ name, state })
+			.values({ name, state, slug })
 			.returning();
 
 		if (!city) {
@@ -22,6 +50,16 @@ export class DrizzleCitiesRepository implements CitiesRepository {
 		}
 
 		return { city };
+	}
+
+	async findById({ id }: { id: string }): Promise<City | null> {
+		const [city] = await this.drizzle
+			.select()
+			.from(cities)
+			.where(eq(cities.id, id))
+			.limit(1);
+
+		return city ?? null;
 	}
 
 	async findByNameAndState({
