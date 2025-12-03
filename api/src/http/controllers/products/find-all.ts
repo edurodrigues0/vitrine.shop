@@ -105,12 +105,6 @@ const findAllProductsQuerySchema = z.object({
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Erro interno do servidor
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  */
 export async function findAllProductsController(
 	request: Request,

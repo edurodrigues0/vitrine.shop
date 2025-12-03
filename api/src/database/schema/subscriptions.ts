@@ -3,6 +3,7 @@ import {
 	decimal,
 	pgEnum,
 	pgTable,
+	text,
 	timestamp,
 	uuid,
 	varchar,
@@ -18,9 +19,9 @@ export const planStatusEnum = pgEnum("plan_status", [
 
 export const subscriptions = pgTable("subscriptions", {
 	id: uuid("id").defaultRandom().primaryKey(),
-	userId: uuid("user_id")
+	userId: text("user_id")
 		.references(() => users.id)
-		.notNull(),
+		.notNull(), // text para compatibilidade com Better Auth
 	planName: varchar("plan_name", { length: 100 }).notNull(),
 	planId: varchar("plan_id").notNull(),
 	provider: varchar("provider", { length: 100 }).notNull(),

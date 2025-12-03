@@ -21,9 +21,9 @@ export const notificationTypeEnum = pgEnum("notification_type", [
 
 export const notifications = pgTable("notifications", {
 	id: uuid("id").defaultRandom().primaryKey(),
-	userId: uuid("user_id")
+	userId: text("user_id")
 		.references(() => users.id, { onDelete: "cascade" })
-		.notNull(),
+		.notNull(), // text para compatibilidade com Better Auth
 	type: notificationTypeEnum("type").notNull(),
 	title: varchar("title", { length: 200 }).notNull(),
 	message: text("message").notNull(),

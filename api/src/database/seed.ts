@@ -1,7 +1,9 @@
 import { hash } from "bcryptjs";
+import { randomUUID } from "crypto";
 import { eq, sql } from "drizzle-orm";
 import { DrizzleORM } from "./connection";
 import {
+	account,
 	addresses,
 	categories,
 	cities,
@@ -11,10 +13,12 @@ import {
 	products,
 	productsImages,
 	productsVariations,
+	sessions,
 	storeVisits,
 	stores,
 	subscriptions,
 	users,
+	verifications,
 } from "./schema";
 import { BCRYPT_SALT_ROUNDS } from "../config/constants";
 
@@ -53,6 +57,16 @@ export async function clearDatabase() {
 
 		await DrizzleORM.delete(addresses).where(sql`1=1`);
 		console.log("   ✓ addresses limpo");
+
+		// Tabelas do Better Auth (devem ser deletadas antes de users)
+		await DrizzleORM.delete(account).where(sql`1=1`);
+		console.log("   ✓ account limpo");
+
+		await DrizzleORM.delete(sessions).where(sql`1=1`);
+		console.log("   ✓ sessions limpo");
+
+		await DrizzleORM.delete(verifications).where(sql`1=1`);
+		console.log("   ✓ verifications limpo");
 
 		// Limpar storeId dos usuários antes de deletar as lojas
 		await DrizzleORM.update(users).set({ storeId: null }).where(sql`1=1`);
@@ -153,16 +167,16 @@ async function seed() {
 		const createdUsers = await DrizzleORM
 			.insert(users)
 			.values([
-				{ name: "Admin Vitrine", email: "admin@vitrine.shop", passwordHash, role: "ADMIN" },
-				{ name: "Maria Silva", email: "maria@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "João Santos", email: "joao@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Ana Costa", email: "ana@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Carlos Oliveira", email: "carlos@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Julia Ferreira", email: "julia@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Pedro Alves", email: "pedro@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Fernanda Lima", email: "fernanda@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Roberto Souza", email: "roberto@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Camila Rocha", email: "camila@exemplo.com", passwordHash, role: "OWNER" },
+				{ id: randomUUID(), name: "Admin Vitrine", email: "admin@vitrine.shop", passwordHash, role: "ADMIN" },
+				{ id: randomUUID(), name: "Maria Silva", email: "maria@exemplo.com", passwordHash, role: "OWNER" },
+				{ id: randomUUID(), name: "João Santos", email: "joao@exemplo.com", passwordHash, role: "OWNER" },
+				{ id: randomUUID(), name: "Ana Costa", email: "ana@exemplo.com", passwordHash, role: "OWNER" },
+				{ id: randomUUID(), name: "Carlos Oliveira", email: "carlos@exemplo.com", passwordHash, role: "OWNER" },
+				{ id: randomUUID(), name: "Julia Ferreira", email: "julia@exemplo.com", passwordHash, role: "OWNER" },
+				{ id: randomUUID(), name: "Pedro Alves", email: "pedro@exemplo.com", passwordHash, role: "OWNER" },
+				{ id: randomUUID(), name: "Fernanda Lima", email: "fernanda@exemplo.com", passwordHash, role: "OWNER" },
+				{ id: randomUUID(), name: "Roberto Souza", email: "roberto@exemplo.com", passwordHash, role: "OWNER" },
+				{ id: randomUUID(), name: "Camila Rocha", email: "camila@exemplo.com", passwordHash, role: "OWNER" },
 			])
 			.returning();
 		if (createdUsers.length < 10) {

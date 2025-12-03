@@ -12,7 +12,6 @@ import {
 import { addresses } from "./addresses";
 import { cities } from "./cities";
 import { products } from "./products";
-import { subscriptions } from "./subscriptions";
 import { users } from "./users";
 
 export const storeStatusEnum = pgEnum("store_status", ["ACTIVE", "INACTIVE"]);
@@ -46,7 +45,7 @@ export const stores = pgTable("stores", {
 	cityId: uuid("city_id")
 		.references(() => cities.id)
 		.notNull(),
-	ownerId: uuid("owner_id").notNull(), // referência ao usuário dono
+	ownerId: text("owner_id").notNull().references(() => users.id), // referência ao usuário dono (text para Better Auth)
 	status: storeStatusEnum("status").default("INACTIVE").notNull(),
 	isPaid: boolean("is_paid").default(false).notNull(), // controle rápido de visibilidade
 	createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -66,7 +65,7 @@ export const storesRelations = relations(stores, ({ one, many }) => ({
 		references: [users.id],
 	}),
 	products: many(products),
-	subscriptions: many(subscriptions),
-	users: many(users),
+	// subscriptions não tem relação direta com stores (está vinculada a users)
+	// users relação removida - foreign key foi removida para evitar dependência circular
 	addresses: many(addresses),
 }));

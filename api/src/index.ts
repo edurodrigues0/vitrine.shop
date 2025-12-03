@@ -17,25 +17,23 @@ import { storesRoutes } from "./http/controllers/stores/_routes";
 import { subscriptionsRoutes } from "./http/controllers/subscriptions/_routes";
 import { usersRoutes } from "./http/controllers/users/_routes";
 import { notificationsRoutes } from "./http/controllers/notifications/_routes";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./services/auth";
 
 dotenv.config();
 
 const app = express();
 
-// CORS - Deve vir antes de outros middlewares
 app.use(
 	cors({
 		credentials: true,
 		origin: (origin, callback) => {
-			// Permite requisições sem origin (como mobile apps, Postman, Swagger UI do mesmo servidor)
 			if (!origin) {
 				return callback(null, true);
 			}
-			// Permite todas as origens em desenvolvimento
 			if (process.env.NODE_ENV === "development") {
 				return callback(null, true);
 			}
-			// Em produção, você pode validar origens específicas aqui
 			return callback(null, true);
 		},
 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -60,12 +58,8 @@ app.use(
 	"/api/subscriptions/webhook",
 	express.raw({ type: "application/json" }),
 );
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-// Servir arquivos estáticos (uploads)
-app.use("/uploads", express.static(join(process.cwd(), "uploads")));
 
 // Swagger Documentation
 setupSwagger(app);
@@ -74,6 +68,7 @@ setupSwagger(app);
 app.use("/uploads", express.static(join(process.cwd(), "uploads")));
 
 // Rotas
+app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use("/api", citiesRoutes);
 app.use("/api", categoriesRoutes);
 app.use("/api", productsRoutes);
@@ -94,6 +89,8 @@ app.get("/api/health", (_req: Request, res: Response) => {
 		environment: process.env.NODE_ENV,
 	});
 });
+
+app.use(express.json());
 
 export default app;
 

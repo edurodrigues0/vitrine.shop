@@ -21,9 +21,8 @@
 		"db:seed-cities": "tsx --env-file=.env src/database/run-seed-cities.ts",
 		"db:seed-cities-all": "tsx --env-file=.env src/database/run-seed-cities-ibge.ts",
 		"db:clear": "tsx --env-file=.env src/database/run-clear.ts",
-		"db:migrate-theme": "tsx --env-file=.env src/database/run-migrate-theme.ts",
-		"db:add-color": "tsx --env-file=.env src/database/add-color-column.ts",
-		"db:create-notifications": "tsx --env-file=.env src/database/create-notifications-table.ts"
+		"db:fix-user-id-types": "tsx --env-file=.env src/database/run-fix-user-id-types.ts",
+		"auth:generate": "npx @better-auth/cli generate --config src/services/auth.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.7",
@@ -51,6 +50,7 @@
 		"@aws-sdk/s3-request-presigner": "^3.929.0",
 		"@types/cors": "^2.8.19",
 		"bcryptjs": "^3.0.2",
+		"better-auth": "^1.4.3",
 		"cookie-parser": "^1.4.6",
 		"cors": "^2.8.5",
 		"date-fns": "^4.1.0",
