@@ -34,6 +34,17 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 			isMain,
 		});
 
+		// Validar que cityId está presente (é obrigatório)
+		if (!cityId) {
+			console.error("❌ Repository: cityId é obrigatório mas não foi fornecido");
+			throw new Error("City ID is required");
+		}
+
+		console.log("🔍 Repository: Validando cityId antes de inserir:", {
+			cityId,
+			isValidUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cityId),
+		});
+
 		const [address] = await this.drizzle
 			.insert(addresses)
 			.values({
@@ -41,7 +52,7 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 				number,
 				complement: complement || null,
 				neighborhood,
-				cityId,
+				cityId, // Este campo é obrigatório e deve ser salvo
 				zipCode,
 				country,
 				storeId: storeId || null,
@@ -54,7 +65,11 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 			throw new Error("Failed to create address");
 		}
 
-		console.log("✅ Repository: Endereço criado com sucesso no banco:", address.id);
+		console.log("✅ Repository: Endereço criado com sucesso no banco:", {
+			id: address.id,
+			cityId: address.cityId,
+			hasCityId: !!address.cityId,
+		});
 		return address;
 	}
 
@@ -202,7 +217,15 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 		if (data.number !== undefined) updateData.number = data.number;
 		if (data.complement !== undefined) updateData.complement = data.complement ?? null;
 		if (data.neighborhood !== undefined) updateData.neighborhood = data.neighborhood;
-		if (data.cityId !== undefined) updateData.cityId = data.cityId;
+		if (data.cityId !== undefined) {
+			// Validar cityId antes de atualizar
+			if (!data.cityId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.cityId)) {
+				console.error("❌ Repository: cityId inválido para atualização:", data.cityId);
+				throw new Error("Invalid city ID format");
+			}
+			updateData.cityId = data.cityId;
+			console.log("✅ Repository: cityId validado e será atualizado:", data.cityId);
+		}
 		if (data.zipCode !== undefined) updateData.zipCode = data.zipCode;
 		if (data.country !== undefined) updateData.country = data.country;
 		if (data.storeId !== undefined) updateData.storeId = data.storeId ?? null;

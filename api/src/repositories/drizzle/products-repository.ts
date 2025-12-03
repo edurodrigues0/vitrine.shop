@@ -48,22 +48,62 @@ export class DrizzleProductsRepository implements ProductsRespository {
 	}
 
 	async findById({ id }: { id: string }): Promise<Product | null> {
-		const [product] = await this.drizzle
-			.select()
-			.from(products)
-			.where(eq(products.id, id));
+		// Tentar selecionar todos os campos (incluindo price se existir)
+		try {
+			const [product] = await this.drizzle
+				.select()
+				.from(products)
+				.where(eq(products.id, id));
 
-		return product ?? null;
+			return product ?? null;
+		} catch (error: any) {
+			// Se o erro for relacionado à coluna price não existir, selecionar campos específicos
+			if (error?.message?.includes("price") || error?.code === "42703" || error?.cause?.code === "42703") {
+				console.warn("⚠️ Coluna 'price' não encontrada em products, buscando sem ela no findById...");
+				const [product] = await this.drizzle
+					.select({
+						id: products.id,
+						name: products.name,
+						description: products.description,
+						categoryId: products.categoryId,
+						storeId: products.storeId,
+						quantity: products.quantity,
+						color: products.color,
+						createdAt: products.createdAt,
+						price: sql<number | null>`NULL`.as("price"), // Adicionar price como NULL
+					})
+					.from(products)
+					.where(eq(products.id, id));
+
+				return (product ?? null) as Product | null;
+			}
+			throw error;
+		}
 	}
 
 	async findByStoreId({ storeId }: { storeId: string }): Promise<Product[]> {
+		console.log("💾 Repository: Buscando produtos por storeId:", storeId);
+		// Selecionar apenas as colunas básicas que definitivamente existem no banco
+		// As colunas opcionais (price, quantity, color) podem não existir, então vamos usar NULL
 		const productsResult = await this.drizzle
-			.select()
+			.select({
+				id: products.id,
+				name: products.name,
+				description: products.description,
+				categoryId: products.categoryId,
+				storeId: products.storeId,
+				createdAt: products.createdAt,
+				// Colunas opcionais - usar NULL se não existirem no banco
+				price: sql<number | null>`NULL`.as("price"),
+				quantity: sql<number | null>`NULL`.as("quantity"),
+				color: sql<string | null>`NULL`.as("color"),
+			})
 			.from(products)
 			.where(eq(products.storeId, storeId))
 			.orderBy(desc(products.createdAt));
 
-		return productsResult;
+		console.log(`✅ Repository: ${productsResult.length} produtos encontrados`);
+		return productsResult as Product[];
 	}
 
 	async findByCategoryId({
@@ -71,13 +111,39 @@ export class DrizzleProductsRepository implements ProductsRespository {
 	}: {
 		categoryId: string;
 	}): Promise<Product[]> {
-		const productsResult = await this.drizzle
-			.select()
-			.from(products)
-			.where(eq(products.categoryId, categoryId))
-			.orderBy(desc(products.createdAt));
+		// Tentar selecionar todos os campos (incluindo price se existir)
+		try {
+			const productsResult = await this.drizzle
+				.select()
+				.from(products)
+				.where(eq(products.categoryId, categoryId))
+				.orderBy(desc(products.createdAt));
 
-		return productsResult;
+			return productsResult;
+		} catch (error: any) {
+			// Se o erro for relacionado à coluna price não existir, selecionar campos específicos
+			if (error?.message?.includes("price") || error?.code === "42703" || error?.cause?.code === "42703") {
+				console.warn("⚠️ Coluna 'price' não encontrada em products, buscando sem ela no findByCategoryId...");
+				const productsResult = await this.drizzle
+					.select({
+						id: products.id,
+						name: products.name,
+						description: products.description,
+						categoryId: products.categoryId,
+						storeId: products.storeId,
+						quantity: products.quantity,
+						color: products.color,
+						createdAt: products.createdAt,
+						price: sql<number | null>`NULL`.as("price"), // Adicionar price como NULL
+					})
+					.from(products)
+					.where(eq(products.categoryId, categoryId))
+					.orderBy(desc(products.createdAt));
+
+				return productsResult as Product[];
+			}
+			throw error;
+		}
 	}
 
 	async findAll({ page, limit, filters }: FindAllProductsParams): Promise<{
@@ -114,57 +180,120 @@ export class DrizzleProductsRepository implements ProductsRespository {
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
 		// Buscar produtos
-		const productsResult = await this.drizzle
-			.select({
-				id: products.id,
-				name: products.name,
-				description: products.description,
-				categoryId: products.categoryId,
-				storeId: products.storeId,
-				price: products.price,
-				quantity: products.quantity,
-				color: products.color,
-				createdAt: products.createdAt,
-				storeSlug: stores.slug,
-				citySlug: cities.slug,
-				imageUrl: sql<string>`(
-					SELECT ${productsImages.url}
-					FROM ${productsImages}
-					INNER JOIN ${productsVariations} ON ${productsImages.productVariationId} = ${productsVariations.id}
-					WHERE ${productsVariations.productId} = ${products.id}
-					LIMIT 1
-				)`.as("imageUrl"),
-			})
-			.from(products)
-			.innerJoin(stores, eq(products.storeId, stores.id))
-			.innerJoin(cities, eq(stores.cityId, cities.id))
-			.leftJoin(addresses, and(eq(addresses.storeId, stores.id), eq(addresses.isMain, true)))
-			.where(whereClause)
-			.orderBy(
-				filters.latitude && filters.longitude
-					? sql`
-						CASE 
-							WHEN ${addresses.latitude} IS NULL OR ${addresses.longitude} IS NULL OR 
-							     ${addresses.latitude} = '' OR ${addresses.longitude} = ''
-							THEN 999999
-							ELSE (
-								6371 * acos(
-									LEAST(1.0, GREATEST(-1.0,
-										cos(radians(${filters.latitude})) * 
-										cos(radians(CAST(${addresses.latitude} AS float))) * 
-										cos(radians(CAST(${addresses.longitude} AS float)) - radians(${filters.longitude})) +
-										sin(radians(${filters.latitude})) * 
-										sin(radians(CAST(${addresses.latitude} AS float)))
-									))
+		// IMPORTANTE: Se a coluna price não existir no banco, ela será NULL
+		// Vamos tentar selecionar diretamente - se a coluna não existir, o erro será tratado
+		let productsResult;
+		try {
+			productsResult = await this.drizzle
+				.select({
+					id: products.id,
+					name: products.name,
+					description: products.description,
+					categoryId: products.categoryId,
+					storeId: products.storeId,
+					price: products.price,
+					quantity: products.quantity,
+					color: products.color,
+					createdAt: products.createdAt,
+					storeSlug: stores.slug,
+					citySlug: cities.slug,
+					imageUrl: sql<string>`(
+						SELECT ${productsImages.url}
+						FROM ${productsImages}
+						INNER JOIN ${productsVariations} ON ${productsImages.productVariationId} = ${productsVariations.id}
+						WHERE ${productsVariations.productId} = ${products.id}
+						LIMIT 1
+					)`.as("imageUrl"),
+				})
+				.from(products)
+				.innerJoin(stores, eq(products.storeId, stores.id))
+				.innerJoin(cities, eq(stores.cityId, cities.id))
+				.leftJoin(addresses, and(eq(addresses.storeId, stores.id), eq(addresses.isMain, true)))
+				.where(whereClause)
+				.orderBy(
+					filters.latitude && filters.longitude
+						? sql`
+							CASE 
+								WHEN ${addresses.latitude} IS NULL OR ${addresses.longitude} IS NULL OR 
+								     ${addresses.latitude} = '' OR ${addresses.longitude} = ''
+								THEN 999999
+								ELSE (
+									6371 * acos(
+										LEAST(1.0, GREATEST(-1.0,
+											cos(radians(${filters.latitude})) * 
+											cos(radians(CAST(${addresses.latitude} AS float))) * 
+											cos(radians(CAST(${addresses.longitude} AS float)) - radians(${filters.longitude})) +
+											sin(radians(${filters.latitude})) * 
+											sin(radians(CAST(${addresses.latitude} AS float)))
+										))
+									)
 								)
-							)
-						END ASC,
-						${products.createdAt} DESC
-					`
-					: desc(products.createdAt)
-			)
-			.limit(limit)
-			.offset(offset);
+							END ASC,
+							${products.createdAt} DESC
+						`
+						: desc(products.createdAt)
+				)
+				.limit(limit)
+				.offset(offset);
+		} catch (error: any) {
+			// Se o erro for relacionado à coluna price não existir, tentar sem ela
+			if (error?.message?.includes("price") || error?.code === "42703" || error?.cause?.code === "42703") {
+				console.warn("⚠️ Coluna 'price' não encontrada em products, buscando sem ela...");
+				productsResult = await this.drizzle
+					.select({
+						id: products.id,
+						name: products.name,
+						description: products.description,
+						categoryId: products.categoryId,
+						storeId: products.storeId,
+						quantity: products.quantity,
+						color: products.color,
+						createdAt: products.createdAt,
+						storeSlug: stores.slug,
+						citySlug: cities.slug,
+						price: sql<number | null>`NULL`.as("price"), // Adicionar price como NULL
+						imageUrl: sql<string>`(
+							SELECT ${productsImages.url}
+							FROM ${productsImages}
+							INNER JOIN ${productsVariations} ON ${productsImages.productVariationId} = ${productsVariations.id}
+							WHERE ${productsVariations.productId} = ${products.id}
+							LIMIT 1
+						)`.as("imageUrl"),
+					})
+					.from(products)
+					.innerJoin(stores, eq(products.storeId, stores.id))
+					.innerJoin(cities, eq(stores.cityId, cities.id))
+					.leftJoin(addresses, and(eq(addresses.storeId, stores.id), eq(addresses.isMain, true)))
+					.where(whereClause)
+					.orderBy(
+						filters.latitude && filters.longitude
+							? sql`
+								CASE 
+									WHEN ${addresses.latitude} IS NULL OR ${addresses.longitude} IS NULL OR 
+									     ${addresses.latitude} = '' OR ${addresses.longitude} = ''
+									THEN 999999
+									ELSE (
+										6371 * acos(
+											LEAST(1.0, GREATEST(-1.0,
+												cos(radians(${filters.latitude})) * 
+												cos(radians(CAST(${addresses.latitude} AS float))) * 
+												cos(radians(CAST(${addresses.longitude} AS float)) - radians(${filters.longitude})) +
+												sin(radians(${filters.latitude})) * 
+												sin(radians(CAST(${addresses.latitude} AS float)))
+											))
+										)
+									)
+								END ASC,
+								${products.createdAt} DESC
+							`
+							: desc(products.createdAt)
+					)
+					.limit(limit)
+					.offset(offset);
+			} else {
+				throw error;
+			}
+		}
 
 		const typedProducts = productsResult as unknown as (Product & {
 			storeSlug: string;
