@@ -164,20 +164,22 @@ async function seed() {
 		console.log("👤 Criando usuários...");
 		const passwordHash = await hash("12345678", BCRYPT_SALT_ROUNDS);
 
+		const userData = [
+			{ id: randomUUID(), name: "Admin Vitrine", email: "admin@vitrine.shop", role: "ADMIN" as const },
+			{ id: randomUUID(), name: "Maria Silva", email: "maria@exemplo.com", role: "OWNER" as const },
+			{ id: randomUUID(), name: "João Santos", email: "joao@exemplo.com", role: "OWNER" as const },
+			{ id: randomUUID(), name: "Ana Costa", email: "ana@exemplo.com", role: "OWNER" as const },
+			{ id: randomUUID(), name: "Carlos Oliveira", email: "carlos@exemplo.com", role: "OWNER" as const },
+			{ id: randomUUID(), name: "Julia Ferreira", email: "julia@exemplo.com", role: "OWNER" as const },
+			{ id: randomUUID(), name: "Pedro Alves", email: "pedro@exemplo.com", role: "OWNER" as const },
+			{ id: randomUUID(), name: "Fernanda Lima", email: "fernanda@exemplo.com", role: "OWNER" as const },
+			{ id: randomUUID(), name: "Roberto Souza", email: "roberto@exemplo.com", role: "OWNER" as const },
+			{ id: randomUUID(), name: "Camila Rocha", email: "camila@exemplo.com", role: "OWNER" as const },
+		];
+
 		const createdUsers = await DrizzleORM
 			.insert(users)
-			.values([
-				{ id: randomUUID(), name: "Admin Vitrine", email: "admin@vitrine.shop", passwordHash, role: "ADMIN" },
-				{ id: randomUUID(), name: "Maria Silva", email: "maria@exemplo.com", passwordHash, role: "OWNER" },
-				{ id: randomUUID(), name: "João Santos", email: "joao@exemplo.com", passwordHash, role: "OWNER" },
-				{ id: randomUUID(), name: "Ana Costa", email: "ana@exemplo.com", passwordHash, role: "OWNER" },
-				{ id: randomUUID(), name: "Carlos Oliveira", email: "carlos@exemplo.com", passwordHash, role: "OWNER" },
-				{ id: randomUUID(), name: "Julia Ferreira", email: "julia@exemplo.com", passwordHash, role: "OWNER" },
-				{ id: randomUUID(), name: "Pedro Alves", email: "pedro@exemplo.com", passwordHash, role: "OWNER" },
-				{ id: randomUUID(), name: "Fernanda Lima", email: "fernanda@exemplo.com", passwordHash, role: "OWNER" },
-				{ id: randomUUID(), name: "Roberto Souza", email: "roberto@exemplo.com", passwordHash, role: "OWNER" },
-				{ id: randomUUID(), name: "Camila Rocha", email: "camila@exemplo.com", passwordHash, role: "OWNER" },
-			])
+			.values(userData)
 			.returning();
 		if (createdUsers.length < 10) {
 			throw new Error("Erro ao criar usuários: quantidade insuficiente");
@@ -192,6 +194,19 @@ async function seed() {
 		const owner7 = createdUsers[7]!;
 		const owner8 = createdUsers[8]!;
 		const owner9 = createdUsers[9]!;
+
+		// 3.1. Criar contas (accounts) para autenticação email/password
+		console.log("🔐 Criando contas de autenticação...");
+		await DrizzleORM.insert(account).values(
+			createdUsers.map((user) => ({
+				id: randomUUID(),
+				accountId: user.email, // Better Auth usa email como accountId para credenciais
+				providerId: "credential", // Better Auth usa "credential" para email/password
+				userId: user.id,
+				password: passwordHash, // Hash da senha armazenado na tabela account
+			})),
+		);
+		console.log("   ✓ Contas de autenticação criadas");
 
 		// 4. Criar Lojas (até 10)
 		console.log("🏪 Criando lojas...");

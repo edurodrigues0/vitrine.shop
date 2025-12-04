@@ -59,6 +59,7 @@ app.use(
 	express.raw({ type: "application/json" }),
 );
 app.use(express.urlencoded({ extended: true }));
+// express.json() deve vir DEPOIS do Better Auth para evitar conflitos
 app.use(cookieParser());
 
 // Swagger Documentation
@@ -68,7 +69,14 @@ setupSwagger(app);
 app.use("/uploads", express.static(join(process.cwd(), "uploads")));
 
 // Rotas
-app.all("/api/auth/*splat", toNodeHandler(auth));
+// Better Auth - deve vir ANTES das outras rotas /api para evitar conflitos
+// O Better Auth precisa receber a URL completa quando basePath está configurado
+// Usar app.all para capturar todos os métodos HTTP em todas as sub-rotas
+const authHandler = toNodeHandler(auth);
+app.all("/api/auth/*splat", (req, res) => {
+	authHandler(req, res);
+});
+
 app.use("/api", citiesRoutes);
 app.use("/api", categoriesRoutes);
 app.use("/api", productsRoutes);
@@ -90,6 +98,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 	});
 });
 
+// express.json() deve vir DEPOIS do Better Auth conforme documentação
 app.use(express.json());
 
 export default app;

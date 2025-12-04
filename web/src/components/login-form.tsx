@@ -29,7 +29,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
-  const { login, isLoggingIn } = useAuth();
+  const { login, isLoggingIn, googleLogin } = useAuth();
   const {
     register,
     handleSubmit,
@@ -48,6 +48,11 @@ export function LoginForm({
           : "Erro ao fazer login. Tente novamente.",
       );
     }
+  };
+
+  const handleGoogleLogin = () => {
+    const callbackURL = `${window.location.origin}/dashboard?from=google`;
+    googleLogin(callbackURL);
   };
 
   return (
@@ -116,6 +121,7 @@ export function LoginForm({
         
         <Field>
           <Button 
+            onClick={handleGoogleLogin}
             variant="outline" 
             type="button"
             className="w-full border-2 hover:bg-muted/50 transition-all"

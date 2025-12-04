@@ -18,7 +18,6 @@ export const users = pgTable("users", {
 	email: varchar("email", { length: 150 }).notNull().unique(),
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	image: text("image"),
-	passwordHash: text("password_hash"), // Opcional, pois pode usar OAuth
 	role: userRoleEnum("role").default("EMPLOYEE").notNull(),
 	storeId: uuid("store_id"), // Referência removida para evitar dependência circular
 	createdAt: timestamp("created_at").defaultNow().notNull(),
