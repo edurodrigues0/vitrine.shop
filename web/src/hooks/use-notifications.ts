@@ -43,25 +43,30 @@ export function useNotifications() {
 		}
 
 		// Criar conexão SSE
-		// SSE não suporta headers customizados, então vamos usar query param com token
-		// como fallback quando cookies não funcionam
+		// EventSource envia cookies automaticamente se estiver no mesmo domínio
+		// Better Auth usa cookies para autenticação, então não precisamos de token na query string
 		const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
 		
-		// Tentar obter token do localStorage ou cookie
-		const token = typeof window !== "undefined" 
-			? localStorage.getItem("authToken") || document.cookie
-				.split("; ")
-				.find((row) => row.startsWith("auth_token="))
-				?.split("=")[1]
-			: null;
+		// Verificar se há cookie do Better Auth
+		const hasBetterAuthCookie = typeof window !== "undefined" && 
+			document.cookie.split("; ").some((cookie) => {
+				const cookieName = cookie.trim().split("=")[0];
+				return (
+					cookieName === "better-auth.session_token" ||
+					cookieName === "better-auth.session" ||
+					cookieName.startsWith("better-auth.session_token") ||
+					cookieName.startsWith("better-auth.session")
+				);
+			});
 
-		if (!token) {
-			console.warn("No auth token found for SSE connection");
+		if (!hasBetterAuthCookie) {
+			console.warn("No Better Auth session found for SSE connection");
 			return;
 		}
 
-		const sseUrl = `${apiUrl}/api/notifications/stream?token=${encodeURIComponent(token)}`;
-		console.log("Connecting to SSE:", sseUrl.replace(/token=[^&]+/, "token=***"));
+		// EventSource envia cookies automaticamente, então não precisamos de token na query string
+		const sseUrl = `${apiUrl}/api/notifications/stream`;
+		console.log("Connecting to SSE (using Better Auth cookies)");
 
 		const eventSource = new EventSource(sseUrl);
 		eventSourceRef.current = eventSource;

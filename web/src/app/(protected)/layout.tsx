@@ -1,26 +1,18 @@
 "use client";
 
 import { AuthLayout } from "@/components/auth-layout";
-import { DashboardHeader } from "@/components/dashboard-header";
 import { useAuth } from "@/hooks/use-auth";
 import { useSelectedStore, SelectedStoreProvider } from "@/hooks/use-selected-store";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
 import {
   Store,
   Package,
   BarChart3,
   Settings,
-  LogOut,
   LayoutDashboard,
   ShoppingCart,
-  CreditCard,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";

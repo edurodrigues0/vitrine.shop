@@ -1,4 +1,3 @@
-import { hash } from "bcryptjs";
 import { randomUUID } from "crypto";
 import { eq, sql } from "drizzle-orm";
 import { DrizzleORM } from "./connection";
@@ -20,7 +19,7 @@ import {
 	users,
 	verifications,
 } from "./schema";
-import { BCRYPT_SALT_ROUNDS } from "../config/constants";
+import { auth } from "../services/auth";
 
 /**
  * Limpa todos os dados do banco de dados, respeitando as dependências de foreign keys.
@@ -160,27 +159,64 @@ async function seed() {
 		const categoryAlimentos = createdCategories[8]!;
 		const categoryAutomotivo = createdCategories[9]!;
 
-		// 3. Criar Usuários (até 10)
-		console.log("👤 Criando usuários...");
-		const passwordHash = await hash("12345678", BCRYPT_SALT_ROUNDS);
-
+		// 3. Criar usuários usando Better Auth sign-up
+		console.log("👤 Criando usuários com Better Auth...");
 		const userData = [
-			{ id: randomUUID(), name: "Admin Vitrine", email: "admin@vitrine.shop", role: "ADMIN" as const },
-			{ id: randomUUID(), name: "Maria Silva", email: "maria@exemplo.com", role: "OWNER" as const },
-			{ id: randomUUID(), name: "João Santos", email: "joao@exemplo.com", role: "OWNER" as const },
-			{ id: randomUUID(), name: "Ana Costa", email: "ana@exemplo.com", role: "OWNER" as const },
-			{ id: randomUUID(), name: "Carlos Oliveira", email: "carlos@exemplo.com", role: "OWNER" as const },
-			{ id: randomUUID(), name: "Julia Ferreira", email: "julia@exemplo.com", role: "OWNER" as const },
-			{ id: randomUUID(), name: "Pedro Alves", email: "pedro@exemplo.com", role: "OWNER" as const },
-			{ id: randomUUID(), name: "Fernanda Lima", email: "fernanda@exemplo.com", role: "OWNER" as const },
-			{ id: randomUUID(), name: "Roberto Souza", email: "roberto@exemplo.com", role: "OWNER" as const },
-			{ id: randomUUID(), name: "Camila Rocha", email: "camila@exemplo.com", role: "OWNER" as const },
+			{ name: "Admin Vitrine", email: "admin@vitrine.shop", role: "ADMIN" as const },
+			{ name: "Maria Silva", email: "maria@exemplo.com", role: "OWNER" as const },
+			{ name: "João Santos", email: "joao@exemplo.com", role: "OWNER" as const },
+			{ name: "Ana Costa", email: "ana@exemplo.com", role: "OWNER" as const },
+			{ name: "Carlos Oliveira", email: "carlos@exemplo.com", role: "OWNER" as const },
+			{ name: "Julia Ferreira", email: "julia@exemplo.com", role: "OWNER" as const },
+			{ name: "Pedro Alves", email: "pedro@exemplo.com", role: "OWNER" as const },
+			{ name: "Fernanda Lima", email: "fernanda@exemplo.com", role: "OWNER" as const },
+			{ name: "Roberto Souza", email: "roberto@exemplo.com", role: "OWNER" as const },
+			{ name: "Camila Rocha", email: "camila@exemplo.com", role: "OWNER" as const },
 		];
 
-		const createdUsers = await DrizzleORM
-			.insert(users)
-			.values(userData)
-			.returning();
+		const createdUsers = [];
+		const password = "12345678"; // Senha padrão para todos os usuários
+
+		for (const userInfo of userData) {
+			try {
+				const response = await auth.api.signUpEmail({
+					body: {
+						email: userInfo.email,
+						password: password,
+						name: userInfo.name,
+					},
+				});
+
+				if (response?.user) {
+					const user = response.user;
+					console.log(`   ✓ Usuário criado pelo Better Auth: ${userInfo.name} (${userInfo.email}) - ID: ${user.id}`);
+					
+					// Atualizar o role do usuário (campo customizado)
+					await DrizzleORM.update(users)
+						.set({ role: userInfo.role })
+						.where(eq(users.id, user.id));
+					
+					// Buscar o usuário atualizado
+					const [updatedUser] = await DrizzleORM
+						.select()
+						.from(users)
+						.where(eq(users.id, user.id));
+					
+					if (updatedUser) {
+						createdUsers.push(updatedUser);
+						console.log(`   ✓ Role atualizado: ${userInfo.role} para ${userInfo.email}`);
+					} else {
+						throw new Error(`Erro ao buscar usuário criado: ${userInfo.email}`);
+					}
+				} else {
+					throw new Error(`Erro ao criar usuário ${userInfo.email}: resposta inválida`);
+				}
+			} catch (error) {
+				console.error(`   ❌ Erro ao criar usuário ${userInfo.email}:`, error);
+				throw error;
+			}
+		}
+
 		if (createdUsers.length < 10) {
 			throw new Error("Erro ao criar usuários: quantidade insuficiente");
 		}
@@ -194,19 +230,6 @@ async function seed() {
 		const owner7 = createdUsers[7]!;
 		const owner8 = createdUsers[8]!;
 		const owner9 = createdUsers[9]!;
-
-		// 3.1. Criar contas (accounts) para autenticação email/password
-		console.log("🔐 Criando contas de autenticação...");
-		await DrizzleORM.insert(account).values(
-			createdUsers.map((user) => ({
-				id: randomUUID(),
-				accountId: user.email, // Better Auth usa email como accountId para credenciais
-				providerId: "credential", // Better Auth usa "credential" para email/password
-				userId: user.id,
-				password: passwordHash, // Hash da senha armazenado na tabela account
-			})),
-		);
-		console.log("   ✓ Contas de autenticação criadas");
 
 		// 4. Criar Lojas (até 10)
 		console.log("🏪 Criando lojas...");

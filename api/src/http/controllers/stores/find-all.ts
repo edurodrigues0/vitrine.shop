@@ -8,7 +8,7 @@ const findAllStoresQuerySchema = z.object({
 	name: z.string().optional(),
 	description: z.string().optional(),
 	slug: z.string().optional(),
-	ownerId: z.string().uuid().optional(),
+	ownerId: z.string().optional(), // Better Auth usa text, não UUID
 	cityId: z.string().uuid().optional(),
 	isPaid: z.coerce.boolean().optional(),
 });
@@ -57,8 +57,7 @@ const findAllStoresQuerySchema = z.object({
  *         name: ownerId
  *         schema:
  *           type: string
- *           format: uuid
- *         description: Filtrar por ID do proprietário
+ *         description: Filtrar por ID do proprietário (Better Auth usa text, não UUID)
  *         required: false
  *       - in: query
  *         name: isPaid

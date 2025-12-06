@@ -4,7 +4,7 @@ import { fromNodeHeaders } from "better-auth/node";
 import type { IncomingHttpHeaders } from "http";
 /**
  * @swagger
- * /auth/me:
+ * /me:
  *   get:
  *     summary: Retorna informações do usuário autenticado
  *     description: |

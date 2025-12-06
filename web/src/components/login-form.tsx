@@ -51,7 +51,9 @@ export function LoginForm({
   };
 
   const handleGoogleLogin = () => {
-    const callbackURL = `${window.location.origin}/dashboard?from=google`;
+    // Remover ?from=google do callbackURL
+    // O Better Auth vai redirecionar para /dashboard após autenticação
+    const callbackURL = `${window.location.origin}/dashboard`;
     googleLogin(callbackURL);
   };
 

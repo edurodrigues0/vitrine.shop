@@ -150,10 +150,7 @@ export class DrizzleStoresRepository implements StoresRepository {
 		// Se não houver filtro por ownerId, filtrar apenas lojas ativas (para busca pública)
 		// Se houver filtro por ownerId, mostrar todas as lojas do usuário (para gestão)
 		if (!filters.ownerId) {
-			console.log("DrizzleStoresRepository.findAll - Aplicando filtro de status ACTIVE (busca pública)");
 			conditions.push(eq(stores.status, "ACTIVE"));
-		} else {
-			console.log("DrizzleStoresRepository.findAll - NÃO aplicando filtro de status (busca por ownerId)");
 		}
 
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

@@ -13,6 +13,8 @@ export const auth = betterAuth({
   },
   session: {
     modelName: "sessions",
+    expiresIn: 60 * 60 * 24 * 7, // 7 dias em segundos
+    updateAge: 60 * 60 * 24, // Atualiza a sessão a cada 1 dia
   },
   token: {
     modelName: "tokens",

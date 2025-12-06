@@ -36,7 +36,8 @@ async function apiClient<T>(
     });
   }
 
-  // Get auth token from localStorage
+  // Better Auth usa cookies para autenticação, então não precisamos enviar token Bearer
+  // Mas mantemos a lógica para compatibilidade com sistema antigo se necessário
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
@@ -49,7 +50,21 @@ async function apiClient<T>(
     requestHeaders["Content-Type"] = "application/json";
   }
 
-  if (token) {
+  // Verificar se há cookie do Better Auth antes de enviar token Bearer
+  // Se houver cookie do Better Auth, não enviar token Bearer (Better Auth tem prioridade)
+  const hasBetterAuthCookie = typeof window !== "undefined" && 
+    document.cookie.split("; ").some((cookie) => {
+      const cookieName = cookie.trim().split("=")[0];
+      return (
+        cookieName === "better-auth.session_token" ||
+        cookieName === "better-auth.session" ||
+        cookieName.startsWith("better-auth.session_token") ||
+        cookieName.startsWith("better-auth.session")
+      );
+    });
+
+  // Só enviar token Bearer se não houver cookie do Better Auth (fallback para sistema antigo)
+  if (token && !hasBetterAuthCookie) {
     requestHeaders.Authorization = `Bearer ${token}`;
   }
 
