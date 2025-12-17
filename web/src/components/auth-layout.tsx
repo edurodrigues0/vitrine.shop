@@ -43,7 +43,6 @@ export function AuthLayout({ children }: AuthLayoutProps) {
     if (isMounted && !isAuthenticated) {
       const checkSession = () => {
         const active = hasActiveSession();
-        console.log("[AuthLayout] Checking session - active:", active, "Cookies:", document.cookie);
         setSessionActive(active);
       };
       checkSession();
@@ -73,8 +72,6 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       // Se após 10 segundos ainda não autenticou, considerar que falhou
       // Aumentado para 10 segundos para dar mais tempo para a query completar
       const timeout = setTimeout(() => {
-        console.warn("[AuthLayout] Timeout waiting for authentication, redirecting to login");
-        console.warn("[AuthLayout] sessionActive:", sessionActive, "isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
         setSessionActive(false);
         router.push("/login");
       }, 10000);
@@ -87,7 +84,6 @@ export function AuthLayout({ children }: AuthLayoutProps) {
     // Só redirecionar se já verificou a autenticação e não está autenticado
     // E não há sessão ativa (token/cookie)
     if (isMounted && hasCheckedAuth && !isLoading && !isAuthenticated && !sessionActive) {
-      console.log("[AuthLayout] Redirecting to login - no session active");
       router.push("/login");
     }
   }, [isMounted, hasCheckedAuth, isAuthenticated, isLoading, sessionActive, router]);

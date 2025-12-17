@@ -8,8 +8,10 @@ import type {
 export const authService = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
     // Better Auth usa /api/auth/sign-in/email e retorna { token, user } ou { user }
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
-    const response = await fetch(`${apiBaseUrl}/api/auth/sign-in/email`, {
+    // Normalizar apiBaseUrl removendo /api se existir no final
+    let apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
+    apiBaseUrl = apiBaseUrl.replace(/\/api\/?$/, ""); // Remove /api ou /api/ do final
+    const response = await fetch(`${apiBaseUrl}/auth/sign-in/email`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -42,23 +44,30 @@ export const authService = {
       redirect: result.redirect || false,
     };
   },
-
   googleLogin: (callbackURL?: string): void => {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
-    const defaultCallbackURL = typeof window !== "undefined" 
-      ? `${window.location.origin}/dashboard`
-      : "/dashboard";
-    const finalCallbackURL = callbackURL || defaultCallbackURL;
-    
-    // Redirecionar diretamente para a URL do Better Auth
-    const googleAuthUrl = `${apiBaseUrl}/api/auth/sign-in/google?callbackURL=${encodeURIComponent(finalCallbackURL)}`;
-    window.location.href = googleAuthUrl;
+    let apiBaseUrl =
+      process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
+  
+    // remove /api caso exista
+    apiBaseUrl = apiBaseUrl.replace(/\/api\/?$/, "");
+  
+    const params = new URLSearchParams();
+  
+    if (callbackURL) {
+      params.set("callbackURL", callbackURL);
+    }
+  
+    // OAuth exige navegação real
+    window.location.href = `${apiBaseUrl}/auth/sign-in/google${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
   },
-
   logout: async (): Promise<void> => {
     try {
       // Usar o endpoint do Better Auth para logout
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
+      // Normalizar apiBaseUrl removendo /api se existir no final
+      let apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
+      apiBaseUrl = apiBaseUrl.replace(/\/api\/?$/, ""); // Remove /api ou /api/ do final
       await fetch(`${apiBaseUrl}/api/auth/sign-out`, {
         method: "POST",
         credentials: "include", // Importante para enviar cookies
@@ -77,16 +86,16 @@ export const authService = {
       document.cookie = "better-auth.session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     }
   },
-
   me: async (): Promise<AuthUserResponse> => {
     const response = await api.get<{ user: AuthUserResponse }>("/me");
     return response.user;
   },
-
   checkSession: async (): Promise<boolean> => {
     try {
       // Usar o endpoint do Better Auth para verificar sessão
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
+      // Normalizar apiBaseUrl removendo /api se existir no final
+      let apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
+      apiBaseUrl = apiBaseUrl.replace(/\/api\/?$/, ""); // Remove /api ou /api/ do final
       const response = await fetch(`${apiBaseUrl}/api/auth/session`, {
         method: "GET",
         credentials: "include", // Importante para enviar cookies
@@ -104,7 +113,6 @@ export const authService = {
       return false;
     }
   },
-
   refreshToken: async (): Promise<{ token: string }> => {
     const response = await api.post<{ token: string }>("/auth/refresh-token");
     return response;

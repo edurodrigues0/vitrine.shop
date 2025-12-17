@@ -71,10 +71,10 @@ app.use("/uploads", express.static(join(process.cwd(), "uploads")));
 // Rotas
 // Better Auth - deve vir ANTES das outras rotas /api para evitar conflitos
 // O Better Auth precisa receber a URL completa quando basePath está configurado
-// Usar app.all para capturar todos os métodos HTTP em todas as sub-rotas
+// Usar app.use para capturar todos os métodos HTTP em todas as sub-rotas
 const authHandler = toNodeHandler(auth);
-app.all("/api/auth/*splat", (req, res) => {
-	authHandler(req, res);
+app.use("/api/auth", (req, res) => {
+	return authHandler(req, res);
 });
 
 app.use("/api", citiesRoutes);

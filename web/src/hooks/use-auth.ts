@@ -43,9 +43,7 @@ export function useAuth() {
   // Inicializar verificando cookies imediatamente
   const [hasToken, setHasToken] = useState(() => {
     if (typeof window === "undefined") return false;
-    const hasSession = hasActiveSession();
-    console.log("[useAuth] Initial hasToken check:", hasSession, "Cookies:", document.cookie);
-    return hasSession;
+    return hasActiveSession();
   });
   const [isCheckingOAuth, setIsCheckingOAuth] = useState(false);
   
@@ -58,54 +56,53 @@ export function useAuth() {
     if (hasCheckedCallback.current || typeof window === "undefined") return;
     
     const searchParams = new URLSearchParams(window.location.search);
-    // Verificar se há parâmetros do Better Auth (code, state) que indicam callback OAuth
+    // Verificar se há parâmetros OAuth (code, state) que indicam callback do Better Auth
     const hasOAuthParams = searchParams.has("code") || searchParams.has("state");
-    const fromGoogle = searchParams.get("from") === "google" || hasOAuthParams;
     const error = searchParams.get("error");
+    // Verificar se há flag de OAuth iniciado no sessionStorage
+    const oAuthInitiated = sessionStorage.getItem("oauth_initiated") === "true";
     
     hasCheckedCallback.current = true;
 
     // Tratamento de erro do OAuth
     if (error) {
+      sessionStorage.removeItem("oauth_initiated");
       showError("Erro ao autenticar com Google. Tente novamente.");
-      // Remover parâmetros da URL
-      router.replace("/dashboard");
+      router.replace("/login");
       return;
     }
 
-    // Se veio do callback do Google (detectado por parâmetros OAuth ou ?from=google)
-    if (fromGoogle) {
+    // Se há parâmetros OAuth na URL, é definitivamente um callback
+    if (hasOAuthParams) {
       isOAuthCallback.current = true;
       setIsCheckingOAuth(true);
+      setHasToken(true); // Habilitar a query para verificar sessão
       
-      // Aguardar um pouco para garantir que o cookie foi definido
+      // Aguardar processamento do Better Auth e verificar sessão
       setTimeout(async () => {
         try {
-          // Verificar sessão usando a API do Better Auth
           const hasSession = await authService.checkSession();
-          
           if (hasSession) {
-            setHasToken(true);
-            // Forçar refetch imediato
+            // Sessão criada com sucesso
             await queryClient.refetchQueries({ queryKey: AUTH_KEY });
             queryClient.invalidateQueries({ queryKey: ["stores", "user"] });
             showSuccess("Login com Google realizado com sucesso!");
-            // Remover parâmetros da URL
+            // Remover parâmetros da URL e flag
+            sessionStorage.removeItem("oauth_initiated");
             router.replace("/dashboard");
-            setIsCheckingOAuth(false);
           } else {
-            // Se não há sessão após callback, pode ser que ainda esteja processando
-            // Tentar novamente após um delay
+            // Tentar novamente após delay
             setTimeout(async () => {
               const retrySession = await authService.checkSession();
               if (retrySession) {
-                setHasToken(true);
                 await queryClient.refetchQueries({ queryKey: AUTH_KEY });
                 queryClient.invalidateQueries({ queryKey: ["stores", "user"] });
                 showSuccess("Login com Google realizado com sucesso!");
+                sessionStorage.removeItem("oauth_initiated");
                 router.replace("/dashboard");
               } else {
                 showError("Erro ao verificar sessão após login com Google. Tente fazer login novamente.");
+                sessionStorage.removeItem("oauth_initiated");
                 router.replace("/login");
               }
               setIsCheckingOAuth(false);
@@ -114,12 +111,47 @@ export function useAuth() {
         } catch (error) {
           console.error("Error checking session after Google OAuth:", error);
           showError("Erro ao verificar sessão após login com Google. Tente fazer login novamente.");
+          sessionStorage.removeItem("oauth_initiated");
           router.replace("/login");
           setIsCheckingOAuth(false);
         }
       }, 1000);
+      return;
     }
-  }, []);
+
+    // Se não há parâmetros OAuth mas há flag de OAuth iniciado e estamos no dashboard
+    // Pode ser que o Better Auth já processou e redirecionou (sem parâmetros na URL)
+    if (oAuthInitiated && window.location.pathname === "/dashboard") {
+      const hasSession = hasActiveSession();
+      
+      if (hasSession) {
+        // Possível retorno do OAuth, verificar sessão no servidor
+        isOAuthCallback.current = true;
+        setIsCheckingOAuth(true);
+        setHasToken(true);
+        
+        setTimeout(async () => {
+          try {
+            const sessionValid = await authService.checkSession();
+            if (sessionValid) {
+              await queryClient.refetchQueries({ queryKey: AUTH_KEY });
+              queryClient.invalidateQueries({ queryKey: ["stores", "user"] });
+              showSuccess("Login com Google realizado com sucesso!");
+              sessionStorage.removeItem("oauth_initiated");
+              router.replace("/dashboard");
+            }
+            setIsCheckingOAuth(false);
+          } catch (error) {
+            console.error("Error checking session after OAuth:", error);
+            setIsCheckingOAuth(false);
+          }
+        }, 1500);
+      } else {
+        // Limpar flag se não há sessão
+        sessionStorage.removeItem("oauth_initiated");
+      }
+    }
+  }, [router, queryClient]);
 
   // Atualizar hasToken quando cookies mudarem (após callback do Google ou refresh)
   // Verificar imediatamente na montagem para garantir que a query seja habilitada
@@ -128,15 +160,12 @@ export function useAuth() {
     
     // Verificar imediatamente na montagem (crítico para funcionar após refresh)
     const active = hasActiveSession();
-    console.log("[useAuth] Effect check - active:", active, "hasToken:", hasToken, "Cookies:", document.cookie);
     
     if (active && !hasToken) {
       // Se há sessão ativa mas hasToken é false, atualizar imediatamente
-      console.log("[useAuth] Setting hasToken to true (session active)");
       setHasToken(true);
     } else if (!active && hasToken) {
       // Se não há sessão mas hasToken é true, atualizar também
-      console.log("[useAuth] Setting hasToken to false (no session)");
       setHasToken(false);
     }
     
@@ -147,7 +176,6 @@ export function useAuth() {
     const checkSession = () => {
       const active = hasActiveSession();
       if (active !== hasToken) {
-        console.log("[useAuth] Session changed - active:", active);
         setHasToken(active);
       }
     };
@@ -184,23 +212,18 @@ export function useAuth() {
     queryKey: AUTH_KEY,
     queryFn: async () => {
       try {
-        console.log("[useAuth] Fetching user data from /me endpoint");
         const authUser = await authService.me();
         if (!authUser) {
-          console.log("[useAuth] No user data returned from /me");
           return null;
         }
-        console.log("[useAuth] User data fetched successfully:", authUser.email);
         // Converter AuthUserResponse para User (role já é string, mas precisa ser UserRole)
         return {
           ...authUser,
           role: authUser.role as UserRole,
         } as User;
       } catch (error: any) {
-        console.error("[useAuth] Error fetching user:", error);
         // Se receber 401, limpar sessão do Better Auth silenciosamente
         if (error?.status === 401 || error?.response?.status === 401) {
-          console.log("[useAuth] 401 Unauthorized - clearing session");
           if (typeof window !== "undefined") {
             // Limpar cookies do Better Auth
             const cookieNames = [
@@ -233,14 +256,8 @@ export function useAuth() {
   useEffect(() => {
     if (!hasTriedInitialQuery && (isLoading === false || user || error)) {
       setHasTriedInitialQuery(true);
-      console.log("[useAuth] Initial query attempt completed");
     }
   }, [hasTriedInitialQuery, isLoading, user, error]);
-
-  // Debug: Log quando hasToken ou enabled mudar
-  useEffect(() => {
-    console.log("[useAuth] Query enabled:", hasToken || isCheckingOAuth, "hasToken:", hasToken, "isCheckingOAuth:", isCheckingOAuth, "isLoading:", isLoading, "user:", user?.email);
-  }, [hasToken, isCheckingOAuth, isLoading, user]);
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authService.login(data),
@@ -309,7 +326,10 @@ export function useAuth() {
   });
 
   const handleGoogleLogin = () => {
-    // Remover ?from=google do callbackURL
+    // Marcar que OAuth foi iniciado para detectar callback posteriormente
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("oauth_initiated", "true");
+    }
     // O Better Auth vai redirecionar para /dashboard após autenticação
     const callbackURL = `${window.location.origin}/dashboard`;
     authService.googleLogin(callbackURL);
