@@ -60,7 +60,6 @@ export function useNotifications() {
 			});
 
 		if (!hasBetterAuthCookie) {
-			console.warn("No Better Auth session found for SSE connection");
 			return;
 		}
 

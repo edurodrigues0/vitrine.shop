@@ -4,13 +4,11 @@ import type {
   LoginRequest,
   LoginResponse,
 } from "@/dtos/user";
+import { authClient } from "@/lib/auth-client";
 
 export const authService = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
-    // Better Auth usa /api/auth/sign-in/email e retorna { token, user } ou { user }
-    // Normalizar apiBaseUrl removendo /api se existir no final
-    let apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
-    apiBaseUrl = apiBaseUrl.replace(/\/api\/?$/, ""); // Remove /api ou /api/ do final
+    let apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";// Remove /api ou /api/ do final
     const response = await fetch(`${apiBaseUrl}/auth/sign-in/email`, {
       method: "POST",
       headers: {
@@ -19,7 +17,7 @@ export const authService = {
       credentials: "include", // Importante para receber cookies do Better Auth
       body: JSON.stringify({
         ...data,
-        rememberMe: true, // Mantém a sessão ativa após fechar o navegador
+        rememberMe: true,
       }),
     });
 
@@ -35,32 +33,21 @@ export const authService = {
 
     const result = await response.json();
     
-    // Better Auth retorna { redirect, token, user }
-    // O user do better-auth não inclui role e storeId, então precisamos buscar do endpoint /auth/me
-    // Mas primeiro retornamos o que temos para atualizar o estado rapidamente
     return {
-      token: result.token || "", // Token pode ser null se usar apenas cookies
+      token: result.token || "",
       user: result.user,
       redirect: result.redirect || false,
     };
   },
-  googleLogin: (callbackURL?: string): void => {
-    let apiBaseUrl =
-      process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
-  
-    // remove /api caso exista
-    apiBaseUrl = apiBaseUrl.replace(/\/api\/?$/, "");
-  
-    const params = new URLSearchParams();
-  
-    if (callbackURL) {
-      params.set("callbackURL", callbackURL);
+  googleLogin: async (callbackURL?: string): Promise<void> => {
+    try {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: callbackURL,
+      })
+    } catch (error) {
+      console.error("Erro ao fazer login com Google:", error);
     }
-  
-    // OAuth exige navegação real
-    window.location.href = `${apiBaseUrl}/auth/sign-in/google${
-      params.toString() ? `?${params.toString()}` : ""
-    }`;
   },
   logout: async (): Promise<void> => {
     try {

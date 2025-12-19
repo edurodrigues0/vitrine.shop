@@ -58,6 +58,7 @@ app.use(
 	"/api/subscriptions/webhook",
 	express.raw({ type: "application/json" }),
 );
+
 app.use(express.urlencoded({ extended: true }));
 // express.json() deve vir DEPOIS do Better Auth para evitar conflitos
 app.use(cookieParser());
@@ -68,14 +69,12 @@ setupSwagger(app);
 // Servir arquivos estáticos (imagens)
 app.use("/uploads", express.static(join(process.cwd(), "uploads")));
 
-// Rotas
-// Better Auth - deve vir ANTES das outras rotas /api para evitar conflitos
-// O Better Auth precisa receber a URL completa quando basePath está configurado
-// Usar app.use para capturar todos os métodos HTTP em todas as sub-rotas
-const authHandler = toNodeHandler(auth);
-app.use("/api/auth", (req, res) => {
-	return authHandler(req, res);
-});
+app.all("/api/auth/*splat", toNodeHandler(auth));
+
+// const authHandler = toNodeHandler(auth);
+// app.use("/api/auth", (req, res) => {
+// 	return authHandler(req, res);
+// });
 
 app.use("/api", citiesRoutes);
 app.use("/api", categoriesRoutes);

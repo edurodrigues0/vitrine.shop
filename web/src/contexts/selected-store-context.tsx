@@ -45,18 +45,6 @@ export function SelectedStoreProvider({ children }: { children: ReactNode }) {
 
   const userStores = storesData?.stores || [];
   
-  // Debug: log quando userStores mudar
-  useEffect(() => {
-    if (user?.id) {
-      console.log("userStores atualizado:", {
-        userId: user.id,
-        userEmail: user.email,
-        storesCount: userStores.length,
-        stores: userStores.map(s => ({ id: s.id, name: s.name, ownerId: s.ownerId, status: s.status })),
-      });
-    }
-  }, [userStores, user]);
-
   // Carregar loja selecionada do localStorage apenas no cliente
   useEffect(() => {
     setIsMounted(true);
@@ -111,7 +99,6 @@ export function SelectedStoreProvider({ children }: { children: ReactNode }) {
   // Priorizar dados da lista de lojas para atualização imediata, mesmo que a query ainda não tenha atualizado
   const selectedStore = useMemo(() => {
     if (!selectedStoreId) {
-      console.log("selectedStore é null porque selectedStoreId é null");
       return null;
     }
     
