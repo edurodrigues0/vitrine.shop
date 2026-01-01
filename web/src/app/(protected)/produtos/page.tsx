@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Edit, Trash2, Package, Search, Filter, PlusCircle, MinusCircle, Image as ImageIcon, Grid3x3, List, ArrowUpDown, ArrowUp, ArrowDown, X } from "lucide-react";
 import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { showError, showSuccess } from "@/lib/toast";
+import { showError, showSuccess, showInfo } from "@/lib/toast";
+import { ApiError } from "@/lib/api-client";
 import Image from "next/image";
 import { AlertDialog } from "@/components/ui/alert-dialog";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -145,8 +146,38 @@ export default function ProductsPage() {
       setDeleteDialogOpen(false);
       setProductToDelete(null);
     },
-    onError: () => {
-      showError("Erro ao excluir produto");
+    onError: (error: unknown) => {
+      if (error instanceof ApiError && error.status === 403) {
+        const errorData = error.data as { code?: string; message?: string };
+        
+        if (errorData?.code === "SUBSCRIPTION_EXPIRED") {
+          showInfo("Assinatura Expirada", {
+            description: "Sua assinatura expirou. Renove sua assinatura para continuar gerenciando produtos.",
+            action: {
+              label: "Ver Planos",
+              onClick: () => {
+                window.location.href = "/planos";
+              },
+            },
+          });
+        } else if (errorData?.code === "SUBSCRIPTION_REQUIRED" || errorData?.code === "SUBSCRIPTION_NOT_PAID") {
+          showInfo("Assinatura Necessária", {
+            description: "Você precisa de uma assinatura ativa para excluir produtos.",
+            action: {
+              label: "Ver Planos",
+              onClick: () => {
+                window.location.href = "/planos";
+              },
+            },
+          });
+        } else {
+          showInfo("Acesso Negado", {
+            description: errorData?.message || "Você não tem permissão para realizar esta ação.",
+          });
+        }
+      } else {
+        showError("Erro ao excluir produto");
+      }
     },
   });
 
@@ -599,8 +630,38 @@ function ProductCard({
       queryClient.invalidateQueries({ queryKey: ["products"] });
       showSuccess("Produto excluído com sucesso!");
     },
-    onError: () => {
-      showError("Erro ao excluir produto");
+    onError: (error: unknown) => {
+      if (error instanceof ApiError && error.status === 403) {
+        const errorData = error.data as { code?: string; message?: string };
+        
+        if (errorData?.code === "SUBSCRIPTION_EXPIRED") {
+          showInfo("Assinatura Expirada", {
+            description: "Sua assinatura expirou. Renove sua assinatura para continuar gerenciando produtos.",
+            action: {
+              label: "Ver Planos",
+              onClick: () => {
+                window.location.href = "/planos";
+              },
+            },
+          });
+        } else if (errorData?.code === "SUBSCRIPTION_REQUIRED" || errorData?.code === "SUBSCRIPTION_NOT_PAID") {
+          showInfo("Assinatura Necessária", {
+            description: "Você precisa de uma assinatura ativa para excluir produtos.",
+            action: {
+              label: "Ver Planos",
+              onClick: () => {
+                window.location.href = "/planos";
+              },
+            },
+          });
+        } else {
+          showInfo("Acesso Negado", {
+            description: errorData?.message || "Você não tem permissão para realizar esta ação.",
+          });
+        }
+      } else {
+        showError("Erro ao excluir produto");
+      }
     },
   });
 

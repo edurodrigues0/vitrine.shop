@@ -174,9 +174,6 @@ export async function createProductController(
 				description: product.description,
 				categoryId: product.categoryId,
 				storeId: product.storeId,
-				price: product.price,
-				quantity: product.quantity,
-				color: product.color,
 				createdAt: product.createdAt,
 			},
 		});
