@@ -75,6 +75,8 @@ export interface UsersRepository {
 		};
 	}>;
 
+	countByStoreId({ storeId }: { storeId: string }): Promise<number>;
+
 	update({
 		id,
 		name,

@@ -67,8 +67,6 @@ export class DrizzleProductsRepository implements ProductsRespository {
 						description: products.description,
 						categoryId: products.categoryId,
 						storeId: products.storeId,
-						quantity: products.quantity,
-						color: products.color,
 						createdAt: products.createdAt,
 						price: sql<number | null>`NULL`.as("price"), // Adicionar price como NULL
 					})
@@ -131,8 +129,6 @@ export class DrizzleProductsRepository implements ProductsRespository {
 						description: products.description,
 						categoryId: products.categoryId,
 						storeId: products.storeId,
-						quantity: products.quantity,
-						color: products.color,
 						createdAt: products.createdAt,
 						price: sql<number | null>`NULL`.as("price"), // Adicionar price como NULL
 					})
@@ -144,6 +140,15 @@ export class DrizzleProductsRepository implements ProductsRespository {
 			}
 			throw error;
 		}
+	}
+
+	async countByStoreId({ storeId }: { storeId: string }): Promise<number> {
+		const [result] = await this.drizzle
+			.select({ count: count() })
+			.from(products)
+			.where(eq(products.storeId, storeId));
+
+		return Number(result?.count ?? 0);
 	}
 
 	async findAll({ page, limit, filters }: FindAllProductsParams): Promise<{
@@ -177,6 +182,9 @@ export class DrizzleProductsRepository implements ProductsRespository {
 		//   // Join com categories table
 		// }
 
+		// Filtrar apenas produtos de lojas com mensalidade paga
+		conditions.push(eq(stores.isPaid, true));
+
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
 		// Buscar produtos
@@ -191,9 +199,6 @@ export class DrizzleProductsRepository implements ProductsRespository {
 					description: products.description,
 					categoryId: products.categoryId,
 					storeId: products.storeId,
-					price: products.price,
-					quantity: products.quantity,
-					color: products.color,
 					createdAt: products.createdAt,
 					storeSlug: stores.slug,
 					citySlug: cities.slug,
@@ -246,8 +251,6 @@ export class DrizzleProductsRepository implements ProductsRespository {
 						description: products.description,
 						categoryId: products.categoryId,
 						storeId: products.storeId,
-						quantity: products.quantity,
-						color: products.color,
 						createdAt: products.createdAt,
 						storeSlug: stores.slug,
 						citySlug: cities.slug,
@@ -305,6 +308,7 @@ export class DrizzleProductsRepository implements ProductsRespository {
 		const [totalResult] = await this.drizzle
 			.select({ count: count() })
 			.from(products)
+			.innerJoin(stores, eq(products.storeId, stores.id))
 			.where(whereClause);
 
 		const totalItems = totalResult?.count ?? 0;

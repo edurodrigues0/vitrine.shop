@@ -22,6 +22,9 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { X, Upload, Image as ImageIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { UpgradeModal } from "@/components/upgrade-modal";
+import { extractLimitExceededError, extractSubscriptionRequiredError, getResourceTypeFromErrorCode } from "@/lib/handle-quota-error";
+import { ApiError } from "@/lib/api-client";
 
 const productSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -40,6 +43,8 @@ export default function CreateProductPage() {
   const queryClient = useQueryClient();
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [quotaError, setQuotaError] = useState<{ current: number; limit: number; resource: "produtos" | "lojas" | "usuários"; planId?: string } | null>(null);
 
   // Get categories
   const { data: categoriesData } = useQuery({
@@ -113,8 +118,37 @@ export default function CreateProductPage() {
       toast.success("Produto criado com sucesso!");
       router.push("/produtos");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Erro ao criar produto");
+    onError: (error: unknown) => {
+      // Tratar erros de quota
+      const limitError = extractLimitExceededError(error);
+      if (limitError) {
+        const resourceType = getResourceTypeFromErrorCode(limitError.code);
+        if (resourceType) {
+          setQuotaError({
+            current: limitError.current,
+            limit: limitError.limit,
+            resource: resourceType,
+            planId: limitError.planId,
+          });
+          setUpgradeModalOpen(true);
+          return;
+        }
+      }
+
+      const subscriptionError = extractSubscriptionRequiredError(error);
+      if (subscriptionError) {
+        toast.error("Assinatura necessária para criar produtos. Faça upgrade do seu plano.");
+        return;
+      }
+
+      // Outros erros
+      if (error instanceof ApiError) {
+        toast.error(error.message || "Erro ao criar produto");
+      } else if (error instanceof Error) {
+        toast.error(error.message || "Erro ao criar produto");
+      } else {
+        toast.error("Erro ao criar produto");
+      }
     },
   });
 
@@ -360,6 +394,21 @@ export default function CreateProductPage() {
         </FieldGroup>
       </form>
       </Card>
+
+      {/* Upgrade Modal */}
+      {quotaError && (
+        <UpgradeModal
+          open={upgradeModalOpen}
+          onClose={() => {
+            setUpgradeModalOpen(false);
+            setQuotaError(null);
+          }}
+          current={quotaError.current}
+          limit={quotaError.limit}
+          resource={quotaError.resource}
+          planId={quotaError.planId}
+        />
+      )}
     </div>
   );
 }

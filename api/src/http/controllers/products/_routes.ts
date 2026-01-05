@@ -35,6 +35,6 @@ productsRoutes.delete(
 	authenticatedRateLimit,
 	authenticateMiddleware,
 	requireProductOwner,
-	requirePaidSubscription,
+	// requirePaidSubscription,
 	deleteProductController,
 );

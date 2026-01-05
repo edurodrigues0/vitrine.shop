@@ -1,6 +1,8 @@
 import type { Response } from "express";
 import z, { ZodError } from "zod";
 import type { AuthenticatedRequest } from "~/http/middleware/authenticate";
+import { StoreLimitExceededError } from "~/use-cases/@errors/plans/store-limit-exceeded-error";
+import { SubscriptionRequiredError } from "~/use-cases/@errors/plans/subscription-required-error";
 import { StoreWithSameCnpjCpfError } from "~/use-cases/@errors/stores/store-with-same-cpnjcpf-error";
 import { StoreWithSameSlugError } from "~/use-cases/@errors/stores/store-with-same-slug";
 import { StoreWithSameWhatsappError } from "~/use-cases/@errors/stores/store-with-same-whatsapp-error";
@@ -261,6 +263,23 @@ export async function createStoreController(
 		if (error instanceof StoreWithSameSlugError) {
 			return response.status(409).json({
 				message: error.message,
+			});
+		}
+
+		if (error instanceof StoreLimitExceededError) {
+			return response.status(403).json({
+				message: error.message,
+				code: "STORE_LIMIT_EXCEEDED",
+				current: error.current,
+				limit: error.limit,
+				planId: error.planId,
+			});
+		}
+
+		if (error instanceof SubscriptionRequiredError) {
+			return response.status(403).json({
+				message: error.message,
+				code: "SUBSCRIPTION_REQUIRED",
 			});
 		}
 

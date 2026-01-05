@@ -100,6 +100,8 @@ export interface StoresRepository {
 		};
 	}>;
 
+	countByOwnerId({ ownerId }: { ownerId: string }): Promise<number>;
+
 	update({ id, data }: UpdateStoreParams): Promise<schema.Store | null>;
 
 	delete({ id }: { id: string }): Promise<void>;

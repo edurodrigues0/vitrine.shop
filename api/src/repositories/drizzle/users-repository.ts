@@ -1,4 +1,4 @@
-import { and, eq, ilike, sql } from "drizzle-orm";
+import { and, count, eq, ilike, sql } from "drizzle-orm";
 import type { DrizzleORM } from "~/database/connection";
 import { type User, type UserRole, users } from "~/database/schema";
 import type {
@@ -172,6 +172,15 @@ export class DrizzleUsersRepository implements UsersRepository {
 				perPage: limit,
 			},
 		};
+	}
+
+	async countByStoreId({ storeId }: { storeId: string }): Promise<number> {
+		const [result] = await this.drizzle
+			.select({ count: count() })
+			.from(users)
+			.where(eq(users.storeId, storeId));
+
+		return Number(result?.count ?? 0);
 	}
 
 	async update({

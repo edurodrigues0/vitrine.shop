@@ -1,5 +1,7 @@
 import type { Request, Response } from "express";
 import z, { ZodError } from "zod";
+import { SubscriptionRequiredError } from "~/use-cases/@errors/plans/subscription-required-error";
+import { UserLimitExceededError } from "~/use-cases/@errors/plans/user-limit-exceeded-error";
 import { UserAlreadyExistsError } from "~/use-cases/@errors/users/user-already-exists-error";
 import { makeCreateUserUseCase } from "~/use-cases/@factories/users/make-create-user-use-case";
 
@@ -108,6 +110,23 @@ export async function createUserController(
 		if (error instanceof UserAlreadyExistsError) {
 			return response.status(400).json({
 				message: error.message,
+			});
+		}
+
+		if (error instanceof UserLimitExceededError) {
+			return response.status(403).json({
+				message: error.message,
+				code: "USER_LIMIT_EXCEEDED",
+				current: error.current,
+				limit: error.limit,
+				planId: error.planId,
+			});
+		}
+
+		if (error instanceof SubscriptionRequiredError) {
+			return response.status(403).json({
+				message: error.message,
+				code: "SUBSCRIPTION_REQUIRED",
 			});
 		}
 

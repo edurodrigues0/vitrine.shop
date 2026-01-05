@@ -53,6 +53,8 @@ export interface ProductsRespository {
 
 	findByCategoryId({ categoryId }: { categoryId: string }): Promise<Product[]>;
 
+	countByStoreId({ storeId }: { storeId: string }): Promise<number>;
+
 	findAll({ page, limit, filters }: FindAllProductsParams): Promise<{
 		products: (Product & { storeSlug: string; citySlug: string; imageUrl?: string | null })[];
 		pagination: Pagination;

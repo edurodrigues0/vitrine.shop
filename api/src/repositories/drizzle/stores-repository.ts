@@ -109,6 +109,15 @@ export class DrizzleStoresRepository implements StoresRepository {
 		return store ?? null;
 	}
 
+	async countByOwnerId({ ownerId }: { ownerId: string }): Promise<number> {
+		const [result] = await this.drizzle
+			.select({ count: count() })
+			.from(stores)
+			.where(eq(stores.ownerId, ownerId));
+
+		return Number(result?.count ?? 0);
+	}
+
 	async findAll({ page, limit, filters }: FindAllStoresParams): Promise<{
 		stores: Store[];
 		pagination: {
@@ -176,7 +185,7 @@ export class DrizzleStoresRepository implements StoresRepository {
 				updatedAt: stores.updatedAt,
 			})
 			.from(stores)
-			.where(whereClause)
+			.where(and(whereClause, eq(stores.isPaid, true)))
 			.orderBy(desc(stores.createdAt))
 			.limit(limit)
 			.offset(offset);
@@ -185,7 +194,7 @@ export class DrizzleStoresRepository implements StoresRepository {
 		const [totalResult] = await this.drizzle
 			.select({ count: count() })
 			.from(stores)
-			.where(whereClause);
+			.where(and(whereClause, eq(stores.isPaid, true)));
 
 		const totalItems = totalResult?.count ?? 0;
 		const totalPages = Math.ceil(totalItems / limit);

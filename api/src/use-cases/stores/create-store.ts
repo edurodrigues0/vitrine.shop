@@ -1,5 +1,9 @@
 import type { Store } from "~/database/schema";
 import type { StoresRepository } from "~/repositories/stores-repository";
+import type { SubscriptionsRepository } from "~/repositories/subscriptions-repository";
+import { PlanLimitsService } from "~/services/plan-limits-service";
+import { StoreLimitExceededError } from "../@errors/plans/store-limit-exceeded-error";
+import { SubscriptionRequiredError } from "../@errors/plans/subscription-required-error";
 import { StoreWithSameCnpjCpfError } from "../@errors/stores/store-with-same-cpnjcpf-error";
 import { StoreWithSameSlugError } from "../@errors/stores/store-with-same-slug";
 import { StoreWithSameWhatsappError } from "../@errors/stores/store-with-same-whatsapp-error";
@@ -36,7 +40,10 @@ interface CreateStoreUseCaseRespose {
 }
 
 export class CreateStoreUseCase {
-	constructor(private readonly storesRepository: StoresRepository) { }
+	constructor(
+		private readonly storesRepository: StoresRepository,
+		private readonly subscriptionsRepository: SubscriptionsRepository,
+	) {}
 
 	async execute({
 		name,
@@ -52,6 +59,45 @@ export class CreateStoreUseCase {
 		theme,
 		whatsapp,
 	}: CreateStoreUseCaseRequest): Promise<CreateStoreUseCaseRespose> {
+		// Buscar assinatura do usuário
+		const subscription = await this.subscriptionsRepository.findByUserId({
+			userId: ownerId,
+		});
+
+		// Validar se assinatura existe e está ativa
+		if (!subscription) {
+			throw new SubscriptionRequiredError();
+		}
+
+		if (subscription.status !== "PAID") {
+			throw new SubscriptionRequiredError();
+		}
+
+		// Verificar se a assinatura não expirou
+		const now = new Date();
+		const periodEnd = new Date(subscription.currentPeriodEnd);
+
+		if (now > periodEnd) {
+			throw new SubscriptionRequiredError();
+		}
+
+		// Validar limite de lojas do plano
+		const limits = PlanLimitsService.getLimits(subscription.planId);
+
+		if (limits.maxStores !== null) {
+			const storeCount = await this.storesRepository.countByOwnerId({
+				ownerId,
+			});
+
+			if (PlanLimitsService.hasReachedLimit(storeCount, limits.maxStores)) {
+				throw new StoreLimitExceededError(
+					limits.maxStores,
+					storeCount,
+					subscription.planId,
+				);
+			}
+		}
+
 		const storeWithSameCnpjcpf = await this.storesRepository.findByCnpjcpf({
 			cnpjcpf,
 		});
