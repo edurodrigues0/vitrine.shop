@@ -1,8 +1,6 @@
 import type { Response } from "express";
 import z, { ZodError } from "zod";
 import type { AuthenticatedRequest } from "~/http/middleware/authenticate";
-import { BranchDoesNotBelongError } from "~/use-cases/@errors/store-branches/branch-does-not-belong-error";
-import { BranchNotFoundError } from "~/use-cases/@errors/store-branches/branch-not-found-error";
 import { StoreNotFoundError } from "~/use-cases/@errors/stores/store-not-found-error";
 import { makeCreateAddressUseCase } from "~/use-cases/@factories/addresses/make-create-address-use-case";
 
@@ -14,7 +12,6 @@ const createAddressBodySchema = z.object({
 	cityId: z.string().uuid("ID da cidade deve ser um UUID válido"),
 	zipCode: z.string().length(8, "CEP deve ter 8 caracteres"),
 	country: z.string().min(1, "País é obrigatório").max(50, "País deve ter no máximo 50 caracteres"),
-	branchId: z.string().uuid("ID da filial deve ser um UUID válido").optional(),
 	storeId: z.string().uuid("ID da loja deve ser um UUID válido").optional(),
 	isMain: z.boolean().optional(),
 });
@@ -80,10 +77,6 @@ const createAddressBodySchema = z.object({
  *                 maxLength: 50
  *                 description: País
  *                 example: "Brasil"
- *               branchId:
- *                 type: string
- *                 format: uuid
- *                 description: ID da filial (opcional)
  *               storeId:
  *                 type: string
  *                 format: uuid
@@ -122,10 +115,6 @@ const createAddressBodySchema = z.object({
  *                       type: string
  *                     country:
  *                       type: string
- *                     branchId:
- *                       type: string
- *                       format: uuid
- *                       nullable: true
  *                     storeId:
  *                       type: string
  *                       format: uuid
@@ -139,7 +128,7 @@ const createAddressBodySchema = z.object({
  *             schema:
  *               $ref: '#/components/schemas/Error'
  *       404:
- *         description: Loja ou filial não encontrada
+ *         description: Loja não encontrada
  *         content:
  *           application/json:
  *             schema:
@@ -156,6 +145,11 @@ export async function createAddressController(
 	response: Response,
 ) {
 	try {
+		console.log("📥 Recebendo requisição para criar endereço:", {
+			body: request.body,
+			userId: request.user?.id,
+		});
+
 		const {
 			street,
 			number,
@@ -164,13 +158,25 @@ export async function createAddressController(
 			cityId,
 			zipCode,
 			country,
-			branchId,
 			storeId,
 			isMain,
 		} = createAddressBodySchema.parse(request.body);
 
+		console.log("✅ Dados validados:", {
+			street,
+			number,
+			complement,
+			neighborhood,
+			cityId,
+			zipCode,
+			country,
+			storeId,
+			isMain,
+		});
+
 		const createAddressUseCase = makeCreateAddressUseCase();
 
+		console.log("🔄 Executando use case para criar endereço...");
 		const { address } = await createAddressUseCase.execute({
 			street,
 			number,
@@ -179,10 +185,11 @@ export async function createAddressController(
 			cityId,
 			zipCode,
 			country,
-			branchId,
 			storeId,
 			isMain,
 		});
+
+		console.log("✅ Endereço criado com sucesso:", address.id);
 
 		return response.status(201).json({
 			address: {
@@ -194,7 +201,6 @@ export async function createAddressController(
 				cityId: address.cityId,
 				zipCode: address.zipCode,
 				country: address.country,
-				branchId: address.branchId,
 				storeId: address.storeId,
 				isMain: address.isMain,
 			},
@@ -215,17 +221,6 @@ export async function createAddressController(
 			});
 		}
 
-		if (error instanceof BranchNotFoundError) {
-			return response.status(404).json({
-				message: error.message,
-			});
-		}
-
-		if (error instanceof BranchDoesNotBelongError) {
-			return response.status(400).json({
-				message: error.message,
-			});
-		}
 
 		return response.status(500).json({
 			message: "Internal server error",

@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { usersService } from "@/services/users-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import { AuthLayout } from "@/components/auth-layout";
 
 const profileSchema = z.object({
@@ -48,12 +48,12 @@ export default function ProfilePage() {
       return usersService.update(user.id, data);
     },
     onSuccess: () => {
-      toast.success("Perfil atualizado com sucesso!");
+      showSuccess("Perfil atualizado com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
     },
     onError: (error: Error) => {
-      toast.error(
-        error.message || "Erro ao atualizar perfil. Tente novamente.",
+      showError(
+        error instanceof Error ? error.message : "Erro ao atualizar perfil."
       );
     },
   });

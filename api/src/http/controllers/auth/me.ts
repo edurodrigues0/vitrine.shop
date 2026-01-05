@@ -1,12 +1,15 @@
-import type { Response } from "express";
-import type { AuthenticatedRequest } from "~/http/middleware/authenticate";
-import { makeFindUserByIdUseCase } from "~/use-cases/@factories/users/make-find-user-by-id-use-case";
-
+import type { Response, Request } from "express";
+import { auth } from "~/services/auth";
+import { fromNodeHeaders } from "better-auth/node";
+import type { IncomingHttpHeaders } from "http";
 /**
  * @swagger
- * /auth/me:
+ * /me:
  *   get:
  *     summary: Retorna informações do usuário autenticado
+ *     description: |
+ *       Endpoint customizado que retorna informações do usuário autenticado usando Better Auth.
+ *       Formata a resposta para manter compatibilidade com o formato esperado pelo frontend.
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -24,26 +27,52 @@ import { makeFindUserByIdUseCase } from "~/use-cases/@factories/users/make-find-
  *                   properties:
  *                     id:
  *                       type: string
- *                       format: uuid
+ *                       description: ID único do usuário (text, compatível com Better Auth)
+ *                       example: "MRmketTXwV8sEdr5vVyquaRpdbf6omq9"
  *                     name:
  *                       type: string
+ *                       nullable: true
+ *                       description: Nome do usuário
+ *                       example: "João Silva"
  *                     email:
  *                       type: string
+ *                       format: email
+ *                       description: Email do usuário
+ *                       example: "usuario@example.com"
  *                     role:
  *                       type: string
+ *                       enum: [ADMIN, OWNER, EMPLOYEE]
+ *                       description: Papel do usuário no sistema
+ *                       example: "OWNER"
  *                     storeId:
  *                       type: string
  *                       format: uuid
  *                       nullable: true
+ *                       description: ID da loja associada ao usuário (se houver)
  *                     createdAt:
  *                       type: string
  *                       format: date-time
+ *                       description: Data de criação da conta
  *       401:
  *         description: Usuário não autenticado
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       404:
+ *         description: Usuário não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "User not found"
  *       500:
  *         description: Erro interno do servidor
  *         content:
@@ -52,37 +81,34 @@ import { makeFindUserByIdUseCase } from "~/use-cases/@factories/users/make-find-
  *               $ref: '#/components/schemas/Error'
  */
 export async function meController(
-	request: AuthenticatedRequest,
+	request: Request,
 	response: Response,
 ) {
 	try {
-		if (!request.user) {
+		const session = await auth.api.getSession({
+			headers: fromNodeHeaders(request.headers as IncomingHttpHeaders),
+		});
+
+		if (!session || !session.user) {
 			return response.status(401).json({
-				error: "User not authenticated",
+				error: "Unauthorized",
 			});
 		}
 
-		const findUserByIdUseCase = makeFindUserByIdUseCase();
-		const { user } = await findUserByIdUseCase.execute({
-			id: request.user.id,
-		});
-
-		// Return user data without password
-		const { passwordHash: _, ...userWithoutPassword } = user;
-
+		// Formatar resposta para manter compatibilidade com o formato esperado pelo frontend
 		return response.status(200).json({
 			user: {
-				id: userWithoutPassword.id,
-				name: userWithoutPassword.name,
-				email: userWithoutPassword.email,
-				role: userWithoutPassword.role,
-				storeId: userWithoutPassword.storeId,
-				createdAt: userWithoutPassword.createdAt.toISOString(),
+				id: session.user.id,
+				name: session.user.name,
+				email: session.user.email,
+				role: (session.user as { role?: string }).role || "EMPLOYEE",
+				storeId: (session.user as { storeId?: string }).storeId || null,
+				createdAt: session.user.createdAt,
 			},
 		});
 	} catch (error) {
 		console.error("Error in meController:", error);
-		
+
 		// If user not found, return 404
 		if (error instanceof Error && error.message.includes("not found")) {
 			return response.status(404).json({

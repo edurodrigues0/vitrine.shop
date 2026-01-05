@@ -19,10 +19,32 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 		cityId,
 		zipCode,
 		country,
-		branchId,
 		storeId,
 		isMain,
 	}: CreateAddressParams): Promise<Address> {
+		console.log("💾 Repository: Criando endereço no banco de dados", {
+			street,
+			number,
+			complement,
+			neighborhood,
+			cityId,
+			zipCode,
+			country,
+			storeId,
+			isMain,
+		});
+
+		// Validar que cityId está presente (é obrigatório)
+		if (!cityId) {
+			console.error("❌ Repository: cityId é obrigatório mas não foi fornecido");
+			throw new Error("City ID is required");
+		}
+
+		console.log("🔍 Repository: Validando cityId antes de inserir:", {
+			cityId,
+			isValidUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cityId),
+		});
+
 		const [address] = await this.drizzle
 			.insert(addresses)
 			.values({
@@ -30,19 +52,24 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 				number,
 				complement: complement || null,
 				neighborhood,
-				cityId,
+				cityId, // Este campo é obrigatório e deve ser salvo
 				zipCode,
 				country,
-				branchId: branchId || null,
 				storeId: storeId || null,
 				isMain: isMain ?? false,
 			})
 			.returning();
 
 		if (!address) {
+			console.error("❌ Repository: Falha ao criar endereço - nenhum endereço retornado");
 			throw new Error("Failed to create address");
 		}
 
+		console.log("✅ Repository: Endereço criado com sucesso no banco:", {
+			id: address.id,
+			cityId: address.cityId,
+			hasCityId: !!address.cityId,
+		});
 		return address;
 	}
 
@@ -178,6 +205,11 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 	}
 
 	async update({ id, data }: UpdateAddressParams): Promise<Address | null> {
+		console.log("💾 Repository: Atualizando endereço no banco de dados", {
+			id,
+			data,
+		});
+
 		// Preparar dados para atualização, tratando undefined como null para campos opcionais
 		const updateData: Record<string, unknown> = {};
 
@@ -185,12 +217,21 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 		if (data.number !== undefined) updateData.number = data.number;
 		if (data.complement !== undefined) updateData.complement = data.complement ?? null;
 		if (data.neighborhood !== undefined) updateData.neighborhood = data.neighborhood;
-		if (data.cityId !== undefined) updateData.cityId = data.cityId;
+		if (data.cityId !== undefined) {
+			// Validar cityId antes de atualizar
+			if (!data.cityId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.cityId)) {
+				console.error("❌ Repository: cityId inválido para atualização:", data.cityId);
+				throw new Error("Invalid city ID format");
+			}
+			updateData.cityId = data.cityId;
+			console.log("✅ Repository: cityId validado e será atualizado:", data.cityId);
+		}
 		if (data.zipCode !== undefined) updateData.zipCode = data.zipCode;
 		if (data.country !== undefined) updateData.country = data.country;
-		if (data.branchId !== undefined) updateData.branchId = data.branchId ?? null;
 		if (data.storeId !== undefined) updateData.storeId = data.storeId ?? null;
 		if (data.isMain !== undefined) updateData.isMain = data.isMain;
+
+		console.log("💾 Repository: Dados preparados para atualização:", updateData);
 
 		const [updatedAddress] = await this.drizzle
 			.update(addresses)
@@ -198,7 +239,13 @@ export class DrizzleAddressesRepository implements AddressesRepository {
 			.where(eq(addresses.id, id))
 			.returning();
 
-		return updatedAddress ?? null;
+		if (!updatedAddress) {
+			console.error("❌ Repository: Endereço não encontrado para atualização:", id);
+			return null;
+		}
+
+		console.log("✅ Repository: Endereço atualizado com sucesso no banco:", updatedAddress.id);
+		return updatedAddress;
 	}
 
 	async delete({ id }: { id: string }): Promise<void> {

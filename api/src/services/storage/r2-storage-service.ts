@@ -25,7 +25,8 @@ export class R2StorageService {
 
 		this.bucketName = bucketName;
 		
-		this.publicUrl = `https://pub-${accountId}.r2.dev/${bucketName}`;
+		// Usar R2_PUBLIC_URL se configurada, caso contrário usar formato padrão
+		this.publicUrl =`https://pub-${accountId}.r2.dev`;
 
 		this.s3Client = new S3Client({
 			region: "auto",
@@ -37,7 +38,18 @@ export class R2StorageService {
 		});
 	}
 
-	async uploadImage(imageBuffer: Buffer, fileName: string): Promise<string> {
+	/**
+	 * Faz upload de uma imagem para um path específico
+	 * @param imageBuffer Buffer da imagem
+	 * @param fileName Nome do arquivo
+	 * @param path Path do diretório (ex: "products", "stores", "branches")
+	 * @returns URL pública da imagem
+	 */
+	async uploadImageToPath(
+		imageBuffer: Buffer,
+		fileName: string,
+		path: string = "products",
+	): Promise<string> {
 		try {
 			// Padronizar path para products/ (plural)
 			const key = `products/${fileName}`;
@@ -54,10 +66,6 @@ export class R2StorageService {
 
 			await this.s3Client.send(command);
 
-			// Construir URL pública utilizável para o frontend
-			// A URL será: {publicUrl}/products/{fileName}
-			// Exemplo com domínio customizado: https://cdn.exemplo.com/products/arquivo.jpg
-			// Exemplo padrão R2: https://pub-{accountId}.r2.dev/{bucket}/products/arquivo.jpg
 			const imageUrl = `${this.publicUrl}/${key}`;
 
 			return imageUrl;
@@ -67,7 +75,20 @@ export class R2StorageService {
 		}
 	}
 
-	async deleteImage(fileName: string): Promise<void> {
+	/**
+	 * Faz upload de uma imagem para products/ (mantido para compatibilidade)
+	 * @deprecated Use uploadImageToPath com path explícito
+	 */
+	async uploadImage(imageBuffer: Buffer, fileName: string): Promise<string> {
+		return this.uploadImageToPath(imageBuffer, fileName, "products");
+	}
+
+	/**
+	 * Remove uma imagem do storage
+	 * @param fileName Nome do arquivo ou URL completa
+	 * @param path Path do diretório (ex: "products", "stores", "branches"). Se não fornecido, tenta extrair da URL
+	 */
+	async deleteImage(fileName: string, path?: string): Promise<void> {
 		try {
 			// Padronizar path para products/ (plural)
 			// Se fileName já contém o path completo, extrair apenas o nome
@@ -88,7 +109,12 @@ export class R2StorageService {
 		}
 	}
 
-  async imageExists(fileName: string): Promise<boolean> {
+	/**
+	 * Verifica se uma imagem existe no storage
+	 * @param fileName Nome do arquivo ou URL completa
+	 * @param path Path do diretório (ex: "products", "stores", "branches"). Se não fornecido, tenta extrair da URL
+	 */
+	async imageExists(fileName: string, path?: string): Promise<boolean> {
 		try {
 			const key = `products/${fileName}`;
 
@@ -126,10 +152,6 @@ export class R2StorageService {
 	 */
 	extractFileNameFromUrl(url: string): string {
 		try {
-			// Tentar extrair o nome do arquivo de diferentes formatos de URL
-			// Formato 1: https://pub-{accountId}.r2.dev/{bucket}/products/{fileName}
-			// Formato 2: https://{custom-domain}/products/{fileName}
-			// Formato 3: {publicUrl}/products/{fileName}
 
 			const urlObj = new URL(url);
 			const pathParts = urlObj.pathname.split("/").filter(Boolean);

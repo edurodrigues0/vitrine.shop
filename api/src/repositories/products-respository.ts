@@ -19,6 +19,8 @@ export interface FindAllProductsParams {
 		description?: string;
 		categorySlug?: string;
 		storeId?: string;
+		latitude?: number;
+		longitude?: number;
 	};
 }
 
@@ -51,8 +53,10 @@ export interface ProductsRespository {
 
 	findByCategoryId({ categoryId }: { categoryId: string }): Promise<Product[]>;
 
+	countByStoreId({ storeId }: { storeId: string }): Promise<number>;
+
 	findAll({ page, limit, filters }: FindAllProductsParams): Promise<{
-		products: Product[];
+		products: (Product & { storeSlug: string; citySlug: string; imageUrl?: string | null })[];
 		pagination: Pagination;
 	}>;
 

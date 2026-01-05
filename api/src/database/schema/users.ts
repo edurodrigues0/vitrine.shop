@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+	boolean,
 	pgEnum,
 	pgTable,
 	text,
@@ -7,27 +8,27 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { stores } from "./stores";
 
 export const userRoleEnum = pgEnum("user_role", ["ADMIN", "OWNER", "EMPLOYEE"]);
-export type UserRole = (typeof userRoleEnum.enumValues)[number];
+export type UserRole = "ADMIN" | "OWNER" | "EMPLOYEE";
 
 export const users = pgTable("users", {
-	id: uuid("id").defaultRandom().primaryKey(),
-	name: varchar("name", { length: 120 }).notNull(),
+	id: text("id").primaryKey(), // Better Auth usa text como ID
+	name: varchar("name", { length: 120 }), // Opcional para Better Auth, pode ser atualizado depois
 	email: varchar("email", { length: 150 }).notNull().unique(),
-	passwordHash: text("password_hash").notNull(),
+	emailVerified: boolean("email_verified").default(false).notNull(),
+	image: text("image"),
 	role: userRoleEnum("role").default("EMPLOYEE").notNull(),
-	storeId: uuid("store_id").references(() => stores.id),
+	storeId: uuid("store_id"), // Referência removida para evitar dependência circular
 	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at")
+		.defaultNow()
+		.$onUpdate(() => new Date())
+		.notNull(),
 });
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
-export const usersRelations = relations(users, ({ one }) => ({
-	store: one(stores, {
-		fields: [users.storeId],
-		references: [stores.id],
-	}),
-}));
+// Relações são definidas nos arquivos relacionados para evitar dependências circulares
+export const usersRelations = relations(users, () => ({}));

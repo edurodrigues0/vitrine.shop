@@ -8,6 +8,8 @@ const findAllProductsQuerySchema = z.object({
 	name: z.string().optional(),
 	description: z.string().optional(),
 	categorySlug: z.string().optional(),
+	latitude: z.coerce.number().optional(),
+	longitude: z.coerce.number().optional(),
 });
 
 /**
@@ -115,6 +117,8 @@ export async function findAllProductsController(
 			name,
 			description,
 			categorySlug,
+			latitude,
+			longitude,
 		} = findAllProductsQuerySchema.parse(request.query);
 
 		const findAllProductsUseCase = makeFindAllProductsUseCase();
@@ -126,6 +130,8 @@ export async function findAllProductsController(
 				name,
 				description,
 				categorySlug,
+				latitude,
+				longitude,
 			},
 		});
 
@@ -136,7 +142,13 @@ export async function findAllProductsController(
 				description: product.description,
 				categoryId: product.categoryId,
 				storeId: product.storeId,
+				price: product.price,
+				quantity: product.quantity,
+				color: product.color,
 				createdAt: product.createdAt,
+				storeSlug: product.storeSlug,
+				citySlug: product.citySlug,
+				imageUrl: product.imageUrl,
 			})),
 			meta: {
 				totalItems: pagination.totalItems,

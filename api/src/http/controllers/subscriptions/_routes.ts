@@ -3,7 +3,7 @@ import { authenticateMiddleware } from "~/http/middleware/authenticate";
 import { authenticatedRateLimit, publicRateLimit } from "~/http/middleware/rate-limit";
 import { cancelSubscriptionController } from "./cancel";
 import { createCheckoutSessionController } from "./create-checkout-session";
-import { findSubscriptionByStoreController } from "./find-by-store";
+import { findSubscriptionByUserController } from "./find-by-user";
 import { webhookController } from "./webhook";
 
 export const subscriptionsRoutes = Router();
@@ -24,10 +24,10 @@ subscriptionsRoutes.post(
 );
 
 subscriptionsRoutes.get(
-	"/subscriptions/store/:storeId",
+	"/subscriptions/user/:userId",
 	authenticatedRateLimit,
 	authenticateMiddleware,
-	findSubscriptionByStoreController,
+	findSubscriptionByUserController,
 );
 
 subscriptionsRoutes.delete(

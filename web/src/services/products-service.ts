@@ -30,9 +30,8 @@ export const productsService = {
     }
     
     try {
-      console.log("Fetching products for storeId:", storeId);
       const response = await api.get<{ products: Product[] }>(`/products/store/${storeId}`);
-      console.log("Products response:", response);
+
       return response.products || [];
     } catch (error) {
       console.error("Error in findByStoreId:", error);

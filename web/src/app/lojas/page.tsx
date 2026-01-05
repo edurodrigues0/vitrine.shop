@@ -192,7 +192,10 @@ export default function AllStoresPage() {
 							</div>
 							{/* Dropdown de produtos sugeridos */}
 							{productFilter.length >= 2 && products.length > 0 && (
-								<div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+								<div
+									className="absolute z-10 w-full mt-1 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto"
+									style={{ backgroundColor: "hsl(var(--popover))" }}
+								>
 									<div className="p-2 space-y-1">
 										{products.slice(0, 5).map((product) => (
 											<button
@@ -256,7 +259,10 @@ export default function AllStoresPage() {
 								)}
 								{/* Dropdown de cidades */}
 								{isCityDropdownOpen && (
-									<div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto backdrop-blur-0">
+									<div
+										className="absolute z-50 w-full mt-1 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto backdrop-blur-0"
+										style={{ backgroundColor: "hsl(var(--popover))" }}
+									>
 										<div className="p-2 space-y-1">
 											<button
 												type="button"

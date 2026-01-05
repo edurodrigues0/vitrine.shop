@@ -1,120 +1,48 @@
-import type { Metadata } from "next";
+"use client";
 
-type Props = {
-  params: Promise<{ id: string; city: string }>;
-};
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { productsService } from "@/services/products-service";
+import { storesService } from "@/services/stores-service";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333/api";
-
-async function fetchProduct(id: string) {
+// Helper function to convert hex to HSL
+function hexToHSL(hex: string): string {
   try {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
-      next: { revalidate: 3600 },
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data.product || null;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchStore(id: string) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/stores/${id}`, {
-      next: { revalidate: 3600 },
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data.store || null;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchProductVariations(productId: string) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/product-variations/product/${productId}`, {
-      next: { revalidate: 3600 },
-    });
-    if (!response.ok) return { productVariations: [] };
-    const data = await response.json();
-    return data || { productVariations: [] };
-  } catch {
-    return { productVariations: [] };
-  }
-}
-
-async function fetchProductImages(variationId: string) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/product-images/variation/${variationId}`, {
-      next: { revalidate: 3600 },
-    });
-    if (!response.ok) return { productImages: [] };
-    const data = await response.json();
-    return data || { productImages: [] };
-  } catch {
-    return { productImages: [] };
-  }
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const resolvedParams = await params;
-  
-  try {
-    const product = await fetchProduct(resolvedParams.id);
-    if (!product) {
-      return {
-        title: "Produto não encontrado - Vitrine.shop",
-        description: "O produto que você está procurando não foi encontrado.",
-      };
+    hex = hex.replace(/^#/, '');
+    if (hex.length === 3) {
+      hex = hex.split('').map(char => char + char).join('');
     }
 
-    const store = await fetchStore(product.storeId);
-    
-    // Buscar primeira variação para obter preço
-    const variationsData = await fetchProductVariations(product.id);
-    
-    const firstVariation = variationsData.productVariations?.[0];
-    const price = firstVariation
-      ? (firstVariation.discountPrice || firstVariation.price) / 100
-      : null;
+    let r = parseInt(hex.substring(0, 2), 16);
+    let g = parseInt(hex.substring(2, 4), 16);
+    let b = parseInt(hex.substring(4, 6), 16);
 
-    // Buscar primeira imagem
-    const imagesData = firstVariation
-      ? await fetchProductImages(firstVariation.id)
-      : { productImages: [] };
-    
-    const firstImage = imagesData.productImages?.[0]?.url;
+    if (isNaN(r) || isNaN(g) || isNaN(b)) {
+      return "0 0% 0%";
+    }
 
-    return {
-      title: `${product.name}${store ? ` - ${store.name}` : ""} - Vitrine.shop`,
-      description: product.description || `Confira ${product.name} e outros produtos na Vitrine.shop`,
-      keywords: `${product.name}, produto, ${store?.name || ""}, ${resolvedParams.city}, compra online`,
-      openGraph: {
-        title: `${product.name}${store ? ` - ${store.name}` : ""}`,
-        description: product.description || `Confira ${product.name} e outros produtos`,
-        type: "website",
-        images: firstImage ? [{ url: firstImage }] : undefined,
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: `${product.name}${store ? ` - ${store.name}` : ""}`,
-        description: product.description || `Confira ${product.name} e outros produtos`,
-        images: firstImage ? [firstImage] : undefined,
-      },
-      other: price
-        ? {
-            "product:price:amount": price.toFixed(2),
-            "product:price:currency": "BRL",
-          }
-        : {},
-    };
-  } catch {
-    return {
-      title: "Produto não encontrado - Vitrine.shop",
-      description: "O produto que você está procurando não foi encontrado.",
-    };
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+
+    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+  } catch (e) {
+    return "0 0% 0%";
   }
 }
 
@@ -123,6 +51,45 @@ export default function ProductLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
-}
+  const params = useParams();
+  const productId = params.id as string;
 
+  // Fetch product to get storeId
+  const { data: product } = useQuery({
+    queryKey: ["product", productId],
+    queryFn: () => productsService.findById(productId),
+    enabled: !!productId,
+  });
+
+  // Fetch store to get theme
+  const { data: store } = useQuery({
+    queryKey: ["store", product?.storeId],
+    queryFn: () => storesService.findById(product!.storeId),
+    enabled: !!product?.storeId,
+  });
+
+  // Build CSS variables from theme
+  const themeStyles = store?.theme ? {
+    '--primary': hexToHSL(store.theme.primary),
+    '--primary-foreground': '0 0% 100%',
+    '--secondary': hexToHSL(store.theme.secondary),
+    '--secondary-foreground': '0 0% 100%',
+    '--background': hexToHSL(store.theme.bg),
+    '--foreground': hexToHSL(store.theme.text),
+    '--card': hexToHSL(store.theme.surface),
+    '--card-foreground': hexToHSL(store.theme.text),
+    '--muted': hexToHSL(store.theme.surface),
+    '--muted-foreground': hexToHSL(store.theme.textSecondary),
+    '--accent': hexToHSL(store.theme.highlight),
+    '--accent-foreground': '0 0% 100%',
+    '--border': hexToHSL(store.theme.border),
+    '--input': hexToHSL(store.theme.border),
+    '--ring': hexToHSL(store.theme.primary),
+  } as React.CSSProperties : {};
+
+  return (
+    <div className="min-h-screen bg-background text-foreground" style={themeStyles}>
+      {children}
+    </div>
+  );
+}

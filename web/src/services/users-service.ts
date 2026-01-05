@@ -44,6 +44,38 @@ export const usersService = {
     return response;
   },
 
+  findByStoreId: async (params: {
+    storeId: string;
+    page?: number;
+    limit?: number;
+    filters?: {
+      email?: string;
+      name?: string;
+      role?: "ADMIN" | "OWNER" | "EMPLOYEE";
+    };
+  }): Promise<UsersResponse> => {
+    const queryParams: Record<string, string> = {
+      page: String(params.page ?? 1),
+      limit: String(params.limit ?? 10),
+    };
+
+    if (params.filters?.email) {
+      queryParams.email = params.filters.email;
+    }
+    if (params.filters?.name) {
+      queryParams.name = params.filters.name;
+    }
+    if (params.filters?.role) {
+      queryParams.role = params.filters.role;
+    }
+
+    const response = await api.get<UsersResponse>(
+      `/users/store/${params.storeId}`,
+      queryParams,
+    );
+    return response;
+  },
+
   update: async (
     id: string,
     data: UpdateUserRequest,

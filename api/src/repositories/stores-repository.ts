@@ -1,5 +1,19 @@
 import type * as schema from "~/database/schema";
 
+export interface StoreTheme {
+	primary: string;
+	primaryGradient?: string;
+	secondary: string;
+	bg: string;
+	surface: string;
+	text: string;
+	textSecondary: string;
+	highlight: string;
+	border: string;
+	hover: string;
+	overlay?: string;
+}
+
 export interface CreateStoreParams {
 	name: string;
 	description?: string | null;
@@ -10,11 +24,7 @@ export interface CreateStoreParams {
 	instagramUrl?: string | null;
 	facebookUrl?: string | null;
 	bannerUrl?: string | null;
-	theme: {
-		primaryColor: string;
-		secondaryColor: string;
-		tertiaryColor: string;
-	} | null;
+	theme: StoreTheme | null;
 	cityId: string;
 	ownerId: string;
 }
@@ -48,11 +58,7 @@ export interface UpdateStoreParams {
 		instagramUrl?: string;
 		facebookUrl?: string;
 		bannerUrl?: string;
-		theme?: {
-			primaryColor: string;
-			secondaryColor: string;
-			tertiaryColor: string;
-		};
+		theme?: StoreTheme;
 		cityId?: string;
 		status?: "ACTIVE" | "INACTIVE";
 		isPaid?: boolean;
@@ -93,6 +99,8 @@ export interface StoresRepository {
 			perPage: number;
 		};
 	}>;
+
+	countByOwnerId({ ownerId }: { ownerId: string }): Promise<number>;
 
 	update({ id, data }: UpdateStoreParams): Promise<schema.Store | null>;
 

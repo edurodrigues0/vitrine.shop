@@ -68,17 +68,17 @@ export async function findProductsByStoreIdController(
 	response: Response,
 ) {
 	try {
+		console.log("📥 Recebendo requisição para buscar produtos por storeId:", request.params);
 		const { storeId } = findProductsByStoreIdParamsSchema.parse(request.params);
-
-		console.log("Finding products for storeId:", storeId);
+		console.log("✅ storeId validado:", storeId);
 
 		const findProductsByStoreIdUseCase = makeFindProductsByStoreIdUseCase();
 
+		console.log("🔄 Executando use case para buscar produtos...");
 		const { products } = await findProductsByStoreIdUseCase.execute({
 			storeId,
 		});
-
-		console.log(`Found ${products.length} products for store ${storeId}`);
+		console.log(`✅ ${products.length} produtos encontrados para a loja ${storeId}`);
 
 		return response.status(200).json({
 			products: products.map((product) => ({
@@ -87,14 +87,20 @@ export async function findProductsByStoreIdController(
 				description: product.description,
 				categoryId: product.categoryId,
 				storeId: product.storeId,
-				price: product.price,
+				price: (product as any).price ?? null, // Tratar price como opcional
 				quantity: product.quantity,
 				color: product.color,
 				createdAt: product.createdAt,
 			})),
 		});
 	} catch (error) {
-		console.error("Error finding products by store ID:", error);
+		console.error("❌ Error finding products by store ID:", error);
+		console.error("❌ Error details:", {
+			message: (error as any)?.message,
+			code: (error as any)?.code,
+			cause: (error as any)?.cause,
+			stack: (error as any)?.stack,
+		});
 
 		if (error instanceof ZodError) {
 			return response.status(400).json({

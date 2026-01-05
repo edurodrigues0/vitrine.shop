@@ -10,6 +10,7 @@ import { CitySelector } from "./city-selector";
 import { SearchBar } from "./search-bar";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 export function Header() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -58,11 +59,10 @@ export function Header() {
   return (
     <header
       style={{ backgroundColor: 'hsl(var(--background))' }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
           ? "border-b border-border shadow-lg"
           : ""
-      }`}
+        }`}
     >
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
@@ -84,18 +84,28 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Desktop Navigation - Only on Home Page */}
-          {isHomePage && (
-            <div className="hidden md:flex items-center gap-1">
-              <Link
-                href="/"
-                className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 rounded-md hover:bg-accent group"
-              >
-                <span className="relative z-10">Home</span>
-                <span className="absolute bottom-1 left-1/2 w-0 h-0.5 bg-gradient-to-r from-primary to-purple-600 group-hover:w-3/4 group-hover:left-[12.5%] transition-all duration-300 rounded-full" />
-              </Link>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-1">
+            {/* Lojas Link - Always Visible */}
+            <Link
+              href="/lojas"
+              className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 rounded-md hover:bg-accent group"
+            >
+              <span className="relative z-10">Lojas</span>
+              <span className="absolute bottom-1 left-1/2 w-0 h-0.5 bg-gradient-to-r from-primary to-purple-600 group-hover:w-3/4 group-hover:left-[12.5%] transition-all duration-300 rounded-full" />
+            </Link>
 
-              {/* Sobre with Submenu */}
+            {/* Produtos Link - Always Visible */}
+            <Link
+              href="/todos-produtos"
+              className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 rounded-md hover:bg-accent group"
+            >
+              <span className="relative z-10">Produtos</span>
+              <span className="absolute bottom-1 left-1/2 w-0 h-0.5 bg-gradient-to-r from-primary to-purple-600 group-hover:w-3/4 group-hover:left-[12.5%] transition-all duration-300 rounded-full" />
+            </Link>
+
+            {/* Sobre with Submenu - Only on Home Page */}
+            {isHomePage && (
               <div className="relative" ref={sobreMenuRef}>
                 <button
                   type="button"
@@ -104,15 +114,14 @@ export function Header() {
                 >
                   <span className="relative z-10">Sobre</span>
                   <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-300 ${
-                      isSobreMenuOpen ? "rotate-180" : ""
-                    }`}
+                    className={`h-4 w-4 transition-transform duration-300 ${isSobreMenuOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
 
                 {/* Submenu Dropdown */}
                 {isSobreMenuOpen && (
-                  <div 
+                  <div
                     className="absolute top-full left-0 mt-2 w-48 border border-border rounded-lg shadow-lg py-2 animate-in slide-in-from-top-2 duration-200 z-50 bg-background"
                     style={{ backgroundColor: 'hsl(var(--popover))' }}
                   >
@@ -129,8 +138,8 @@ export function Header() {
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-2.5">
@@ -171,15 +180,41 @@ export function Header() {
                     <Link href="/login">Entrar</Link>
                   </Button>
                 )}
-                <Button
-                  size="sm"
-                  asChild
-                  className="bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary hover:via-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 relative overflow-hidden group font-semibold"
-                >
-                  <Link href="/register" className="relative z-10">
-                    <span className="relative z-10">Criar minha loja</span>
-                  </Link>
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button>
+                      Autenticação
+                    </Button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent>
+                    <div className="flex flex-col gap-2 px-2 py-2 w-full">
+                      <DropdownMenuItem className="p-0 m-0 rounded-none">
+                        <Button
+                          size="sm"
+                          asChild
+                          className="w-full justify-center font-semibold"
+                        >
+                          <Link href="/register">
+                            <span>Criar minha loja</span>
+                          </Link>
+                        </Button>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem className="p-0 m-0 rounded-none">
+                        <Button
+                          size="sm"
+                          asChild
+                          className="w-full justify-center font-semibold"
+                        >
+                          <Link href="/login">
+                            <span>Entrar</span>
+                          </Link>
+                        </Button>
+                      </DropdownMenuItem>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
 
@@ -204,50 +239,58 @@ export function Header() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div 
+          <div
             className="md:hidden border-t border-border py-4 space-y-2 animate-in slide-in-from-top-2 duration-300 bg-background"
           >
+            {/* Lojas Link - Always Visible */}
+            <Link
+              href="/lojas"
+              className="block px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-all duration-200 hover:translate-x-1"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Lojas
+            </Link>
+
+            {/* Produtos Link - Always Visible */}
+            <Link
+              href="/todos-produtos"
+              className="block px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-all duration-200 hover:translate-x-1"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Produtos
+            </Link>
+
             {isHomePage && (
-              <>
-                <Link
-                  href="/"
-                  className="block px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-all duration-200 hover:translate-x-1"
-                  onClick={() => setIsMenuOpen(false)}
+              <div className="px-4 py-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsSobreMenuOpen(!isSobreMenuOpen)}
+                  className="flex items-center justify-between w-full text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
-                  Home
-                </Link>
-                <div className="px-4 py-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setIsSobreMenuOpen(!isSobreMenuOpen)}
-                    className="flex items-center justify-between w-full text-sm font-medium text-muted-foreground hover:text-foreground"
-                  >
-                    <span>Sobre</span>
-                    <ChevronDown
-                      className={`h-4 w-4 transition-transform duration-300 ${
-                        isSobreMenuOpen ? "rotate-180" : ""
+                  <span>Sobre</span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform duration-300 ${isSobreMenuOpen ? "rotate-180" : ""
                       }`}
-                    />
-                  </button>
-                  {isSobreMenuOpen && (
-                    <div className="mt-2 ml-4 space-y-1">
-                      {sobreSubmenuItems.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
-                          onClick={() => {
-                            setIsMenuOpen(false);
-                            setIsSobreMenuOpen(false);
-                          }}
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
+                  />
+                </button>
+                {isSobreMenuOpen && (
+                  <div className="mt-2 ml-4 space-y-1">
+                    {sobreSubmenuItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          setIsSobreMenuOpen(false);
+                        }}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
             <div className="px-4 pt-2 border-t border-border">
               {!isAuthenticated && (

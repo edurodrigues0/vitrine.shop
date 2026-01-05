@@ -8,6 +8,9 @@ export interface Product {
   quantity: number; // Quantidade em estoque
   color: string | null; // Cor do produto
   createdAt: string;
+  storeSlug: string;
+  citySlug: string;
+  imageUrl?: string | null;
 }
 
 export interface CreateProductRequest {
@@ -36,6 +39,8 @@ export interface FindAllProductsParams {
   categoryId?: string;
   storeId?: string;
   cityId?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ProductsResponse {

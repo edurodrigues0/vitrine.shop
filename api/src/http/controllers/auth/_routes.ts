@@ -1,16 +1,14 @@
 import { Router } from "express";
-import { authenticateMiddleware } from "~/http/middleware/authenticate";
-import { authRateLimit, publicRateLimit } from "~/http/middleware/rate-limit";
-import { loginController } from "./login";
-import { logoutController } from "./logout";
+import { authRateLimit } from "~/http/middleware/rate-limit";
 import { meController } from "./me";
 import { refreshTokenController } from "./refresh-token";
+import { signOutController } from "./sign-out";
 
 const authRoutes = Router();
 
-authRoutes.post("/auth/login", authRateLimit, loginController);
+// Login e logout são gerenciados automaticamente pelo Better Auth em /api/auth/sign-in/email e /api/auth/sign-out
 authRoutes.post("/auth/refresh", authRateLimit, refreshTokenController);
-authRoutes.post("/auth/logout", authenticateMiddleware, logoutController);
-authRoutes.get("/auth/me", authenticateMiddleware, meController);
+authRoutes.get("/me", meController);
+authRoutes.post("/auth/sign-out", signOutController);
 
 export { authRoutes };

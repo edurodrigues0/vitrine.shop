@@ -9,7 +9,7 @@ import type {
 } from "../stores-repository";
 
 export class DrizzleStoresRepository implements StoresRepository {
-	constructor(private readonly drizzle: typeof DrizzleORM) {}
+	constructor(private readonly drizzle: typeof DrizzleORM) { }
 
 	async create({
 		name,
@@ -36,9 +36,15 @@ export class DrizzleStoresRepository implements StoresRepository {
 				ownerId,
 				cityId,
 				theme: theme ?? {
-					primaryColor: "#000000",
-					secondaryColor: "#FFFFFF",
-					tertiaryColor: "#808080",
+					primary: "#000000",
+					secondary: "#FFFFFF",
+					bg: "#FFFFFF",
+					surface: "#F3F4F6",
+					text: "#000000",
+					textSecondary: "#6B7280",
+					highlight: "#FBBF24",
+					border: "#E5E7EB",
+					hover: "#DBEAFE",
 				},
 				facebookUrl,
 				description,
@@ -103,6 +109,15 @@ export class DrizzleStoresRepository implements StoresRepository {
 		return store ?? null;
 	}
 
+	async countByOwnerId({ ownerId }: { ownerId: string }): Promise<number> {
+		const [result] = await this.drizzle
+			.select({ count: count() })
+			.from(stores)
+			.where(eq(stores.ownerId, ownerId));
+
+		return Number(result?.count ?? 0);
+	}
+
 	async findAll({ page, limit, filters }: FindAllStoresParams): Promise<{
 		stores: Store[];
 		pagination: {
@@ -141,12 +156,14 @@ export class DrizzleStoresRepository implements StoresRepository {
 			conditions.push(eq(stores.isPaid, filters.isPaid));
 		}
 
-		// Sempre filtrar por status ACTIVE
-		conditions.push(eq(stores.status, "ACTIVE"));
+		// Se não houver filtro por ownerId, filtrar apenas lojas ativas (para busca pública)
+		// Se houver filtro por ownerId, mostrar todas as lojas do usuário (para gestão)
+		if (!filters.ownerId) {
+			conditions.push(eq(stores.status, "ACTIVE"));
+		}
 
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-		// Buscar lojas
 		const storesResult = await this.drizzle
 			.select({
 				id: stores.id,
@@ -168,7 +185,7 @@ export class DrizzleStoresRepository implements StoresRepository {
 				updatedAt: stores.updatedAt,
 			})
 			.from(stores)
-			.where(whereClause)
+			.where(and(whereClause, eq(stores.isPaid, true)))
 			.orderBy(desc(stores.createdAt))
 			.limit(limit)
 			.offset(offset);
@@ -177,7 +194,7 @@ export class DrizzleStoresRepository implements StoresRepository {
 		const [totalResult] = await this.drizzle
 			.select({ count: count() })
 			.from(stores)
-			.where(whereClause);
+			.where(and(whereClause, eq(stores.isPaid, true)));
 
 		const totalItems = totalResult?.count ?? 0;
 		const totalPages = Math.ceil(totalItems / limit);
@@ -194,12 +211,29 @@ export class DrizzleStoresRepository implements StoresRepository {
 	}
 
 	async update({ id, data }: UpdateStoreParams): Promise<Store | null> {
+		// Preparar dados para atualização, garantindo que campos undefined não sobrescrevam valores existentes
+		const updateData: Record<string, unknown> = {
+			updatedAt: new Date(),
+		};
+
+		// Atualizar apenas campos que foram fornecidos
+		if (data.name !== undefined) updateData.name = data.name;
+		if (data.description !== undefined) updateData.description = data.description;
+		if (data.cnpjcpf !== undefined) updateData.cnpjcpf = data.cnpjcpf;
+		if (data.logoUrl !== undefined) updateData.logoUrl = data.logoUrl;
+		if (data.whatsapp !== undefined) updateData.whatsapp = data.whatsapp;
+		if (data.slug !== undefined) updateData.slug = data.slug;
+		if (data.instagramUrl !== undefined) updateData.instagramUrl = data.instagramUrl;
+		if (data.facebookUrl !== undefined) updateData.facebookUrl = data.facebookUrl;
+		if (data.bannerUrl !== undefined) updateData.bannerUrl = data.bannerUrl;
+		if (data.theme !== undefined) updateData.theme = data.theme;
+		if (data.cityId !== undefined) updateData.cityId = data.cityId;
+		if (data.status !== undefined) updateData.status = data.status;
+		if (data.isPaid !== undefined) updateData.isPaid = data.isPaid;
+
 		const [updatedStore] = await this.drizzle
 			.update(stores)
-			.set({
-				...data,
-				updatedAt: new Date(),
-			})
+			.set(updateData)
 			.where(eq(stores.id, id))
 			.returning();
 

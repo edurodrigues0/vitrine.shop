@@ -3,8 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Cookie, Settings, Shield, BarChart3 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Política de Cookies - Vitrine.shop",
-  description: "Informações sobre o uso de cookies na plataforma Vitrine.shop",
+  title: "Política de Cookies - Vitrine Lojas",
+  description: "Informações sobre o uso de cookies na plataforma Vitrine Lojas",
 };
 
 export default function CookiesPage() {
@@ -74,7 +74,7 @@ export default function CookiesPage() {
                 Cookies são pequenos arquivos de texto que são armazenados no seu dispositivo (computador, tablet ou celular) quando você visita um site. Eles permitem que o site reconheça seu dispositivo e armazene algumas informações sobre suas preferências ou ações passadas.
               </p>
               <p className="text-muted-foreground leading-relaxed mt-4">
-                A Vitrine.shop utiliza cookies para melhorar sua experiência de navegação, analisar o uso da plataforma e personalizar conteúdo. Esta política explica como utilizamos cookies e como você pode gerenciá-los.
+                A Vitrine Lojas utiliza cookies para melhorar sua experiência de navegação, analisar o uso da plataforma e personalizar conteúdo. Esta política explica como utilizamos cookies e como você pode gerenciá-los.
               </p>
             </section>
 
@@ -192,7 +192,7 @@ export default function CookiesPage() {
             <section>
               <h2 className="text-2xl font-semibold mb-4">Consentimento</h2>
               <p className="text-muted-foreground leading-relaxed">
-                Ao continuar utilizando a plataforma Vitrine.shop após ser informado sobre o uso de cookies, você concorda com o uso de cookies de acordo com esta política. Você pode retirar seu consentimento a qualquer momento através das configurações do navegador ou entrando em contato conosco.
+                Ao continuar utilizando a plataforma Vitrine Lojas após ser informado sobre o uso de cookies, você concorda com o uso de cookies de acordo com esta política. Você pode retirar seu consentimento a qualquer momento através das configurações do navegador ou entrando em contato conosco.
               </p>
             </section>
 
@@ -202,7 +202,7 @@ export default function CookiesPage() {
                 Se você tiver dúvidas sobre nossa Política de Cookies, entre em contato conosco:
               </p>
               <ul className="list-none space-y-2 text-muted-foreground mt-4">
-                <li><strong className="text-foreground">Email:</strong> <a href="mailto:privacidade@vitrine.shop" className="text-primary hover:underline font-medium">privacidade@vitrine.shop</a></li>
+                <li><strong className="text-foreground">Email:</strong> <a href="mailto:privacidade@vitrinelojas" className="text-primary hover:underline font-medium">privacidade@vitrine.shop</a></li>
               </ul>
             </section>
           </div>

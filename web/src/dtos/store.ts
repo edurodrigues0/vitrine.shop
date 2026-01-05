@@ -1,7 +1,15 @@
 export interface StoreTheme {
-  primaryColor: string;
-  secondaryColor: string;
-  tertiaryColor: string;
+  primary: string;
+  primaryGradient?: string;
+  secondary: string;
+  bg: string;
+  surface: string;
+  text: string;
+  textSecondary: string;
+  highlight: string;
+  border: string;
+  hover: string;
+  overlay?: string;
 }
 
 export type StoreStatus = "ACTIVE" | "INACTIVE" | "PENDING";
@@ -60,6 +68,7 @@ export interface FindAllStoresParams {
   limit?: number;
   name?: string;
   cityId?: string;
+  ownerId?: string;
   status?: StoreStatus;
 }
 

@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCart } from "@/contexts/cart-context";
+import { useOrderNotifications } from "@/contexts/order-notifications-context";
 import { storesService } from "@/services/stores-service";
 import { ordersService } from "@/services/orders-service";
 import { productVariationsService } from "@/services/product-variations-service";
@@ -18,7 +19,7 @@ import { Loader2, MessageCircle, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 
 const customerDataSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -30,21 +31,29 @@ type CustomerDataForm = z.infer<typeof customerDataSchema>;
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
+  storeId: string;
   citySlug?: string;
 }
 
-export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps) {
-  const { items, storeId, getTotal, clearCart } = useCart();
+export function CheckoutModal({ isOpen, onClose, storeId, citySlug }: CheckoutModalProps) {
+  const { stores, getTotal, markAsRequested } = useCart();
+  const { addNotification } = useOrderNotifications();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<"customer" | "confirm">("customer");
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  // Obter itens apenas da loja selecionada
+  const storeCart = stores[storeId];
+  const items = storeCart?.items || [];
 
   const { data: store, isLoading: isLoadingStore } = useQuery({
     queryKey: ["store", storeId],
-    queryFn: () => storesService.findById(storeId!),
+    queryFn: () => storesService.findById(storeId),
     enabled: !!storeId && isOpen,
+    retry: false, // Não tentar novamente se a loja não for encontrada (404)
   });
 
-  const total = getTotal();
+  const total = getTotal(storeId);
 
   const {
     register,
@@ -124,8 +133,15 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["statistics"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      // Marcar loja como solicitada
+      markAsRequested(storeId, data.order.id);
+      // Adicionar notificação
+      if (store) {
+        addNotification(storeId, store.name, data.order.id);
+      }
       setStep("confirm");
-      toast.success("Pedido criado com sucesso!");
+      setCheckoutError(null);
+      showSuccess("Pedido criado com sucesso!");
     },
     onError: (error: any) => {
       console.error("Erro ao criar pedido:", error);
@@ -147,7 +163,8 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
           : "Erro de validação. Verifique os dados informados.";
       }
       
-      toast.error(errorMessage);
+      showError(errorMessage);
+      setCheckoutError(errorMessage);
     },
   });
 
@@ -174,18 +191,14 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
   const handleClose = () => {
     setStep("customer");
     reset();
+    setCheckoutError(null);
     onClose();
   };
 
   const handleWhatsAppClick = () => {
-    clearCart();
+    // Não limpar o carrinho, apenas fechar o modal
+    // O carrinho já foi marcado como solicitado no onSuccess
     handleClose();
-    // Redirecionar após um breve delay para permitir o fechamento do modal
-    setTimeout(() => {
-      if (citySlug) {
-        window.location.href = `/cidade/${citySlug}`;
-      }
-    }, 300);
   };
 
   if (!isOpen) return null;
@@ -198,7 +211,7 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-background"
         onClick={handleClose}
       />
       {/* Modal */}
@@ -306,6 +319,7 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
                             id="name"
                             {...register("name")}
                             aria-invalid={errors.name ? "true" : "false"}
+                            disabled={createOrderMutation.isPending}
                             placeholder="Seu nome completo"
                           />
                           {errors.name && (
@@ -321,6 +335,7 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
                             id="whatsapp"
                             {...register("whatsapp")}
                             aria-invalid={errors.whatsapp ? "true" : "false"}
+                            disabled={createOrderMutation.isPending}
                             placeholder="(00) 00000-0000"
                           />
                           {errors.whatsapp && (
@@ -332,16 +347,20 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
 
                         <Button
                           type="submit"
-                          className="w-full"
+                          className="w-full max-w-full"
                           size="lg"
-                          disabled={createOrderMutation.isPending}
+                          isLoading={createOrderMutation.isPending}
+                          loadingText="Processando..."
                         >
-                          {createOrderMutation.isPending
-                            ? "Processando..."
-                            : "Prosseguir com a solicitação"}
+                          Prosseguir com a solicitação
                         </Button>
                       </FieldGroup>
                     </form>
+                    {checkoutError && (
+                      <p className="mt-3 text-sm text-destructive" aria-live="assertive">
+                        {checkoutError}
+                      </p>
+                    )}
                   </Card>
                 ) : (
                   <Card className="p-6">
@@ -352,7 +371,7 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
                     </p>
                     <div className="space-y-2">
                       <Button
-                        className="w-full"
+                        className="w-full max-w-full"
                         size="lg"
                         asChild
                       >
@@ -368,14 +387,10 @@ export function CheckoutModal({ isOpen, onClose, citySlug }: CheckoutModalProps)
                       </Button>
                       <Button
                         variant="outline"
-                        className="w-full"
-                        onClick={() => {
-                          clearCart();
-                          handleClose();
-                        }}
+                        className="w-full max-w-full"
+                        onClick={handleClose}
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Limpar carrinho
+                        Fechar
                       </Button>
                     </div>
                   </Card>

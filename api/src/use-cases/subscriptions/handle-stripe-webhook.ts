@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import type { StoresRepository } from "~/repositories/stores-repository";
 import type { SubscriptionsRepository } from "~/repositories/subscriptions-repository";
 import { StripeService } from "~/services/payment/stripe-service";
 import { CreateSubscriptionUseCase } from "./create-subscription";
@@ -15,6 +16,7 @@ interface HandleStripeWebhookUseCaseResponse {
 export class HandleStripeWebhookUseCase {
 	constructor(
 		private readonly subscriptionsRepository: SubscriptionsRepository,
+		private readonly storesRepository: StoresRepository,
 		private readonly createSubscriptionUseCase: CreateSubscriptionUseCase,
 		private readonly updateSubscriptionStatusUseCase: UpdateSubscriptionStatusUseCase,
 		private readonly stripeService: StripeService,
@@ -44,6 +46,13 @@ export class HandleStripeWebhookUseCase {
 							throw new Error("Store ID not found in metadata");
 						}
 
+						// Buscar loja para obter userId do owner
+						const store = await this.storesRepository.findById({ id: storeId });
+
+						if (!store) {
+							throw new Error("Store not found");
+						}
+
 						// Verificar se já existe subscription
 						const existingSubscription =
 							await this.subscriptionsRepository.findByStripeSubscriptionId({
@@ -57,7 +66,7 @@ export class HandleStripeWebhookUseCase {
 							const planId = price?.id || "";
 
 							await this.createSubscriptionUseCase.execute({
-								storeId,
+								userId: store.ownerId,
 								planName,
 								planId,
 								provider: "stripe",

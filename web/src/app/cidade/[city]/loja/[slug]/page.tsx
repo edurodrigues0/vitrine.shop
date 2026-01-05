@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { storesService } from "@/services/stores-service";
 import { productsService } from "@/services/products-service";
@@ -9,6 +9,7 @@ import { productImagesService } from "@/services/product-images-service";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ErrorState } from "@/components/ui/error-state";
 import {
   Store,
   Loader2,
@@ -36,6 +37,7 @@ import { categoriesService } from "@/services/categories-service";
 
 export default function StorePage() {
   const params = useParams();
+  const router = useRouter();
   const citySlug = params.city as string;
   const storeSlug = params.slug as string;
 
@@ -110,7 +112,7 @@ export default function StorePage() {
 
     return filtered;
   }, [products, searchTerm, selectedCategoryId]);
-  
+
   // Paginação de produtos
   const [productsPage, setProductsPage] = useState(1);
   const itemsPerPage = 12;
@@ -163,21 +165,16 @@ export default function StorePage() {
   if (storeError) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <div className="text-center max-w-md mx-auto">
-          <div className="bg-destructive/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <Store className="h-8 w-8 text-destructive" />
-          </div>
-          <h1 className="text-2xl font-bold mb-4">Erro ao carregar loja</h1>
-          <p className="text-destructive mb-6">
-            {storeError instanceof Error ? storeError.message : "Erro desconhecido"}
-          </p>
-          <Link href={`/cidade/${citySlug}`}>
-            <Button variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar para a cidade
-            </Button>
-          </Link>
-        </div>
+        <ErrorState
+          title="Erro ao carregar loja"
+          description={storeError instanceof Error ? storeError.message : "Não foi possível carregar as informações da loja. Tente novamente mais tarde."}
+          icon={Store}
+          action={{
+            label: "Voltar para a cidade",
+            onClick: () => router.push(`/cidade/${citySlug}`),
+            variant: "outline",
+          }}
+        />
       </div>
     );
   }
@@ -213,9 +210,15 @@ export default function StorePage() {
     : "#";
 
   const themeColors = store.theme || {
-    primaryColor: "#4f46e5",
-    secondaryColor: "#7c3aed",
-    tertiaryColor: "#ec4899",
+    primary: "#4f46e5",
+    secondary: "#7c3aed",
+    bg: "#ffffff",
+    surface: "#f3f4f6",
+    text: "#1f2937",
+    textSecondary: "#4b5563",
+    highlight: "#fbbf24",
+    border: "#e5e7eb",
+    hover: "#dbeafe",
   };
 
   return (
@@ -239,7 +242,7 @@ export default function StorePage() {
           <div
             className="h-64 md:h-80 lg:h-96 w-full flex items-center justify-center relative overflow-hidden"
             style={{
-              background: `linear-gradient(135deg, ${themeColors.primaryColor}15 0%, ${themeColors.secondaryColor}15 50%, ${themeColors.tertiaryColor}15 100%)`,
+              background: `linear-gradient(135deg, ${themeColors.primary}15 0%, ${themeColors.secondary}15 50%, ${themeColors.highlight}15 100%)`,
             }}
           >
             <div className="absolute inset-0 bg-grid-pattern opacity-5" />
@@ -268,7 +271,7 @@ export default function StorePage() {
                 <div
                   className="h-24 w-24 md:h-32 md:w-32 flex-shrink-0 rounded-2xl flex items-center justify-center border-4 border-background shadow-lg"
                   style={{
-                    background: `linear-gradient(135deg, ${themeColors.primaryColor} 0%, ${themeColors.secondaryColor} 100%)`,
+                    background: `linear-gradient(135deg, ${themeColors.primary} 0%, ${themeColors.secondary} 100%)`,
                   }}
                 >
                   <Store className="h-12 w-12 md:h-16 md:w-16 text-white" />
@@ -360,8 +363,8 @@ export default function StorePage() {
               {filteredProducts.length > 0
                 ? `${filteredProducts.length} ${filteredProducts.length === 1 ? "produto encontrado" : "produtos encontrados"}`
                 : products.length > 0
-                ? "Nenhum produto encontrado com os filtros aplicados"
-                : "Navegue pelos nossos produtos"}
+                  ? "Nenhum produto encontrado com os filtros aplicados"
+                  : "Navegue pelos nossos produtos"}
             </p>
           </div>
         </div>

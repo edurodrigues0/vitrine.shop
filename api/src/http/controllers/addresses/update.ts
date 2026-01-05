@@ -12,7 +12,6 @@ const updateAddressBodySchema = z.object({
 	cityId: z.string().uuid("ID da cidade deve ser um UUID válido").optional(),
 	zipCode: z.string().length(8, "CEP deve ter 8 caracteres").optional(),
 	country: z.string().min(1, "País é obrigatório").max(50, "País deve ter no máximo 50 caracteres").optional(),
-	branchId: z.string().uuid("ID da filial deve ser um UUID válido").nullable().optional(),
 	storeId: z.string().uuid("ID da loja deve ser um UUID válido").nullable().optional(),
 	isMain: z.boolean().optional(),
 });
@@ -67,10 +66,6 @@ const updateAddressBodySchema = z.object({
  *                 type: string
  *                 minLength: 1
  *                 maxLength: 50
- *               branchId:
- *                 type: string
- *                 format: uuid
- *                 nullable: true
  *               storeId:
  *                 type: string
  *                 format: uuid
@@ -107,10 +102,6 @@ const updateAddressBodySchema = z.object({
  *                       type: string
  *                     country:
  *                       type: string
- *                     branchId:
- *                       type: string
- *                       format: uuid
- *                       nullable: true
  *                     storeId:
  *                       type: string
  *                       format: uuid
@@ -143,6 +134,12 @@ export async function updateAddressController(
 	try {
 		const { id } = request.params;
 
+		console.log("📥 Recebendo requisição para atualizar endereço:", {
+			id,
+			body: request.body,
+			userId: request.user?.id,
+		});
+
 		if (!id) {
 			return response.status(400).json({
 				message: "ID do endereço é obrigatório",
@@ -150,6 +147,7 @@ export async function updateAddressController(
 		}
 
 		const body = updateAddressBodySchema.parse(request.body);
+		console.log("✅ Dados validados para atualização:", body);
 
 		// Remover campos undefined para não enviar dados desnecessários
 		const updateData = Object.fromEntries(
@@ -164,16 +162,20 @@ export async function updateAddressController(
 
 		const updateAddressUseCase = makeUpdateAddressUseCase();
 
+		console.log("🔄 Executando use case para atualizar endereço...");
 		const { address } = await updateAddressUseCase.execute({
 			id,
 			data: updateData,
 		});
 
 		if (!address) {
+			console.log("❌ Endereço não encontrado para atualização");
 			return response.status(404).json({
 				message: "Endereço não encontrado",
 			});
 		}
+
+		console.log("✅ Endereço atualizado com sucesso:", address.id);
 
 		return response.status(200).json({
 			address: {
@@ -185,7 +187,6 @@ export async function updateAddressController(
 				cityId: address.cityId,
 				zipCode: address.zipCode,
 				country: address.country,
-				branchId: address.branchId,
 				storeId: address.storeId,
 				isMain: address.isMain,
 			},

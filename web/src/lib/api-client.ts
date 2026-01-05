@@ -36,7 +36,8 @@ async function apiClient<T>(
     });
   }
 
-  // Get auth token from localStorage
+  // Better Auth usa cookies para autenticação, então não precisamos enviar token Bearer
+  // Mas mantemos a lógica para compatibilidade com sistema antigo se necessário
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
@@ -49,7 +50,21 @@ async function apiClient<T>(
     requestHeaders["Content-Type"] = "application/json";
   }
 
-  if (token) {
+  // Verificar se há cookie do Better Auth antes de enviar token Bearer
+  // Se houver cookie do Better Auth, não enviar token Bearer (Better Auth tem prioridade)
+  const hasBetterAuthCookie = typeof window !== "undefined" && 
+    document.cookie.split("; ").some((cookie) => {
+      const cookieName = cookie.trim().split("=")[0];
+      return (
+        cookieName === "better-auth.session_token" ||
+        cookieName === "better-auth.session" ||
+        cookieName.startsWith("better-auth.session_token") ||
+        cookieName.startsWith("better-auth.session")
+      );
+    });
+
+  // Só enviar token Bearer se não houver cookie do Better Auth (fallback para sistema antigo)
+  if (token && !hasBetterAuthCookie) {
     requestHeaders.Authorization = `Bearer ${token}`;
   }
 
@@ -68,6 +83,15 @@ async function apiClient<T>(
   }
 
   try {
+    // Log da requisição (apenas para endpoints de endereços)
+    if (url.toString().includes("/addresses")) {
+      console.log("🌐 API Client: Enviando requisição para:", {
+        method,
+        url: url.toString(),
+        body: body ? JSON.parse(JSON.stringify(body)) : null,
+      });
+    }
+
     const response = await fetch(url.toString(), requestConfig);
 
     // Handle non-JSON responses
@@ -82,10 +106,30 @@ async function apiClient<T>(
     }
 
     if (!response.ok) {
+      // Log de erro (apenas para endpoints de endereços)
+      if (url.toString().includes("/addresses")) {
+        console.error("❌ API Client: Erro na resposta:", {
+          status: response.status,
+          statusText: response.statusText,
+          data,
+        });
+      }
+
       const error = new ApiError(response.status, response.statusText, data);
       // Adicionar data ao erro para facilitar tratamento no frontend
       (error as any).data = data;
+      // Adicionar status ao erro para facilitar verificação
+      (error as any).status = response.status;
+      (error as any).response = { status: response.status, data };
       throw error;
+    }
+
+    // Log de sucesso (apenas para endpoints de endereços)
+    if (url.toString().includes("/addresses")) {
+      console.log("✅ API Client: Requisição bem-sucedida:", {
+        status: response.status,
+        data: isJson ? data : "[Não-JSON]",
+      });
     }
 
     return data as T;

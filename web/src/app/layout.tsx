@@ -13,11 +13,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Vitrine.shop - Sua Vitrine Multi-Loja por Cidade | Descubra e Compre de Lojas Locais",
+  title: "Vitrine Lojas - Sua Vitrine Multi-Loja por Cidade | Descubra e Compre de Lojas Locais",
   description: "Descubra lojas locais da sua cidade, encontre produtos exclusivos e compre direto via WhatsApp. Para lojistas: crie sua vitrine digital em minutos, sem comissões abusivas. Plataforma moderna e inteligente para negócios locais.",
   keywords: "vitrine digital, lojas locais, comércio local, compra online, WhatsApp, e-commerce local, multi-loja, marketplace local",
   openGraph: {
-    title: "Vitrine.shop - Sua Vitrine Multi-Loja por Cidade",
+    title: "Vitrine Lojas - Sua Vitrine Multi-Loja por Cidade",
     description: "Descubra e compre de lojas locais da sua cidade direto via WhatsApp",
     type: "website",
     locale: "pt_BR",

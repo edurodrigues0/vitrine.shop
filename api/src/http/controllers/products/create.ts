@@ -1,6 +1,8 @@
 import type { Response } from "express";
 import z, { ZodError } from "zod";
 import type { AuthenticatedRequest } from "~/http/middleware/authenticate";
+import { ProductLimitExceededError } from "~/use-cases/@errors/plans/product-limit-exceeded-error";
+import { SubscriptionRequiredError } from "~/use-cases/@errors/plans/subscription-required-error";
 import { makeCreateProductUseCase } from "~/use-cases/@factories/products/make-create-product-use-case";
 
 const createProductBodySchema = z.object({
@@ -174,9 +176,6 @@ export async function createProductController(
 				description: product.description,
 				categoryId: product.categoryId,
 				storeId: product.storeId,
-				price: product.price,
-				quantity: product.quantity,
-				color: product.color,
 				createdAt: product.createdAt,
 			},
 		});
@@ -187,6 +186,23 @@ export async function createProductController(
 			return response.status(400).json({
 				message: "Validation error",
 				issues: error.issues,
+			});
+		}
+
+		if (error instanceof ProductLimitExceededError) {
+			return response.status(403).json({
+				message: error.message,
+				code: "PRODUCT_LIMIT_EXCEEDED",
+				current: error.current,
+				limit: error.limit,
+				planId: error.planId,
+			});
+		}
+
+		if (error instanceof SubscriptionRequiredError) {
+			return response.status(403).json({
+				message: error.message,
+				code: "SUBSCRIPTION_REQUIRED",
 			});
 		}
 

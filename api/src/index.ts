@@ -14,29 +14,26 @@ import { productImagesRoutes } from "./http/controllers/product-images/_routes";
 import { productsRoutes } from "./http/controllers/products/_routes";
 import { productVariationsRoutes } from "./http/controllers/product-variations.ts/_routes";
 import { storesRoutes } from "./http/controllers/stores/_routes";
-import { storeBranchesRoutes } from "./http/controllers/store-branches/_routes";
 import { subscriptionsRoutes } from "./http/controllers/subscriptions/_routes";
 import { usersRoutes } from "./http/controllers/users/_routes";
 import { notificationsRoutes } from "./http/controllers/notifications/_routes";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./services/auth";
 
 dotenv.config();
 
 const app = express();
 
-// CORS - Deve vir antes de outros middlewares
 app.use(
 	cors({
 		credentials: true,
 		origin: (origin, callback) => {
-			// Permite requisições sem origin (como mobile apps, Postman, Swagger UI do mesmo servidor)
 			if (!origin) {
 				return callback(null, true);
 			}
-			// Permite todas as origens em desenvolvimento
 			if (process.env.NODE_ENV === "development") {
 				return callback(null, true);
 			}
-			// Em produção, você pode validar origens específicas aqui
 			return callback(null, true);
 		},
 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -61,12 +58,13 @@ app.use(
 	"/api/subscriptions/webhook",
 	express.raw({ type: "application/json" }),
 );
-app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
+// express.json() deve vir DEPOIS do Better Auth para evitar conflitos
 app.use(cookieParser());
 
-// Servir arquivos estáticos (uploads)
-app.use("/uploads", express.static(join(process.cwd(), "uploads")));
+// express.json() deve vir DEPOIS do Better Auth conforme documentação
+app.use(express.json());
 
 // Swagger Documentation
 setupSwagger(app);
@@ -74,14 +72,19 @@ setupSwagger(app);
 // Servir arquivos estáticos (imagens)
 app.use("/uploads", express.static(join(process.cwd(), "uploads")));
 
-// Rotas
+app.all("/api/auth/*splat", toNodeHandler(auth));
+
+// const authHandler = toNodeHandler(auth);
+// app.use("/api/auth", (req, res) => {
+// 	return authHandler(req, res);
+// });
+
 app.use("/api", citiesRoutes);
 app.use("/api", categoriesRoutes);
 app.use("/api", productsRoutes);
 app.use("/api", productImagesRoutes);
 app.use("/api", productVariationsRoutes);
 app.use("/api", storesRoutes);
-app.use("/api", storeBranchesRoutes);
 app.use("/api", usersRoutes);
 app.use("/api", authRoutes);
 app.use("/api", ordersRoutes);

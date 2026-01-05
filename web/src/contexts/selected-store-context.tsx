@@ -27,34 +27,59 @@ export function SelectedStoreProvider({ children }: { children: ReactNode }) {
   // Carregar todas as lojas do usuário
   const { data: storesData, isLoading } = useQuery({
     queryKey: ["stores", "user", user?.id],
-    queryFn: () => storesService.findAll(),
+    queryFn: async () => {
+      if (!user?.id) {
+        return { stores: [], meta: { totalItems: 0, totalPages: 0, currentPage: 1, perPage: 100 } };
+      }
+      const result = await storesService.findAll({ 
+        ownerId: user.id,
+        page: 1,
+        limit: 100, // Buscar até 100 lojas do usuário
+      });
+      return result;
+    },
     enabled: !!user?.id,
+    staleTime: 0, // Sempre buscar dados atualizados
+    refetchOnWindowFocus: true, // Refetch quando a janela receber foco
   });
 
-  const userStores = storesData?.stores.filter(
-    (store) => store.ownerId === user?.id,
-  ) || [];
-
+  const userStores = storesData?.stores || [];
+  
   // Carregar loja selecionada do localStorage apenas no cliente
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(SELECTED_STORE_KEY);
-      if (saved) {
-        setSelectedStoreIdState(saved);
-      }
-    }
   }, []);
 
-  // Quando as lojas são carregadas, selecionar a primeira se não houver seleção
+  // Quando as lojas são carregadas, validar e selecionar loja
   useEffect(() => {
-    if (isMounted && userStores.length > 0 && !selectedStoreId) {
-      const saved = localStorage.getItem(SELECTED_STORE_KEY);
-      if (saved && userStores.some((s) => s.id === saved)) {
+    if (!isMounted || userStores.length === 0) {
+      return;
+    }
+
+    const saved = typeof window !== "undefined" ? localStorage.getItem(SELECTED_STORE_KEY) : null;
+    
+    // Se há uma loja salva e ela existe na lista de lojas do usuário, usar ela
+    if (saved && userStores.some((s) => s.id === saved)) {
+      if (selectedStoreId !== saved) {
+        console.log("Usando loja salva do localStorage:", saved);
         setSelectedStoreIdState(saved);
-      } else {
-        const firstStore = userStores[0];
-        setSelectedStoreIdState(firstStore.id);
+      }
+      return;
+    }
+
+    // Se não há loja salva OU a loja salva não existe mais, selecionar a primeira
+    if (!saved || !userStores.some((s) => s.id === saved)) {
+      if (saved) {
+        console.log("Loja salva não existe mais, limpando:", saved);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem(SELECTED_STORE_KEY);
+        }
+      }
+      
+      const firstStore = userStores[0];
+      console.log("Selecionando primeira loja:", firstStore.id, firstStore.name);
+      setSelectedStoreIdState(firstStore.id);
+      if (typeof window !== "undefined") {
         localStorage.setItem(SELECTED_STORE_KEY, firstStore.id);
       }
     }
@@ -65,13 +90,17 @@ export function SelectedStoreProvider({ children }: { children: ReactNode }) {
     queryKey: ["store", selectedStoreId],
     queryFn: () => storesService.findById(selectedStoreId!),
     enabled: !!selectedStoreId && isMounted,
-    staleTime: 0,
+    staleTime: 0, // Sempre buscar dados atualizados
+    refetchOnWindowFocus: true, // Refetch quando a janela receber foco
+    retry: false, // Não tentar novamente se a loja não for encontrada (404)
   });
 
   // Usar useMemo para garantir que selectedStore seja recalculado quando selectedStoreId ou userStores mudarem
   // Priorizar dados da lista de lojas para atualização imediata, mesmo que a query ainda não tenha atualizado
   const selectedStore = useMemo(() => {
-    if (!selectedStoreId) return null;
+    if (!selectedStoreId) {
+      return null;
+    }
     
     // Primeiro tentar encontrar na lista de lojas (mais rápido, atualização imediata)
     const storeFromList = userStores.find(
@@ -81,14 +110,17 @@ export function SelectedStoreProvider({ children }: { children: ReactNode }) {
     // Se encontrar na lista, usar (mesmo que selectedStoreData ainda não tenha atualizado)
     // Isso garante atualização imediata quando a loja muda
     if (storeFromList) {
+      console.log("selectedStore encontrado na lista:", storeFromList.name);
       return storeFromList;
     }
     
     // Se não encontrar na lista, usar dados da query (pode estar carregando)
     if (selectedStoreData) {
+      console.log("selectedStore encontrado na query:", selectedStoreData.name);
       return selectedStoreData;
     }
     
+    console.log("selectedStore não encontrado - selectedStoreId:", selectedStoreId, "userStores:", userStores.length);
     return null;
   }, [selectedStoreId, selectedStoreData, userStores]);
 
@@ -151,6 +183,14 @@ export function SelectedStoreProvider({ children }: { children: ReactNode }) {
     }, 0);
   }, [selectedStoreId, queryClient]);
 
+  // Calcular isLoading: deve ser true enquanto:
+  // 1. Não está montado no cliente
+  // 2. Está carregando lojas do usuário
+  // 3. Há lojas mas ainda não selecionou uma (aguardando seleção automática)
+  const isLoadingStores = isLoading || !isMounted;
+  const isWaitingForSelection = userStores.length > 0 && !selectedStoreId && isMounted;
+  const contextIsLoading = isLoadingStores || isWaitingForSelection;
+
   // Memoizar o valor do contexto para evitar re-renders desnecessários
   // Mas garantir que atualize quando selectedStore ou selectedStoreId mudarem
   const value = useMemo(() => ({
@@ -158,8 +198,8 @@ export function SelectedStoreProvider({ children }: { children: ReactNode }) {
     selectedStoreId: selectedStoreId || null,
     setSelectedStoreId,
     userStores,
-    isLoading: isLoading || !isMounted,
-  }), [selectedStore, selectedStoreId, setSelectedStoreId, userStores, isLoading, isMounted]);
+    isLoading: contextIsLoading,
+  }), [selectedStore, selectedStoreId, setSelectedStoreId, userStores, contextIsLoading]);
 
   return (
     <SelectedStoreContext.Provider value={value}>

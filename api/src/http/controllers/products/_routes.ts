@@ -8,6 +8,7 @@ import { findAllProductsController } from "./find-all";
 import { findProductByIdController } from "./find-by-id";
 import { findProductsByStoreIdController } from "./find-by-store-id";
 import { updateProductController } from "./update";
+import { requirePaidSubscription } from "~/http/middleware/require-paid-subscription";
 
 export const productsRoutes = Router();
 
@@ -15,6 +16,7 @@ productsRoutes.post(
 	"/products",
 	authenticatedRateLimit,
 	authenticateMiddleware,
+	requirePaidSubscription,
 	createProductController,
 );
 productsRoutes.get("/products", publicRateLimit, findAllProductsController);
@@ -25,6 +27,7 @@ productsRoutes.put(
 	authenticatedRateLimit,
 	authenticateMiddleware,
 	requireProductOwner,
+	requirePaidSubscription,
 	updateProductController,
 );
 productsRoutes.delete(
@@ -32,5 +35,6 @@ productsRoutes.delete(
 	authenticatedRateLimit,
 	authenticateMiddleware,
 	requireProductOwner,
+	// requirePaidSubscription,
 	deleteProductController,
 );

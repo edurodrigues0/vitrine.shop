@@ -1,5 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
+import type { IncomingHttpHeaders } from "http";
 import type { UserRole } from "~/database/schema";
+import { auth } from "~/services/auth";
+import { fromNodeHeaders } from "better-auth/node";
 import { getAuthCookie } from "~/utils/cookies";
 import { verifyToken } from "~/utils/jwt";
 
@@ -29,7 +32,27 @@ export async function authenticateMiddleware(
 	next: NextFunction,
 ) {
 	try {
-		// Prioridade: cookie primeiro, depois Bearer token
+		// Prioridade 1: Verificar sessão do Better Auth (usa cookies)
+		try {
+			const session = await auth.api.getSession({
+				headers: fromNodeHeaders(request.headers as IncomingHttpHeaders),
+			});
+
+			if (session && session.user) {
+				request.user = {
+					id: session.user.id,
+					email: session.user.email,
+					name: session.user.name || "",
+					role: ((session.user as { role?: string }).role || "EMPLOYEE") as UserRole,
+				};
+				return next();
+			}
+		} catch (error) {
+			// Se falhar ao verificar sessão do Better Auth, tentar token JWT como fallback
+			console.debug("Better Auth session check failed, trying JWT token:", error);
+		}
+
+		// Prioridade 2: Fallback para token JWT (compatibilidade com sistema antigo)
 		const token = getAuthCookie(request) || getBearerToken(request);
 
 		if (!token) {
@@ -48,7 +71,8 @@ export async function authenticateMiddleware(
 		};
 
 		next();
-	} catch {
+	} catch (error) {
+		console.error("Authentication error:", error);
 		return response.status(401).json({
 			message: "Invalid or expired token",
 		});

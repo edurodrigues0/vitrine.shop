@@ -1,60 +1,132 @@
-import { hash } from "bcryptjs";
+import { randomUUID } from "crypto";
 import { eq, sql } from "drizzle-orm";
 import { DrizzleORM } from "./connection";
 import {
+	account,
 	addresses,
 	categories,
 	cities,
+	notifications,
+	orderItems,
+	orders,
 	products,
 	productsImages,
 	productsVariations,
-	storeBranches,
+	sessions,
+	storeVisits,
 	stores,
 	subscriptions,
 	users,
+	verifications,
 } from "./schema";
-import { BCRYPT_SALT_ROUNDS } from "../config/constants";
+import { auth } from "../services/auth";
+
+/**
+ * Limpa todos os dados do banco de dados, respeitando as dependências de foreign keys.
+ * A ordem de exclusão é inversa à ordem de criação (tabelas dependentes primeiro).
+ */
+export async function clearDatabase() {
+	console.log("🧹 Limpando banco de dados...");
+
+	try {
+		// 1. Tabelas mais dependentes (com mais foreign keys)
+		await DrizzleORM.delete(orderItems).where(sql`1=1`);
+		console.log("   ✓ order_items limpo");
+
+		await DrizzleORM.delete(productsImages).where(sql`1=1`);
+		console.log("   ✓ products_images limpo");
+
+		await DrizzleORM.delete(productsVariations).where(sql`1=1`);
+		console.log("   ✓ products_variations limpo");
+
+		await DrizzleORM.delete(orders).where(sql`1=1`);
+		console.log("   ✓ orders limpo");
+
+		await DrizzleORM.delete(products).where(sql`1=1`);
+		console.log("   ✓ products limpo");
+
+		await DrizzleORM.delete(notifications).where(sql`1=1`);
+		console.log("   ✓ notifications limpo");
+
+		await DrizzleORM.delete(storeVisits).where(sql`1=1`);
+		console.log("   ✓ store_visits limpo");
+
+		await DrizzleORM.delete(subscriptions).where(sql`1=1`);
+		console.log("   ✓ subscriptions limpo");
+
+		await DrizzleORM.delete(addresses).where(sql`1=1`);
+		console.log("   ✓ addresses limpo");
+
+		// Tabelas do Better Auth (devem ser deletadas antes de users)
+		await DrizzleORM.delete(account).where(sql`1=1`);
+		console.log("   ✓ account limpo");
+
+		await DrizzleORM.delete(sessions).where(sql`1=1`);
+		console.log("   ✓ sessions limpo");
+
+		await DrizzleORM.delete(verifications).where(sql`1=1`);
+		console.log("   ✓ verifications limpo");
+
+		// Limpar storeId dos usuários antes de deletar as lojas
+		await DrizzleORM.update(users).set({ storeId: null }).where(sql`1=1`);
+		console.log("   ✓ storeId dos usuários limpo");
+
+		await DrizzleORM.delete(stores).where(sql`1=1`);
+		console.log("   ✓ stores limpo");
+
+		await DrizzleORM.delete(users).where(sql`1=1`);
+		console.log("   ✓ users limpo");
+
+		await DrizzleORM.delete(categories).where(sql`1=1`);
+		console.log("   ✓ categories limpo");
+
+		await DrizzleORM.delete(cities).where(sql`1=1`);
+		console.log("   ✓ cities limpo");
+
+		console.log("✅ Banco de dados limpo com sucesso!");
+	} catch (error) {
+		console.error("❌ Erro ao limpar banco de dados:", error);
+		throw error;
+	}
+}
 
 async function seed() {
 	console.log("🌱 Iniciando seed do banco de dados...");
 
 	try {
-		// Limpar dados existentes (em ordem inversa de dependências)
-		console.log("🧹 Limpando dados existentes...");
-		await DrizzleORM.delete(productsImages).where(sql`1=1`);
-		await DrizzleORM.delete(productsVariations).where(sql`1=1`);
-		await DrizzleORM.delete(products).where(sql`1=1`);
-		await DrizzleORM.delete(subscriptions).where(sql`1=1`);
-		await DrizzleORM.delete(storeBranches).where(sql`1=1`);
-		await DrizzleORM.delete(addresses).where(sql`1=1`);
-		// Limpar storeId dos usuários antes de deletar as lojas
-		await DrizzleORM.update(users).set({ storeId: null }).where(sql`1=1`);
-		await DrizzleORM.delete(stores).where(sql`1=1`);
-		await DrizzleORM.delete(users).where(sql`1=1`);
-		await DrizzleORM.delete(categories).where(sql`1=1`);
-		await DrizzleORM.delete(cities).where(sql`1=1`);
+		// Limpar dados existentes
+		await clearDatabase();
 
 		// 1. Criar Cidades (até 10)
 		console.log("🏙️ Criando cidades...");
 		const createdCities = await DrizzleORM
 			.insert(cities)
 			.values([
-				{ name: "São Paulo", state: "SP" },
-				{ name: "Rio de Janeiro", state: "RJ" },
-				{ name: "Belo Horizonte", state: "MG" },
-				{ name: "Curitiba", state: "PR" },
-				{ name: "Porto Alegre", state: "RS" },
-				{ name: "Salvador", state: "BA" },
-				{ name: "Brasília", state: "DF" },
-				{ name: "Fortaleza", state: "CE" },
-				{ name: "Recife", state: "PE" },
-				{ name: "Manaus", state: "AM" },
+				{ name: "São Paulo", state: "SP", slug: "sao-paulo" },
+				{ name: "Rio de Janeiro", state: "RJ", slug: "rio-de-janeiro" },
+				{ name: "Belo Horizonte", state: "MG", slug: "belo-horizonte" },
+				{ name: "Curitiba", state: "PR", slug: "curitiba" },
+				{ name: "Porto Alegre", state: "RS", slug: "porto-alegre" },
+				{ name: "Salvador", state: "BA", slug: "salvador" },
+				{ name: "Brasília", state: "DF", slug: "brasilia" },
+				{ name: "Fortaleza", state: "CE", slug: "fortaleza" },
+				{ name: "Recife", state: "PE", slug: "recife" },
+				{ name: "Manaus", state: "AM", slug: "manaus" },
 			])
 			.returning();
 		if (createdCities.length < 10) {
 			throw new Error("Erro ao criar cidades: quantidade insuficiente");
 		}
-		const [citySaoPaulo, cityRioDeJaneiro, cityBeloHorizonte, cityCuritiba, cityPortoAlegre, citySalvador, cityBrasilia, cityFortaleza, cityRecife, cityManaus] = createdCities;
+		const citySaoPaulo = createdCities[0]!;
+		const cityRioDeJaneiro = createdCities[1]!;
+		const cityBeloHorizonte = createdCities[2]!;
+		const cityCuritiba = createdCities[3]!;
+		const cityPortoAlegre = createdCities[4]!;
+		const citySalvador = createdCities[5]!;
+		const cityBrasilia = createdCities[6]!;
+		const cityFortaleza = createdCities[7]!;
+		const cityRecife = createdCities[8]!;
+		const cityManaus = createdCities[9]!;
 
 		// 2. Criar Categorias (até 10)
 		console.log("📦 Criando categorias...");
@@ -76,31 +148,88 @@ async function seed() {
 		if (createdCategories.length < 10) {
 			throw new Error("Erro ao criar categorias: quantidade insuficiente");
 		}
-		const [categoryRoupas, categoryEletronicos, categoryCasa, categoryBeleza, categoryEsportes, categoryLivros, categoryBrinquedos, categoryPet, categoryAlimentos, categoryAutomotivo] = createdCategories;
+		const categoryRoupas = createdCategories[0]!;
+		const categoryEletronicos = createdCategories[1]!;
+		const categoryCasa = createdCategories[2]!;
+		const categoryBeleza = createdCategories[3]!;
+		const categoryEsportes = createdCategories[4]!;
+		const categoryLivros = createdCategories[5]!;
+		const categoryBrinquedos = createdCategories[6]!;
+		const categoryPet = createdCategories[7]!;
+		const categoryAlimentos = createdCategories[8]!;
+		const categoryAutomotivo = createdCategories[9]!;
 
-		// 3. Criar Usuários (até 10)
-		console.log("👤 Criando usuários...");
-		const passwordHash = await hash("12345678", BCRYPT_SALT_ROUNDS);
+		// 3. Criar usuários usando Better Auth sign-up
+		console.log("👤 Criando usuários com Better Auth...");
+		const userData = [
+			{ name: "Admin Vitrine", email: "admin@vitrine.shop", role: "ADMIN" as const },
+			{ name: "Maria Silva", email: "maria@exemplo.com", role: "OWNER" as const },
+			{ name: "João Santos", email: "joao@exemplo.com", role: "OWNER" as const },
+			{ name: "Ana Costa", email: "ana@exemplo.com", role: "OWNER" as const },
+			{ name: "Carlos Oliveira", email: "carlos@exemplo.com", role: "OWNER" as const },
+			{ name: "Julia Ferreira", email: "julia@exemplo.com", role: "OWNER" as const },
+			{ name: "Pedro Alves", email: "pedro@exemplo.com", role: "OWNER" as const },
+			{ name: "Fernanda Lima", email: "fernanda@exemplo.com", role: "OWNER" as const },
+			{ name: "Roberto Souza", email: "roberto@exemplo.com", role: "OWNER" as const },
+			{ name: "Camila Rocha", email: "camila@exemplo.com", role: "OWNER" as const },
+		];
 
-		const createdUsers = await DrizzleORM
-			.insert(users)
-			.values([
-				{ name: "Admin Vitrine", email: "admin@vitrine.shop", passwordHash, role: "ADMIN" },
-				{ name: "Maria Silva", email: "maria@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "João Santos", email: "joao@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Ana Costa", email: "ana@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Carlos Oliveira", email: "carlos@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Julia Ferreira", email: "julia@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Pedro Alves", email: "pedro@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Fernanda Lima", email: "fernanda@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Roberto Souza", email: "roberto@exemplo.com", passwordHash, role: "OWNER" },
-				{ name: "Camila Rocha", email: "camila@exemplo.com", passwordHash, role: "OWNER" },
-			])
-			.returning();
+		const createdUsers = [];
+		const password = "12345678"; // Senha padrão para todos os usuários
+
+		for (const userInfo of userData) {
+			try {
+				const response = await auth.api.signUpEmail({
+					body: {
+						email: userInfo.email,
+						password: password,
+						name: userInfo.name,
+					},
+				});
+
+				if (response?.user) {
+					const user = response.user;
+					console.log(`   ✓ Usuário criado pelo Better Auth: ${userInfo.name} (${userInfo.email}) - ID: ${user.id}`);
+					
+					// Atualizar o role do usuário (campo customizado)
+					await DrizzleORM.update(users)
+						.set({ role: userInfo.role })
+						.where(eq(users.id, user.id));
+					
+					// Buscar o usuário atualizado
+					const [updatedUser] = await DrizzleORM
+						.select()
+						.from(users)
+						.where(eq(users.id, user.id));
+					
+					if (updatedUser) {
+						createdUsers.push(updatedUser);
+						console.log(`   ✓ Role atualizado: ${userInfo.role} para ${userInfo.email}`);
+					} else {
+						throw new Error(`Erro ao buscar usuário criado: ${userInfo.email}`);
+					}
+				} else {
+					throw new Error(`Erro ao criar usuário ${userInfo.email}: resposta inválida`);
+				}
+			} catch (error) {
+				console.error(`   ❌ Erro ao criar usuário ${userInfo.email}:`, error);
+				throw error;
+			}
+		}
+
 		if (createdUsers.length < 10) {
 			throw new Error("Erro ao criar usuários: quantidade insuficiente");
 		}
-		const [adminUser, owner1, owner2, owner3, owner4, owner5, owner6, owner7, owner8, owner9] = createdUsers;
+		const adminUser = createdUsers[0]!;
+		const owner1 = createdUsers[1]!;
+		const owner2 = createdUsers[2]!;
+		const owner3 = createdUsers[3]!;
+		const owner4 = createdUsers[4]!;
+		const owner5 = createdUsers[5]!;
+		const owner6 = createdUsers[6]!;
+		const owner7 = createdUsers[7]!;
+		const owner8 = createdUsers[8]!;
+		const owner9 = createdUsers[9]!;
 
 		// 4. Criar Lojas (até 10)
 		console.log("🏪 Criando lojas...");
@@ -117,7 +246,17 @@ async function seed() {
 					facebookUrl: "https://facebook.com/modaelegante",
 					logoUrl: "https://exemplo.com/logo-moda-elegante.jpg",
 					bannerUrl: "https://exemplo.com/banner-moda-elegante.jpg",
-					theme: { primaryColor: "#FF69B4", secondaryColor: "#FFFFFF", tertiaryColor: "#FFB6C1" },
+					theme: {
+						primary: "#FF69B4",
+						secondary: "#FFFFFF",
+						bg: "#FFF0F5",
+						surface: "#FFFFFF",
+						text: "#333333",
+						textSecondary: "#666666",
+						highlight: "#FFB6C1",
+						border: "#FFE4E1",
+						hover: "#FF1493",
+					},
 					cityId: citySaoPaulo.id,
 					ownerId: owner1.id,
 					status: "ACTIVE",
@@ -132,7 +271,17 @@ async function seed() {
 					instagramUrl: "https://instagram.com/techstore",
 					logoUrl: "https://exemplo.com/logo-tech-store.jpg",
 					bannerUrl: "https://exemplo.com/banner-tech-store.jpg",
-					theme: { primaryColor: "#0066CC", secondaryColor: "#FFFFFF", tertiaryColor: "#99CCFF" },
+					theme: {
+						primary: "#0066CC",
+						secondary: "#FFFFFF",
+						bg: "#F0F8FF",
+						surface: "#FFFFFF",
+						text: "#333333",
+						textSecondary: "#666666",
+						highlight: "#99CCFF",
+						border: "#B0C4DE",
+						hover: "#0052A3",
+					},
 					cityId: cityRioDeJaneiro.id,
 					ownerId: owner2.id,
 					status: "ACTIVE",
@@ -145,7 +294,17 @@ async function seed() {
 					slug: "casa-e-lar",
 					whatsapp: "5531777777777",
 					instagramUrl: "https://instagram.com/casaelar",
-					theme: { primaryColor: "#8B4513", secondaryColor: "#FFFFFF", tertiaryColor: "#D2691E" },
+					theme: {
+						primary: "#8B4513",
+						secondary: "#FFFFFF",
+						bg: "#FAF0E6",
+						surface: "#FFFFFF",
+						text: "#333333",
+						textSecondary: "#666666",
+						highlight: "#D2691E",
+						border: "#DEB887",
+						hover: "#A0522D",
+					},
 					cityId: cityBeloHorizonte.id,
 					ownerId: owner3.id,
 					status: "ACTIVE",
@@ -158,7 +317,17 @@ async function seed() {
 					slug: "beleza-total",
 					whatsapp: "5511888888888",
 					instagramUrl: "https://instagram.com/belezatotal",
-					theme: { primaryColor: "#FF1493", secondaryColor: "#FFFFFF", tertiaryColor: "#FFB6C1" },
+					theme: {
+						primary: "#FF1493",
+						secondary: "#FFFFFF",
+						bg: "#FFF5F8",
+						surface: "#FFFFFF",
+						text: "#333333",
+						textSecondary: "#666666",
+						highlight: "#FFB6C1",
+						border: "#FFC0CB",
+						hover: "#C71585",
+					},
 					cityId: cityCuritiba.id,
 					ownerId: owner4.id,
 					status: "ACTIVE",
@@ -171,7 +340,17 @@ async function seed() {
 					slug: "sport-life",
 					whatsapp: "5511777777777",
 					instagramUrl: "https://instagram.com/sportlife",
-					theme: { primaryColor: "#00AA00", secondaryColor: "#FFFFFF", tertiaryColor: "#90EE90" },
+					theme: {
+						primary: "#00AA00",
+						secondary: "#FFFFFF",
+						bg: "#F0FFF0",
+						surface: "#FFFFFF",
+						text: "#333333",
+						textSecondary: "#666666",
+						highlight: "#90EE90",
+						border: "#98FB98",
+						hover: "#008000",
+					},
 					cityId: cityPortoAlegre.id,
 					ownerId: owner5.id,
 					status: "ACTIVE",
@@ -184,7 +363,17 @@ async function seed() {
 					slug: "livraria-cultural",
 					whatsapp: "5511666666666",
 					instagramUrl: "https://instagram.com/livrariacultural",
-					theme: { primaryColor: "#8B4513", secondaryColor: "#FFFFFF", tertiaryColor: "#DEB887" },
+					theme: {
+						primary: "#8B4513",
+						secondary: "#FFFFFF",
+						bg: "#FFFAF0",
+						surface: "#FFFFFF",
+						text: "#333333",
+						textSecondary: "#666666",
+						highlight: "#DEB887",
+						border: "#F5DEB3",
+						hover: "#A0522D",
+					},
 					cityId: citySalvador.id,
 					ownerId: owner6.id,
 					status: "ACTIVE",
@@ -197,7 +386,17 @@ async function seed() {
 					slug: "pet-shop-amor",
 					whatsapp: "5511555555555",
 					instagramUrl: "https://instagram.com/petshopamor",
-					theme: { primaryColor: "#FFA500", secondaryColor: "#FFFFFF", tertiaryColor: "#FFD700" },
+					theme: {
+						primary: "#FFA500",
+						secondary: "#FFFFFF",
+						bg: "#FFFFF0",
+						surface: "#FFFFFF",
+						text: "#333333",
+						textSecondary: "#666666",
+						highlight: "#FFD700",
+						border: "#F0E68C",
+						hover: "#FF8C00",
+					},
 					cityId: cityBrasilia.id,
 					ownerId: owner7.id,
 					status: "ACTIVE",
@@ -210,7 +409,17 @@ async function seed() {
 					slug: "gourmet-express",
 					whatsapp: "5511444444444",
 					instagramUrl: "https://instagram.com/gourmetexpress",
-					theme: { primaryColor: "#8B0000", secondaryColor: "#FFFFFF", tertiaryColor: "#DC143C" },
+					theme: {
+						primary: "#8B0000",
+						secondary: "#FFFFFF",
+						bg: "#FFF5EE",
+						surface: "#FFFFFF",
+						text: "#333333",
+						textSecondary: "#666666",
+						highlight: "#DC143C",
+						border: "#FFC1C1",
+						hover: "#800000",
+					},
 					cityId: cityFortaleza.id,
 					ownerId: owner8.id,
 					status: "ACTIVE",
@@ -223,7 +432,17 @@ async function seed() {
 					slug: "auto-pecas-premium",
 					whatsapp: "5511333333333",
 					instagramUrl: "https://instagram.com/autopecaspremium",
-					theme: { primaryColor: "#000080", secondaryColor: "#FFFFFF", tertiaryColor: "#4169E1" },
+					theme: {
+						primary: "#000080",
+						secondary: "#FFFFFF",
+						bg: "#F0F8FF",
+						surface: "#FFFFFF",
+						text: "#333333",
+						textSecondary: "#666666",
+						highlight: "#4169E1",
+						border: "#B0C4DE",
+						hover: "#0000CD",
+					},
 					cityId: cityRecife.id,
 					ownerId: owner9.id,
 					status: "ACTIVE",
@@ -236,7 +455,17 @@ async function seed() {
 					slug: "brinquedos-e-cia",
 					whatsapp: "5511222222222",
 					instagramUrl: "https://instagram.com/brinquedosecia",
-					theme: { primaryColor: "#FF69B4", secondaryColor: "#FFFFFF", tertiaryColor: "#FFB6C1" },
+					theme: {
+						primary: "#FF69B4",
+						secondary: "#FFFFFF",
+						bg: "#FFF0F5",
+						surface: "#FFFFFF",
+						text: "#333333",
+						textSecondary: "#666666",
+						highlight: "#FFB6C1",
+						border: "#FFE4E1",
+						hover: "#FF1493",
+					},
 					cityId: cityManaus.id,
 					ownerId: owner1.id,
 					status: "ACTIVE",
@@ -247,7 +476,16 @@ async function seed() {
 		if (createdStores.length < 10) {
 			throw new Error("Erro ao criar lojas: quantidade insuficiente");
 		}
-		const [store1, store2, store3, store4, store5, store6, store7, store8, store9, store10] = createdStores;
+		const store1 = createdStores[0]!;
+		const store2 = createdStores[1]!;
+		const store3 = createdStores[2]!;
+		const store4 = createdStores[3]!;
+		const store5 = createdStores[4]!;
+		const store6 = createdStores[5]!;
+		const store7 = createdStores[6]!;
+		const store8 = createdStores[7]!;
+		const store9 = createdStores[8]!;
+		const store10 = createdStores[9]!;
 
 		// Atualizar usuários com storeId
 		await DrizzleORM.update(users).set({ storeId: store1.id }).where(eq(users.id, owner1.id));
@@ -296,42 +534,11 @@ async function seed() {
 			},
 		]);
 
-		// 6. Criar Filiais
-		console.log("🏬 Criando filiais...");
-		const [branch1] = await DrizzleORM
-			.insert(storeBranches)
-			.values([
-				{
-					parentStoreId: store1.id,
-					name: "Moda Elegante - Filial Shopping",
-					cityId: citySaoPaulo.id,
-					whatsapp: "5511999999998",
-					description: "Nossa filial no shopping center",
-					isMain: false,
-				},
-			])
-			.returning();
-
-		// Endereço da filial
-		await DrizzleORM.insert(addresses).values([
-			{
-				branchId: branch1.id,
-				cityId: citySaoPaulo.id,
-				street: "Avenida Paulista",
-				number: "1000",
-				complement: "Shopping Center - Loja 205",
-				neighborhood: "Bela Vista",
-				zipCode: "01310100",
-				country: "Brasil",
-				isMain: false,
-			},
-		]);
-
-		// 7. Criar Assinaturas
+		// 6. Criar Assinaturas
 		console.log("💳 Criando assinaturas...");
 		await DrizzleORM.insert(subscriptions).values([
 			{
-				storeId: store1.id,
+				userId: owner1.id, // Usar ownerId em vez de storeId
 				planName: "Plano Premium",
 				planId: "premium-monthly",
 				provider: "stripe",
@@ -344,7 +551,7 @@ async function seed() {
 				nextPayment: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
 			},
 			{
-				storeId: store2.id,
+				userId: owner2.id, // Usar ownerId em vez de storeId
 				planName: "Plano Básico",
 				planId: "basic-monthly",
 				provider: "stripe",
@@ -358,7 +565,7 @@ async function seed() {
 			},
 		]);
 
-		// 8. Criar Produtos (até 10, com price e quantity)
+		// 8. Criar Produtos (até 10, sem price e quantity)
 		console.log("🛍️ Criando produtos...");
 		const createdProducts = await DrizzleORM
 			.insert(products)
@@ -368,100 +575,80 @@ async function seed() {
 					description: "Vestido longo com estampa floral, perfeito para ocasiões especiais. Tecido de alta qualidade e corte elegante.",
 					categoryId: categoryRoupas.id,
 					storeId: store1.id,
-					price: 29900, // R$ 299,00 em centavos
-					quantity: 35,
 				},
 				{
 					name: "Bolsa de Couro Premium",
 					description: "Bolsa feminina de couro legítimo, com acabamento impecável e alças ajustáveis. Disponível em várias cores.",
 					categoryId: categoryRoupas.id,
 					storeId: store1.id,
-					price: 45000, // R$ 450,00
-					quantity: 13,
 				},
 				{
 					name: "Smartphone Galaxy Pro",
 					description: "Smartphone de última geração com tela de 6.7 polegadas, câmera tripla de 108MP e processador de alta performance.",
 					categoryId: categoryEletronicos.id,
 					storeId: store2.id,
-					price: 349900, // R$ 3.499,00
-					quantity: 20,
 				},
 				{
 					name: "Fone de Ouvido Bluetooth",
 					description: "Fone de ouvido sem fio com cancelamento de ruído ativo, bateria de longa duração e som de alta qualidade.",
 					categoryId: categoryEletronicos.id,
 					storeId: store2.id,
-					price: 39900, // R$ 399,00
-					quantity: 25,
 				},
 				{
 					name: "Conjunto de Almofadas Decorativas",
 					description: "Conjunto com 4 almofadas decorativas em tecido macio, perfeitas para deixar sua sala mais aconchegante.",
 					categoryId: categoryCasa.id,
 					storeId: store3.id,
-					price: 12900, // R$ 129,00
-					quantity: 30,
 				},
 				{
 					name: "Kit de Maquiagem Completo",
 					description: "Kit com paleta de sombras, batons, máscara de cílios e pincéis. Tudo que você precisa para um look completo.",
 					categoryId: categoryBeleza.id,
 					storeId: store4.id,
-					price: 8900, // R$ 89,00
-					quantity: 40,
 				},
 				{
 					name: "Tênis Esportivo Pro",
 					description: "Tênis de corrida com tecnologia de amortecimento avançada. Ideal para atletas e praticantes de exercícios.",
 					categoryId: categoryEsportes.id,
 					storeId: store5.id,
-					price: 29900, // R$ 299,00
-					quantity: 50,
 				},
 				{
 					name: "Livro: A Arte da Programação",
 					description: "Guia completo sobre programação e desenvolvimento de software. Edição atualizada com as melhores práticas.",
 					categoryId: categoryLivros.id,
 					storeId: store6.id,
-					price: 7900, // R$ 79,00
-					quantity: 15,
 				},
 				{
 					name: "Ração Premium para Cães",
 					description: "Ração super premium para cães adultos. Nutrição balanceada com ingredientes naturais de alta qualidade.",
 					categoryId: categoryPet.id,
 					storeId: store7.id,
-					price: 15900, // R$ 159,00
-					quantity: 60,
 				},
 				{
 					name: "Café Gourmet Especial",
 					description: "Café especial torrado e moído na hora. Grãos selecionados com notas de chocolate e caramelo.",
 					categoryId: categoryAlimentos.id,
 					storeId: store8.id,
-					price: 4500, // R$ 45,00
-					quantity: 100,
 				},
 			])
 			.returning();
 		if (createdProducts.length < 10) {
 			throw new Error("Erro ao criar produtos: quantidade insuficiente");
 		}
-		const [product1, product2, product3, product4, product5, product6, product7, product8, product9, product10] = createdProducts;
+		const product1 = createdProducts[0]!;
+		const product2 = createdProducts[1]!;
+		const product3 = createdProducts[2]!;
+		const product4 = createdProducts[3]!;
+		const product5 = createdProducts[4]!;
+		const product6 = createdProducts[5]!;
+		const product7 = createdProducts[6]!;
+		const product8 = createdProducts[7]!;
+		const product9 = createdProducts[8]!;
+		const product10 = createdProducts[9]!;
 
 		// 9. Criar Variações de Produtos
 		console.log("🎨 Criando variações de produtos...");
-		const [
-			variation1,
-			variation2,
-			variation3,
-			variation4,
-			variation5,
-			variation6,
-			variation7,
-			variation8,
-		] = await DrizzleORM
+		const createdVariations = await DrizzleORM
 			.insert(productsVariations)
 			.values([
 				{
@@ -540,6 +727,15 @@ async function seed() {
 			])
 			.returning();
 
+		const variation1 = createdVariations[0]!;
+		const variation2 = createdVariations[1]!;
+		const variation3 = createdVariations[2]!;
+		const variation4 = createdVariations[3]!;
+		const variation5 = createdVariations[4]!;
+		const variation6 = createdVariations[5]!;
+		const variation7 = createdVariations[6]!;
+		const variation8 = createdVariations[7]!;
+
 		// 10. Criar Imagens de Produtos
 		console.log("📸 Criando imagens de produtos...");
 		await DrizzleORM.insert(productsImages).values([
@@ -601,10 +797,9 @@ async function seed() {
 		console.log(`   - ${10} categorias`);
 		console.log(`   - ${10} usuários`);
 		console.log(`   - ${10} lojas`);
-		console.log(`   - ${4} endereços`);
-		console.log(`   - ${1} filial`);
+		console.log(`   - ${3} endereços`);
 		console.log(`   - ${2} assinaturas`);
-		console.log(`   - ${10} produtos (com preço e quantidade)`);
+		console.log(`   - ${10} produtos`);
 		console.log(`   - ${8} variações de produtos`);
 		console.log(`   - ${10} imagens de produtos`);
 		console.log("\n🔑 Credenciais de acesso:");
@@ -625,4 +820,3 @@ async function seed() {
 }
 
 export { seed };
-

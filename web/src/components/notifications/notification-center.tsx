@@ -53,7 +53,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
 
 		// Navegar para item relacionado
 		if (notification.relatedId && notification.relatedType === "order") {
-			router.push(`/dashboard/pedidos`);
+			router.push(`/pedidos`);
 			onClose();
 		}
 	};
@@ -68,7 +68,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
 		<>
 			{/* Backdrop */}
 			<div 
-				className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+				className="fixed inset-0 z-40 bg-background"
 				onClick={onClose}
 			/>
 			{/* Modal */}

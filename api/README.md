@@ -81,11 +81,68 @@ JWT_EXPIRES_IN=1h
 
 # Cookies
 COOKIE_SECRET=sua-chave-secreta-cookie-aqui
+
+# Better Auth
+BETTER_AUTH_URL=http://localhost:3333
+API_URL=http://localhost:3333
+
+# Google OAuth (opcional)
+GOOGLE_CLIENT_ID=seu-google-client-id
+GOOGLE_CLIENT_SECRET=seu-google-client-secret
 ```
 
 **⚠️ Importante:** 
 - Substitua `sua-chave-secreta-jwt-aqui` e `sua-chave-secreta-cookie-aqui` por valores seguros e aleatórios
 - Em produção, use variáveis de ambiente seguras e nunca commite o arquivo `.env`
+
+## 🔐 Configuração do Google OAuth
+
+Para habilitar a autenticação com Google, siga os seguintes passos:
+
+### 1. Criar credenciais no Google Cloud Console
+
+1. Acesse o [Google Cloud Console](https://console.cloud.google.com/)
+2. Crie um novo projeto ou selecione um existente
+3. Navegue até **APIs & Services** > **Credentials**
+4. Clique em **Create Credentials** > **OAuth client ID**
+5. Configure:
+   - **Application type**: Web application
+   - **Name**: Vitrine.shop (ou o nome que preferir)
+   - **Authorized JavaScript origins**:
+     - `http://localhost:3333` (desenvolvimento)
+     - `https://seu-dominio.com` (produção)
+   - **Authorized redirect URIs**:
+     - `http://localhost:3333/api/auth/callback/google` (desenvolvimento)
+     - `https://seu-dominio.com/api/auth/callback/google` (produção)
+6. Copie o **Client ID** e **Client Secret**
+
+### 2. Configurar variáveis de ambiente
+
+Adicione as credenciais ao arquivo `.env`:
+
+```env
+GOOGLE_CLIENT_ID=seu-client-id-aqui
+GOOGLE_CLIENT_SECRET=seu-client-secret-aqui
+```
+
+### 3. Rotas disponíveis
+
+Após a configuração, as seguintes rotas estarão disponíveis:
+
+- **GET** `/api/auth/sign-in/google` - Inicia o fluxo de autenticação Google
+- **GET** `/api/auth/callback/google` - Callback do Google após autenticação
+- **POST** `/api/auth/link/google` - Vincula conta Google a usuário autenticado
+- **POST** `/api/auth/unlink/google` - Desvincula conta Google de usuário autenticado
+
+### 4. Uso no frontend
+
+Para iniciar a autenticação com Google, redirecione o usuário para:
+
+```typescript
+window.location.href = 'http://localhost:3333/api/auth/sign-in/google?callbackURL=http://localhost:3000/dashboard';
+```
+
+O parâmetro `callbackURL` (opcional) define para onde o usuário será redirecionado após a autenticação bem-sucedida.
 
 ### 5. Execute as migrações do banco de dados
 

@@ -1,11 +1,12 @@
 import type { Subscription } from "~/database/schema";
 import type { StoresRepository } from "~/repositories/stores-repository";
 import type { SubscriptionsRepository } from "~/repositories/subscriptions-repository";
-import { StoreNotFoundError } from "../@errors/stores/store-not-found-error";
+import type { UsersRepository } from "~/repositories/users-repository";
+import { UserNotFoundError } from "../@errors/users/user-not-found-error";
 import { FailedToCreateSubscriptionError } from "../@errors/subscriptions/failed-to-create-subscription-error";
 
 interface CreateSubscriptionUseCaseRequest {
-	storeId: string;
+	userId: string;
 	planName: string;
 	planId: string;
 	provider: string;
@@ -26,10 +27,11 @@ export class CreateSubscriptionUseCase {
 	constructor(
 		private readonly subscriptionsRepository: SubscriptionsRepository,
 		private readonly storesRepository: StoresRepository,
+		private readonly usersRepository: UsersRepository,
 	) {}
 
 	async execute({
-		storeId,
+		userId,
 		planName,
 		planId,
 		provider,
@@ -41,16 +43,16 @@ export class CreateSubscriptionUseCase {
 		stripeSubscriptionId,
 		stripeCustomerId,
 	}: CreateSubscriptionUseCaseRequest): Promise<CreateSubscriptionUseCaseResponse> {
-		// Validar se loja existe
-		const store = await this.storesRepository.findById({ id: storeId });
+		// Validar se usuário existe
+		const user = await this.usersRepository.findById({ id: userId });
 
-		if (!store) {
-			throw new StoreNotFoundError();
+		if (!user) {
+			throw new UserNotFoundError();
 		}
 
 		// Criar subscription
 		const subscription = await this.subscriptionsRepository.create({
-			storeId,
+			userId,
 			planName,
 			planId,
 			provider,
@@ -67,14 +69,27 @@ export class CreateSubscriptionUseCase {
 			throw new FailedToCreateSubscriptionError();
 		}
 
-		// Atualizar isPaid da loja para true se status for PAID
+		// Atualizar isPaid de todas as lojas do usuário para true se status for PAID
 		if (status === "PAID") {
-			await this.storesRepository.update({
-				id: storeId,
-				data: {
-					isPaid: true,
+			const { stores } = await this.storesRepository.findAll({
+				page: 1,
+				limit: 1000,
+				filters: {
+					ownerId: userId,
 				},
 			});
+
+			// Atualizar todas as lojas do usuário
+			await Promise.all(
+				stores.map((store) =>
+					this.storesRepository.update({
+						id: store.id,
+						data: {
+							isPaid: true,
+						},
+					}),
+				),
+			);
 		}
 
 		return { subscription };

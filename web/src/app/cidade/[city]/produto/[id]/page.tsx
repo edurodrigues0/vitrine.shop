@@ -27,7 +27,7 @@ import {
 import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
 import { useCart } from "@/contexts/cart-context";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/lib/toast";
 import Link from "next/link";
 import type { ProductVariation } from "@/dtos/product-variation";
 import type { ProductImage } from "@/dtos/product-image";
@@ -39,7 +39,7 @@ export default function ProductPage() {
   const router = useRouter();
   const citySlug = params.city as string;
   const productId = params.id as string;
-  const { addItem, canAddItem } = useCart();
+  const { addItem } = useCart();
 
   const [selectedVariation, setSelectedVariation] =
     useState<ProductVariation | null>(null);
@@ -64,6 +64,7 @@ export default function ProductPage() {
     queryKey: ["store", product?.storeId],
     queryFn: () => storesService.findById(product!.storeId),
     enabled: !!product?.storeId,
+    retry: false, // Não tentar novamente se a loja não for encontrada (404)
   });
 
   // Buscar categoria
@@ -98,7 +99,7 @@ export default function ProductPage() {
   // Usar valores estáveis para garantir que o array de dependências tenha tamanho constante
   const variationId = selectedVariation?.id ?? null;
   const currentProductId = product?.id ?? null;
-  
+
   useEffect(() => {
     if (currentProductId) {
       setQuantity(1);
@@ -140,9 +141,9 @@ export default function ProductPage() {
           <p className="text-muted-foreground mb-6">
             O produto que você está procurando não existe.
           </p>
-          <Button variant="outline" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
+          <Button variant="outline" onClick={() => router.back()} className="flex items-center justify-center gap-2 whitespace-nowrap">
+            <ArrowLeft className="h-4 w-4 shrink-0" />
+            <span>Voltar</span>
           </Button>
         </div>
       </div>
@@ -155,13 +156,13 @@ export default function ProductPage() {
     : product.price
       ? product.price
       : null;
-  
+
   const originalPrice = selectedVariation
     ? selectedVariation.discountPrice
       ? selectedVariation.price
       : null
     : null;
-  
+
   const discountPercentage = originalPrice && price
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
@@ -170,27 +171,20 @@ export default function ProductPage() {
   const availableStock = selectedVariation
     ? selectedVariation.stock
     : product.quantity ?? 0;
-  
+
   const maxQuantity = Math.min(availableStock, 10);
   const isAvailable = availableStock > 0;
 
   const handleAddToCart = () => {
     if (!product) return;
 
-    if (!canAddItem(product.storeId)) {
-      toast.error(
-        "Não é possível adicionar produtos de lojas diferentes ao carrinho. Finalize o pedido atual ou limpe o carrinho.",
-      );
-      return;
-    }
-
     if (!isAvailable) {
-      toast.error("Produto fora de estoque");
+      showError("Produto fora de estoque");
       return;
     }
 
     if (quantity > availableStock) {
-      toast.error(`Quantidade disponível: ${availableStock} unidades`);
+      showError(`Quantidade disponível: ${availableStock} unidades`);
       return;
     }
 
@@ -206,15 +200,15 @@ export default function ProductPage() {
         size: "Único",
         discountPrice: null,
       };
-      
+
       try {
         addItem(product, defaultVariation, quantity);
-        toast.success(
+        showSuccess(
           `${quantity} ${quantity === 1 ? "produto" : "produtos"} adicionado${quantity === 1 ? "" : "s"} ao carrinho!`,
         );
         setQuantity(1);
       } catch (error) {
-        toast.error(
+        showError(
           error instanceof Error
             ? error.message
             : "Erro ao adicionar ao carrinho",
@@ -224,18 +218,18 @@ export default function ProductPage() {
     }
 
     if (!selectedVariation) {
-      toast.error("Selecione uma variação do produto");
+      showError("Selecione uma variação do produto");
       return;
     }
 
     try {
       addItem(product, selectedVariation, quantity);
-      toast.success(
+      showSuccess(
         `${quantity} ${quantity === 1 ? "produto" : "produtos"} adicionado${quantity === 1 ? "" : "s"} ao carrinho!`,
       );
       setQuantity(1);
     } catch (error) {
-      toast.error(
+      showError(
         error instanceof Error
           ? error.message
           : "Erro ao adicionar ao carrinho",
@@ -244,7 +238,7 @@ export default function ProductPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div>
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
@@ -302,10 +296,10 @@ export default function ProductPage() {
                       try {
                         const productUrl = window.location.href;
                         await navigator.clipboard.writeText(productUrl);
-                        toast.success("Link copiado para área de transferência!");
+                        showSuccess("Link copiado para área de transferência!");
                       } catch (error) {
                         console.error("Erro ao copiar link:", error);
-                        toast.error("Erro ao copiar link");
+                        showError("Erro ao copiar link");
                       }
                     }}
                     title="Compartilhar produto"
@@ -387,19 +381,28 @@ export default function ProductPage() {
                       return (
                         <Card
                           key={variation.id}
-                          className={`p-4 cursor-pointer transition-all border-2 ${
-                            isSelected
-                              ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                              : "border-border hover:border-primary/50 hover:bg-accent/50"
-                          }`}
+                          className={`p-4 cursor-pointer transition-all duration-200 border-2 relative ${isSelected
+                              ? "border-primary bg-primary/10 dark:bg-primary/20 ring-2 ring-primary/30 shadow-md shadow-primary/10"
+                              : "border-border hover:border-primary/50 hover:bg-accent/50 dark:hover:bg-accent/30"
+                            }`}
                           onClick={() => {
                             setSelectedVariation(variation);
                           }}
                         >
-                          <div className="flex justify-between items-center">
+                          {/* Indicador de seleção */}
+                          {isSelected && (
+                            <div className="absolute top-3 right-3">
+                              <div className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex justify-between items-center pr-8">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <p className="font-semibold text-lg">
+                                <p className={`font-semibold text-lg transition-colors ${isSelected ? "text-primary" : "text-foreground"
+                                  }`}>
                                   {variation.color} - {variation.size}
                                 </p>
                                 {hasDiscount && (
@@ -407,16 +410,20 @@ export default function ProductPage() {
                                     Oferta
                                   </Badge>
                                 )}
+                                {isSelected && (
+                                  <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
+                                    Selecionado
+                                  </Badge>
+                                )}
                               </div>
                               <div className="flex items-center gap-4">
                                 <p className="text-sm text-muted-foreground">
                                   Estoque:{" "}
                                   <span
-                                    className={`font-medium ${
-                                      variation.stock > 0
+                                    className={`font-medium ${variation.stock > 0
                                         ? "text-green-600 dark:text-green-400"
                                         : "text-destructive"
-                                    }`}
+                                      }`}
                                   >
                                     {variation.stock > 0
                                       ? `${variation.stock} unidades`
@@ -427,7 +434,8 @@ export default function ProductPage() {
                             </div>
                             <div className="text-right ml-4">
                               <div className="flex items-baseline gap-2">
-                                <span className="text-xl font-bold text-primary">
+                                <span className={`text-xl font-bold transition-colors ${isSelected ? "text-primary" : "text-foreground"
+                                  }`}>
                                   R${" "}
                                   {(variationPrice / 100)
                                     .toFixed(2)
@@ -496,11 +504,10 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              <div className={`flex items-center gap-2 p-3 rounded-lg ${
-                isAvailable 
-                  ? "bg-green-500/10 border border-green-500/20" 
+              <div className={`flex items-center gap-2 p-3 rounded-lg ${isAvailable
+                  ? "bg-green-500/10 border border-green-500/20"
                   : "bg-red-500/10 border border-red-500/20"
-              }`}>
+                }`}>
                 {isAvailable ? (
                   <>
                     <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -535,7 +542,7 @@ export default function ProductPage() {
                 onClick={handleAddToCart}
               >
                 <ShoppingCart className="h-5 w-5 mr-2" />
-                {isAvailable 
+                {isAvailable
                   ? variations.length > 0 && !selectedVariation
                     ? "Selecione uma variação"
                     : `Adicionar ${quantity} ${quantity === 1 ? "produto" : "produtos"} ao carrinho`
@@ -557,7 +564,7 @@ export default function ProductPage() {
         </div>
 
         {/* Related Products */}
-        <RelatedProducts 
+        <RelatedProducts
           currentProductId={product.id}
           categoryId={product.categoryId}
           storeId={product.storeId}
