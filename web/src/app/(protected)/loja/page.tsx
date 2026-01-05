@@ -77,13 +77,21 @@ export default function StoreDashboardPage() {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" asChild>
-            <Link href={`/cidade/${storeCity?.slug || 'cidade'}/loja/${selectedStore.slug}`} target="_blank" className="gap-2">
+            <Link
+              href={`/cidade/${storeCity?.slug || 'cidade'}/loja/${selectedStore.slug}`}
+              target="_blank"
+              className="gap-2 flex items-center"
+            >
               <ExternalLink className="h-4 w-4" />
               Ver Loja
             </Link>
           </Button>
+
           <Button asChild>
-            <Link href={`/loja/cadastro?id=${selectedStore.id}`} className="gap-2">
+            <Link
+              href={`/loja/cadastro?id=${selectedStore.id}`}
+              className="gap-2 flex items-center"
+            >
               <Edit className="h-4 w-4" />
               Editar Loja
             </Link>

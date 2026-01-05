@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { productsService } from "@/services/products-service";
 import { useSelectedStore } from "@/hooks/use-selected-store";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -212,24 +212,27 @@ export default function DashboardPage() {
             <Users className="h-5 w-5" />
             Informações
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-1 flex-col">
             {isLoadingStore ? (
               <div className="flex items-center justify-center py-4">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 <span className="ml-2 text-sm text-muted-foreground">Carregando...</span>
               </div>
             ) : selectedStore ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  <span>Sua loja está configurada</span>
+              <div className="h-full flex flex-col justify-between">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <span>Sua loja está configurada</span>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted">
+                    <p className="text-sm font-medium mb-1">{selectedStore.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {products.length} {products.length === 1 ? "produto" : "produtos"} cadastrado{products.length === 1 ? "" : "s"}
+                    </p>
+                  </div>
                 </div>
-                <div className="p-3 rounded-lg bg-muted">
-                  <p className="text-sm font-medium mb-1">{selectedStore.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {products.length} {products.length === 1 ? "produto" : "produtos"} cadastrado{products.length === 1 ? "" : "s"}
-                  </p>
-                </div>
+
                 <Button asChild variant="outline" className="w-full">
                   <Link href="/loja" className="flex items-center justify-center gap-2 whitespace-nowrap">
                     <Edit className="h-4 w-4 shrink-0" />

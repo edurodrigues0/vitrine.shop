@@ -16,7 +16,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const statusLabels: Record<string, string> = {
   PENDENTE: "Pendente",
@@ -165,20 +165,23 @@ export default function OrdersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <select
+          <Select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="flex h-10 w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}
+            onValueChange={(value) => setStatusFilter(value)}
           >
-            <option value="">Todos os status</option>
-            <option value="PENDENTE">Pendente</option>
-            <option value="CONFIRMADO">Confirmado</option>
-            <option value="PREPARANDO">Preparando</option>
-            <option value="ENVIADO">Enviado</option>
-            <option value="ENTREGUE">Entregue</option>
-            <option value="CANCELADO">Cancelado</option>
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TODOS">Todos os status</SelectItem>
+              <SelectItem value="PENDENTE">Pendente</SelectItem>
+              <SelectItem value="CONFIRMADO">Confirmado</SelectItem>
+              <SelectItem value="PREPARANDO">Preparando</SelectItem>
+              <SelectItem value="ENVIADO">Enviado</SelectItem>
+              <SelectItem value="ENTREGUE">Entregue</SelectItem>
+              <SelectItem value="CANCELADO">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
