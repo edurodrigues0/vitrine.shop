@@ -824,6 +824,7 @@ function NotificationPreferences() {
 
 // Componente de Planos e Assinatura
 function SubscriptionPlans() {
+  const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -939,9 +940,9 @@ function SubscriptionPlans() {
       }
 
       const priceIdMap: Record<typeof plan.id, string> = {
-        basic: "price_basic_monthly",
-        professional: "price_professional_monthly",
-        enterprise: "price_enterprise_monthly",
+        basic: process.env.NEXT_PUBLIC_STRIPE_BASIC_MONTHLY_PRICE_ID!,
+        professional: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID!,
+        enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY_PRICE_ID!,
       };
 
       const priceId = priceIdMap[plan.id];
@@ -1106,13 +1107,12 @@ function SubscriptionPlans() {
             return (
               <Card
                 key={plan.id}
-                className={`relative p-6 transition-all duration-300 ${plan.popular
-                  ? "border-primary border-2 shadow-lg scale-105"
-                  : "hover:shadow-lg hover:scale-105"
-                  } ${isCurrentPlan ? "ring-2 ring-green-500" : ""}`}
+                className={
+                  `relative p-6 transition-all duration-300 hover:shadow-lg hover:scale-105 ${isCurrentPlan ? "ring-2 ring-green-500" : ""}`
+                }
               >
                 {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500">
                     Mais Popular
                   </Badge>
                 )}
@@ -1122,14 +1122,15 @@ function SubscriptionPlans() {
                   </Badge>
                 )}
 
-                <div className="space-y-4">
+                <div className="flex flex-col gap-4 h-full justify-between">
                   {/* Header */}
                   <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <Icon className="h-6 w-6 text-primary" />
+                    <div className="flex items-center gap-2winget upgrade Stripe.Stripe
+ mb-2">
+                      <div className="p-1 rounded-lg bg-primary/10">
+                        <Icon className="size-5 text-primary" />
                       </div>
-                      <h3 className="text-2xl font-bold">{plan.name}</h3>
+                      <h3 className="text-xl font-bold">{plan.name}</h3>
                     </div>
                     <p className="text-sm text-muted-foreground">{plan.description}</p>
                   </div>
@@ -1137,7 +1138,7 @@ function SubscriptionPlans() {
                   {/* Preço */}
                   <div>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold">R$ {plan.price}</span>
+                      <span className="text-2xl font-bold">R$ {plan.price}</span>
                       <span className="text-muted-foreground">/mês</span>
                     </div>
                   </div>

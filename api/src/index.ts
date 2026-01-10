@@ -2,6 +2,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { type Request, type Response } from "express";
+import helmet from "helmet";
 import { join } from "path";
 import { setupSwagger } from "~/config/swagger";
 import { logger } from "~/utils/logger";
@@ -23,6 +24,23 @@ import { auth } from "./services/auth";
 dotenv.config();
 
 const app = express();
+
+// Helmet para proteção de headers HTTP
+app.use(
+	helmet({
+		contentSecurityPolicy: {
+			directives: {
+				defaultSrc: ["'self'"],
+				styleSrc: ["'self'", "'unsafe-inline'"],
+				scriptSrc: ["'self'"],
+				imgSrc: ["'self'", "data:", "https:"],
+				connectSrc: ["'self'"],
+				fontSrc: ["'self'", "data:"],
+			},
+		},
+		crossOriginEmbedderPolicy: false, // Necessário para compatibilidade com alguns serviços
+	}),
+);
 
 app.use(
 	cors({
