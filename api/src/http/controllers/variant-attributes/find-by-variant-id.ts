@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import z from "zod";
 import { makeFindVariantAttributesByVariantIdUseCase } from "~/use-cases/@factories/variant-attributes/make-find-variant-attributes-by-variant-id-use-case";
 
 const findVariantAttributesByVariantIdParamsSchema = z.object({

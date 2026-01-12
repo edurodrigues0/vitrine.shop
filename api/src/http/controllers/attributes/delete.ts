@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import z from "zod";
 import { makeDeleteAttributeUseCase } from "~/use-cases/@factories/attributes/make-delete-attribute-use-case";
 
 const deleteAttributeParamsSchema = z.object({

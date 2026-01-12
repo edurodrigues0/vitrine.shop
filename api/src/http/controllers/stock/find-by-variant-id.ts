@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import z from "zod";
 import { makeFindStockByVariantIdUseCase } from "~/use-cases/@factories/stock/make-find-stock-by-variant-id-use-case";
 
 const findStockByVariantIdParamsSchema = z.object({
