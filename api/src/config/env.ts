@@ -18,6 +18,9 @@ const envSchema = z.object({
 	STRIPE_PRICE_ID_BASIC: z.string().optional(),
 	STRIPE_PRICE_ID_PREMIUM: z.string().optional(),
 	STRIPE_PRICE_ID_ENTERPRISE: z.string().optional(),
+	REDIS_URL: z.string().url().optional(),
+	FRONTEND_URL: z.string().url().optional(),
+	BETTER_AUTH_URL: z.string().url().optional(),
 });
 
 export const env = envSchema.parse(process.env);

@@ -4,6 +4,8 @@ import { DrizzleORM } from "./connection";
 import {
 	account,
 	addresses,
+	attributes,
+	attributesValues,
 	categories,
 	cities,
 	notifications,
@@ -13,10 +15,12 @@ import {
 	productsImages,
 	productsVariations,
 	sessions,
+	stocks,
 	storeVisits,
 	stores,
 	subscriptions,
 	users,
+	variantAttributes,
 	verifications,
 } from "./schema";
 import { auth } from "../services/auth";
@@ -36,6 +40,15 @@ export async function clearDatabase() {
 		await DrizzleORM.delete(productsImages).where(sql`1=1`);
 		console.log("   ✓ products_images limpo");
 
+		await DrizzleORM.delete(stocks).where(sql`1=1`);
+		console.log("   ✓ stocks limpo");
+
+		await DrizzleORM.delete(variantAttributes).where(sql`1=1`);
+		console.log("   ✓ variant_attributes limpo");
+
+		await DrizzleORM.delete(attributesValues).where(sql`1=1`);
+		console.log("   ✓ attributes_values limpo");
+
 		await DrizzleORM.delete(productsVariations).where(sql`1=1`);
 		console.log("   ✓ products_variations limpo");
 
@@ -44,6 +57,9 @@ export async function clearDatabase() {
 
 		await DrizzleORM.delete(products).where(sql`1=1`);
 		console.log("   ✓ products limpo");
+
+		await DrizzleORM.delete(attributes).where(sql`1=1`);
+		console.log("   ✓ attributes limpo");
 
 		await DrizzleORM.delete(notifications).where(sql`1=1`);
 		console.log("   ✓ notifications limpo");
@@ -646,83 +662,107 @@ async function seed() {
 		const product9 = createdProducts[8]!;
 		const product10 = createdProducts[9]!;
 
-		// 9. Criar Variações de Produtos
+		// 9. Criar Atributos
+		console.log("🏷️ Criando atributos...");
+		const createdAttributes = await DrizzleORM
+			.insert(attributes)
+			.values([
+				{ name: "Tamanho" },
+				{ name: "Cor" },
+				{ name: "Capacidade" },
+			])
+			.returning();
+
+		const attributeTamanho = createdAttributes[0]!;
+		const attributeCor = createdAttributes[1]!;
+		const attributeCapacidade = createdAttributes[2]!;
+
+		// 10. Criar Valores de Atributos
+		console.log("📝 Criando valores de atributos...");
+		const createdAttributeValues = await DrizzleORM
+			.insert(attributesValues)
+			.values([
+				// Valores para Tamanho
+				{ attributeId: attributeTamanho.id, value: "P" },
+				{ attributeId: attributeTamanho.id, value: "M" },
+				{ attributeId: attributeTamanho.id, value: "G" },
+				{ attributeId: attributeTamanho.id, value: "GG" },
+				{ attributeId: attributeTamanho.id, value: "Único" },
+				{ attributeId: attributeTamanho.id, value: "40x40cm" },
+				// Valores para Cor
+				{ attributeId: attributeCor.id, value: "Rosa" },
+				{ attributeId: attributeCor.id, value: "Preto" },
+				{ attributeId: attributeCor.id, value: "Marrom" },
+				{ attributeId: attributeCor.id, value: "Branco" },
+				{ attributeId: attributeCor.id, value: "Azul" },
+				{ attributeId: attributeCor.id, value: "Bege" },
+				// Valores para Capacidade
+				{ attributeId: attributeCapacidade.id, value: "128GB" },
+				{ attributeId: attributeCapacidade.id, value: "256GB" },
+				{ attributeId: attributeCapacidade.id, value: "512GB" },
+			])
+			.returning();
+
+		const tamanhoP = createdAttributeValues[0]!;
+		const tamanhoM = createdAttributeValues[1]!;
+		const tamanhoUnico = createdAttributeValues[4]!;
+		const tamanho40x40 = createdAttributeValues[5]!;
+		const corRosa = createdAttributeValues[6]!;
+		const corPreto = createdAttributeValues[7]!;
+		const corMarrom = createdAttributeValues[8]!;
+		const corBranco = createdAttributeValues[9]!;
+		const corAzul = createdAttributeValues[10]!;
+		const corBege = createdAttributeValues[11]!;
+		const capacidade128GB = createdAttributeValues[12]!;
+		const capacidade256GB = createdAttributeValues[13]!;
+
+		// 11. Criar Variações de Produtos
 		console.log("🎨 Criando variações de produtos...");
 		const createdVariations = await DrizzleORM
 			.insert(productsVariations)
 			.values([
 				{
 					productId: product1.id,
-					size: "P",
-					color: "Rosa",
+					sku: "VEST-FLORAL-P-ROSA",
 					price: 29900, // R$ 299,00 em centavos
 					discountPrice: 24900, // R$ 249,00 em centavos
-					stock: 15,
-					weight: "0.5",
-					dimensions: {
-						length: "80",
-						width: "40",
-						height: "2",
-						unit: "cm",
-					},
 				},
 				{
 					productId: product1.id,
-					size: "M",
-					color: "Rosa",
+					sku: "VEST-FLORAL-M-ROSA",
 					price: 29900,
 					discountPrice: 24900,
-					stock: 20,
-					weight: "0.5",
 				},
 				{
 					productId: product2.id,
-					size: "Único",
-					color: "Preto",
+					sku: "BOLSA-COURO-PRETO",
 					price: 45000, // R$ 450,00
-					stock: 8,
-					weight: "0.8",
 				},
 				{
 					productId: product2.id,
-					size: "Único",
-					color: "Marrom",
+					sku: "BOLSA-COURO-MARROM",
 					price: 45000,
-					stock: 5,
-					weight: "0.8",
 				},
 				{
 					productId: product3.id,
-					size: "128GB",
-					color: "Preto",
+					sku: "SMARTPHONE-128GB-PRETO",
 					price: 349900, // R$ 3.499,00
 					discountPrice: 319900, // R$ 3.199,00
-					stock: 12,
-					weight: "0.2",
 				},
 				{
 					productId: product3.id,
-					size: "256GB",
-					color: "Azul",
+					sku: "SMARTPHONE-256GB-AZUL",
 					price: 399900, // R$ 3.999,00
-					stock: 8,
-					weight: "0.2",
 				},
 				{
 					productId: product4.id,
-					size: "Único",
-					color: "Branco",
+					sku: "FONE-BT-BRANCO",
 					price: 39900, // R$ 399,00
-					stock: 25,
-					weight: "0.3",
 				},
 				{
 					productId: product5.id,
-					size: "40x40cm",
-					color: "Bege",
+					sku: "ALMOFADA-40X40-BEGE",
 					price: 12900, // R$ 129,00
-					stock: 30,
-					weight: "0.4",
 				},
 			])
 			.returning();
@@ -736,7 +776,46 @@ async function seed() {
 		const variation7 = createdVariations[6]!;
 		const variation8 = createdVariations[7]!;
 
-		// 10. Criar Imagens de Produtos
+		// 12. Criar Estoque para Variações
+		console.log("📦 Criando estoque...");
+		await DrizzleORM.insert(stocks).values([
+			{ variantId: variation1.id, quantity: 15 },
+			{ variantId: variation2.id, quantity: 20 },
+			{ variantId: variation3.id, quantity: 8 },
+			{ variantId: variation4.id, quantity: 5 },
+			{ variantId: variation5.id, quantity: 12 },
+			{ variantId: variation6.id, quantity: 8 },
+			{ variantId: variation7.id, quantity: 25 },
+			{ variantId: variation8.id, quantity: 30 },
+		]);
+
+		// 13. Criar Atributos de Variações
+		console.log("🔗 Criando atributos de variações...");
+		await DrizzleORM.insert(variantAttributes).values([
+			// Variação 1: Vestido P Rosa
+			{ productVariantId: variation1.id, attributeId: attributeTamanho.id },
+			{ productVariantId: variation1.id, attributeId: attributeCor.id },
+			// Variação 2: Vestido M Rosa
+			{ productVariantId: variation2.id, attributeId: attributeTamanho.id },
+			{ productVariantId: variation2.id, attributeId: attributeCor.id },
+			// Variação 3: Bolsa Preto
+			{ productVariantId: variation3.id, attributeId: attributeCor.id },
+			// Variação 4: Bolsa Marrom
+			{ productVariantId: variation4.id, attributeId: attributeCor.id },
+			// Variação 5: Smartphone 128GB Preto
+			{ productVariantId: variation5.id, attributeId: attributeCapacidade.id },
+			{ productVariantId: variation5.id, attributeId: attributeCor.id },
+			// Variação 6: Smartphone 256GB Azul
+			{ productVariantId: variation6.id, attributeId: attributeCapacidade.id },
+			{ productVariantId: variation6.id, attributeId: attributeCor.id },
+			// Variação 7: Fone Branco
+			{ productVariantId: variation7.id, attributeId: attributeCor.id },
+			// Variação 8: Almofada Bege
+			{ productVariantId: variation8.id, attributeId: attributeTamanho.id },
+			{ productVariantId: variation8.id, attributeId: attributeCor.id },
+		]);
+
+		// 14. Criar Imagens de Produtos
 		console.log("📸 Criando imagens de produtos...");
 		await DrizzleORM.insert(productsImages).values([
 			{
@@ -800,7 +879,11 @@ async function seed() {
 		console.log(`   - ${3} endereços`);
 		console.log(`   - ${2} assinaturas`);
 		console.log(`   - ${10} produtos`);
+		console.log(`   - ${3} atributos`);
+		console.log(`   - ${15} valores de atributos`);
 		console.log(`   - ${8} variações de produtos`);
+		console.log(`   - ${8} estoques`);
+		console.log(`   - ${14} atributos de variações`);
 		console.log(`   - ${10} imagens de produtos`);
 		console.log("\n🔑 Credenciais de acesso:");
 		console.log("   Admin: admin@vitrine.shop / 12345678");

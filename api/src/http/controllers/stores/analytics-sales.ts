@@ -76,26 +76,27 @@ export async function getStoreSalesAnalyticsController(
 		const start = startDate ? new Date(startDate as string) : defaultStartDate;
 		const end = endDate ? new Date(endDate as string) : now;
 
-		// Construir query base
-		let dateFormat: string;
-		let dateTrunc: string;
-
-		switch (groupBy) {
-			case "week":
-				dateFormat = "YYYY-\"W\"WW";
-				dateTrunc = "week";
-				break;
-			case "month":
-				dateFormat = "YYYY-MM";
-				dateTrunc = "month";
-				break;
-			default: // day
-				dateFormat = "YYYY-MM-DD";
-				dateTrunc = "day";
-				break;
+		// Validar e mapear groupBy para valores seguros
+		const allowedGroupBy = ["day", "week", "month"] as const;
+		const groupByValue = groupBy as string;
+		
+		if (!allowedGroupBy.includes(groupByValue as typeof allowedGroupBy[number])) {
+			return response.status(400).json({
+				message: "groupBy deve ser 'day', 'week' ou 'month'",
+			});
 		}
 
+		// Mapeamento seguro de valores permitidos para formatos de data
+		const dateFormatMap: Record<typeof allowedGroupBy[number], string> = {
+			day: "YYYY-MM-DD",
+			week: "YYYY-\"W\"WW",
+			month: "YYYY-MM",
+		};
+
+		const dateFormat = dateFormatMap[groupByValue as typeof allowedGroupBy[number]];
+
 		// Buscar vendas agrupadas por período
+		// dateFormat já foi validado e mapeado de forma segura
 		const salesData = await DrizzleORM
 			.select({
 				date: sql<string>`to_char(${orders.createdAt}, ${sql.raw(`'${dateFormat}'`)})`,
@@ -128,7 +129,7 @@ export async function getStoreSalesAnalyticsController(
 			period: {
 				start: start.toISOString(),
 				end: end.toISOString(),
-				groupBy,
+				groupBy: groupByValue,
 			},
 		});
 	} catch (error) {

@@ -1,17 +1,13 @@
 import { relations } from "drizzle-orm";
 import {
-	decimal,
-	integer,
-	jsonb,
-	PgArray,
 	pgTable,
 	text,
 	timestamp,
 	uuid,
 	varchar,
+	boolean,
 } from "drizzle-orm/pg-core";
 import { categories } from "./category";
-import { productsImages } from "./products-images";
 import { productsVariations } from "./products-variations";
 import { stores } from "./stores";
 
@@ -19,6 +15,7 @@ export const products = pgTable("products", {
 	id: uuid("id").defaultRandom().primaryKey(),
 	name: varchar("name", { length: 120 }).notNull(),
 	description: text("description"),
+	active: boolean("active").default(true).notNull(),
 	categoryId: uuid("category_id")
 		.references(() => categories.id)
 		.notNull(),

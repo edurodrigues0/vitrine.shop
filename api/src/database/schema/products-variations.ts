@@ -3,6 +3,7 @@ import {
 	decimal,
 	integer,
 	jsonb,
+	numeric,
 	pgTable,
 	timestamp,
 	uuid,
@@ -16,13 +17,9 @@ export const productsVariations = pgTable("products_variations", {
 	productId: uuid("product_id")
 		.references(() => products.id)
 		.notNull(),
-	size: varchar("size", { length: 100 }).notNull(),
-	color: varchar("color", { length: 100 }).notNull(),
-	weight: decimal("weight", { precision: 10, scale: 2 }),
-	dimensions: jsonb("dimensions").$type<Record<string, unknown>>(),
-	discountPrice: integer("discount_price"),
+	sku: varchar("sku", { length: 100 }).notNull(),
 	price: integer("price").notNull(),
-	stock: integer("stock").notNull(),
+	discountPrice: integer("discount_price"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
