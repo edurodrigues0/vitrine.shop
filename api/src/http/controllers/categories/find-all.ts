@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import z, { ZodError } from "zod";
+import z from "zod";
 import { makeFindCategoriesUseCase } from "~/use-cases/@factories/categories/make-find-categories-use-case";
 
 const findAllCategoriesQuerySchema = z.object({
@@ -93,43 +93,28 @@ export async function findAllCategoriesController(
 	request: Request,
 	response: Response,
 ) {
-	try {
-		const { page, limit, name, slug } = findAllCategoriesQuerySchema.parse(
-			request.query,
-		);
+	const { page, limit, name, slug } = findAllCategoriesQuerySchema.parse(
+		request.query,
+	);
 
-		const findCategoriesUseCase = makeFindCategoriesUseCase();
+	const findCategoriesUseCase = makeFindCategoriesUseCase();
 
-		const { categories, pagination } = await findCategoriesUseCase.execute({
-			page,
-			limit,
-			filters: {
-				name,
-				slug,
-			},
-		});
+	const { categories, pagination } = await findCategoriesUseCase.execute({
+		page,
+		limit,
+		filters: {
+			name,
+			slug,
+		},
+	});
 
-		return response.status(200).json({
-			categories,
-			meta: {
-				totalItems: pagination.totalItems,
-				totalPages: pagination.totalPages,
-				currentPage: pagination.currentPage,
-				perPage: pagination.perPage,
-			},
-		});
-	} catch (error) {
-		console.error("Error finding all categories:", error);
-
-		if (error instanceof ZodError) {
-			return response.status(400).json({
-				message: "Validation error",
-				issues: error.issues,
-			});
-		}
-
-		return response.status(500).json({
-			message: "Internal server error",
-		});
-	}
+	return response.status(200).json({
+		categories,
+		meta: {
+			totalItems: pagination.totalItems,
+			totalPages: pagination.totalPages,
+			currentPage: pagination.currentPage,
+			perPage: pagination.perPage,
+		},
+	});
 }

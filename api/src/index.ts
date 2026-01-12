@@ -7,6 +7,8 @@ import { join } from "path";
 import { setupSwagger } from "~/config/swagger";
 import { logger } from "~/utils/logger";
 import { addressesRoutes } from "./http/controllers/addresses/_routes";
+import { attributesRoutes } from "./http/controllers/attributes/_routes";
+import { attributesValuesRoutes } from "./http/controllers/attributes-values/_routes";
 import { authRoutes } from "./http/controllers/auth/_routes";
 import { categoriesRoutes } from "./http/controllers/categories/_routes";
 import { citiesRoutes } from "./http/controllers/cities/_routes";
@@ -14,10 +16,13 @@ import { ordersRoutes } from "./http/controllers/orders/_routes";
 import { productImagesRoutes } from "./http/controllers/product-images/_routes";
 import { productsRoutes } from "./http/controllers/products/_routes";
 import { productVariationsRoutes } from "./http/controllers/product-variations.ts/_routes";
+import { stockRoutes } from "./http/controllers/stock/_routes";
 import { storesRoutes } from "./http/controllers/stores/_routes";
 import { subscriptionsRoutes } from "./http/controllers/subscriptions/_routes";
 import { usersRoutes } from "./http/controllers/users/_routes";
+import { variantAttributesRoutes } from "./http/controllers/variant-attributes/_routes";
 import { notificationsRoutes } from "./http/controllers/notifications/_routes";
+import { errorHandlerMiddleware } from "./http/middleware/error-handler";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./services/auth";
 
@@ -102,6 +107,7 @@ app.use("/api", categoriesRoutes);
 app.use("/api", productsRoutes);
 app.use("/api", productImagesRoutes);
 app.use("/api", productVariationsRoutes);
+app.use("/api", stockRoutes);
 app.use("/api", storesRoutes);
 app.use("/api", usersRoutes);
 app.use("/api", authRoutes);
@@ -109,6 +115,9 @@ app.use("/api", ordersRoutes);
 app.use("/api", notificationsRoutes);
 app.use("/api", addressesRoutes);
 app.use("/api", subscriptionsRoutes);
+app.use("/api", attributesRoutes);
+app.use("/api", attributesValuesRoutes);
+app.use("/api", variantAttributesRoutes);
 
 app.get("/api/health", (_req: Request, res: Response) => {
 	res.json({
@@ -117,6 +126,9 @@ app.get("/api/health", (_req: Request, res: Response) => {
 		environment: process.env.NODE_ENV,
 	});
 });
+
+// Error handler middleware deve ser o último middleware registrado
+app.use(errorHandlerMiddleware);
 
 export default app;
 

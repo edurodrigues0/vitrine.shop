@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
-import z, { ZodError } from "zod";
-import { CategoryNotFoundError } from "~/use-cases/@errors/categories/category-not-found-error";
+import z from "zod";
 import { makeDeleteCategoryUseCase } from "~/use-cases/@factories/categories/make-delete-category-use-case";
 
 const deleteCategoryParamsSchema = z.object({
@@ -50,32 +49,11 @@ export async function deleteCategoryController(
 	request: Request,
 	response: Response,
 ) {
-	try {
-		const { id } = deleteCategoryParamsSchema.parse(request.params);
+	const { id } = deleteCategoryParamsSchema.parse(request.params);
 
-		const deleteCategoryUseCase = makeDeleteCategoryUseCase();
+	const deleteCategoryUseCase = makeDeleteCategoryUseCase();
 
-		await deleteCategoryUseCase.execute({ id });
+	await deleteCategoryUseCase.execute({ id });
 
-		return response.status(204).send();
-	} catch (error) {
-		console.error("Error deleting category:", error);
-
-		if (error instanceof ZodError) {
-			return response.status(400).json({
-				message: "Validation error",
-				issues: error.issues,
-			});
-		}
-
-		if (error instanceof CategoryNotFoundError) {
-			return response.status(404).json({
-				message: error.message,
-			});
-		}
-
-		return response.status(500).json({
-			message: "Internal server error",
-		});
-	}
+	return response.status(204).send();
 }

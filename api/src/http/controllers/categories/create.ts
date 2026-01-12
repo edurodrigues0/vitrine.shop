@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
-import z, { ZodError } from "zod";
-import { CategoryAlreadyExistsError } from "~/use-cases/@errors/categories/category-already-exists-error";
+import z from "zod";
 import { makeCreateCategoryUseCase } from "~/use-cases/@factories/categories/make-create-category-use-case";
 
 const createCategoryBodySchema = z.object({
@@ -92,37 +91,16 @@ export async function createCategoryController(
 	request: Request,
 	response: Response,
 ) {
-	try {
-		const body = createCategoryBodySchema.parse(request.body);
+	const body = createCategoryBodySchema.parse(request.body);
 
-		const createCategoryUseCase = makeCreateCategoryUseCase();
+	const createCategoryUseCase = makeCreateCategoryUseCase();
 
-		const { category } = await createCategoryUseCase.execute({
-			name: body.name,
-			slug: body.slug,
-		});
+	const { category } = await createCategoryUseCase.execute({
+		name: body.name,
+		slug: body.slug,
+	});
 
-		return response.status(201).json({
-			category,
-		});
-	} catch (error) {
-		console.error("Error creating category:", error);
-
-		if (error instanceof ZodError) {
-			return response.status(400).json({
-				message: "Validation error",
-				issues: error.issues,
-			});
-		}
-
-		if (error instanceof CategoryAlreadyExistsError) {
-			return response.status(409).json({
-				message: error.message,
-			});
-		}
-
-		return response.status(500).json({
-			message: "Internal server error",
-		});
-	}
+	return response.status(201).json({
+		category,
+	});
 }
