@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
-import { ProductNotFoundError } from "~/use-cases/@errors/products/product-not-found-error";
-import { makeFindProductByIdUseCase } from "~/use-cases/@factories/products/make-find-product-by-id-use-case";
+import z from "zod";
+import { makeFindProductDetailsByIdUseCase } from "~/use-cases/@factories/products/make-find-product-details-by-id-use-case";
+
+const findProductByIdParamsSchema = z.object({
+	id: z.string().uuid("ID do produto deve ser um UUID válido"),
+});
 
 /**
  * @swagger
@@ -18,7 +22,7 @@ import { makeFindProductByIdUseCase } from "~/use-cases/@factories/products/make
  *         description: ID do produto
  *     responses:
  *       200:
- *         description: Produto encontrado com variações, imagens e atributos
+ *         description: Produto encontrado com variações, imagens, atributos e estoque
  *         content:
  *           application/json:
  *             schema:
@@ -41,75 +45,127 @@ import { makeFindProductByIdUseCase } from "~/use-cases/@factories/products/make
  *                     storeId:
  *                       type: string
  *                       format: uuid
+ *                     active:
+ *                       type: boolean
  *                     createdAt:
  *                       type: string
  *                       format: date-time
+ *                 variations:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       productId:
+ *                         type: string
+ *                         format: uuid
+ *                       sku:
+ *                         type: string
+ *                       price:
+ *                         type: integer
+ *                       discountPrice:
+ *                         type: integer
+ *                         nullable: true
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       updatedAt:
+ *                         type: string
+ *                         format: date-time
+ *                       stock:
+ *                         type: object
+ *                         nullable: true
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             format: uuid
+ *                           variantId:
+ *                             type: string
+ *                             format: uuid
+ *                           quantity:
+ *                             type: integer
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                       images:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                               format: uuid
+ *                             productVariationId:
+ *                               type: string
+ *                               format: uuid
+ *                             url:
+ *                               type: string
+ *                             isMain:
+ *                               type: boolean
+ *                             createdAt:
+ *                               type: string
+ *                               format: date-time
+ *                       attributes:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             attribute:
+ *                               type: object
+ *                               properties:
+ *                                 id:
+ *                                   type: string
+ *                                   format: uuid
+ *                                 name:
+ *                                   type: string
+ *                                 createdAt:
+ *                                   type: string
+ *                                   format: date-time
+ *                                 updatedAt:
+ *                                   type: string
+ *                                   format: date-time
+ *                             values:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   id:
+ *                                     type: string
+ *                                     format: uuid
+ *                                   attributeId:
+ *                                     type: string
+ *                                     format: uuid
+ *                                   value:
+ *                                     type: string
+ *                                   createdAt:
+ *                                     type: string
+ *                                     format: date-time
+ *                                   updatedAt:
+ *                                     type: string
+ *                                     format: date-time
  *       400:
- *         description: ID do produto é obrigatório
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *         description: Erro de validação
  *       404:
  *         description: Produto não encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Erro interno do servidor
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  */
 export async function findProductByIdController(
 	request: Request,
 	response: Response,
 ) {
-	try {
-		const { id } = request.params;
+	const { id } = findProductByIdParamsSchema.parse(request.params);
 
-		if (!id) {
-			return response.status(400).json({
-				message: "ID do produto é obrigatório",
-			});
-		}
+	const findProductDetailsByIdUseCase = makeFindProductDetailsByIdUseCase();
 
-		const findProductByIdUseCase = makeFindProductByIdUseCase();
+	const { product, variations } = await findProductDetailsByIdUseCase.execute({
+		id,
+	});
 
-		const { product } = await findProductByIdUseCase.execute({ id });
-
-		if (!product) {
-			return response.status(404).json({
-				message: "Produto não encontrado",
-			});
-		}
-
-		return response.status(200).json({
-			product: {
-				id: product.id,
-				name: product.name,
-				description: product.description,
-				categoryId: product.categoryId,
-				storeId: product.storeId,
-				price: product.price,
-				quantity: product.quantity,
-				color: product.color,
-				createdAt: product.createdAt,
-			},
-		});
-	} catch (error) {
-		console.error("Error finding product by ID:", error);
-
-		if (error instanceof ProductNotFoundError) {
-			return response.status(404).json({
-				message: "Produto não encontrado",
-			});
-		}
-
-		return response.status(500).json({
-			message: "Internal server error",
-		});
-	}
+	return response.status(200).json({
+		product,
+		variations,
+	});
 }
