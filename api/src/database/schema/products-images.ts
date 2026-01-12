@@ -1,6 +1,5 @@
 import { relations } from "drizzle-orm";
 import { boolean, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { products } from "./products";
 import { productsVariations } from "./products-variations";
 
 export const productsImages = pgTable("products_images", {

@@ -6,7 +6,7 @@ import { makeFindProductByIdUseCase } from "~/use-cases/@factories/products/make
  * @swagger
  * /products/{id}:
  *   get:
- *     summary: Busca um produto por ID
+ *     summary: Busca um produto por ID com todas as informações relacionadas
  *     tags: [Products]
  *     parameters:
  *       - in: path
@@ -18,7 +18,7 @@ import { makeFindProductByIdUseCase } from "~/use-cases/@factories/products/make
  *         description: ID do produto
  *     responses:
  *       200:
- *         description: Produto encontrado
+ *         description: Produto encontrado com variações, imagens e atributos
  *         content:
  *           application/json:
  *             schema:
