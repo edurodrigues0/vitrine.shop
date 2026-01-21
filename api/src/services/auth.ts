@@ -2,6 +2,29 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { DrizzleORM } from "~/database/connection";
 
+// Construir lista de origens confiáveis
+const buildTrustedOrigins = (): string[] => {
+	const origins: string[] = [];
+	
+	// Adicionar origens de desenvolvimento
+	if (process.env.NODE_ENV === "development") {
+		origins.push("http://localhost:3333");
+		origins.push("http://localhost:3000");
+	}
+	
+	// Adicionar URL do frontend se configurada
+	if (process.env.FRONTEND_URL) {
+		origins.push(process.env.FRONTEND_URL);
+	}
+	
+	// Adicionar URL do Better Auth se configurada
+	if (process.env.BETTER_AUTH_URL) {
+		origins.push(process.env.BETTER_AUTH_URL);
+	}
+	
+	return origins;
+};
+
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3333",
   basePath: "/api/auth",
@@ -34,13 +57,9 @@ export const auth = betterAuth({
     },
   },
   advanced: {
-    disableOriginCheck: true,
+    disableOriginCheck: false,
   },
-  // trustedOrigins: [
-  //   "http://localhost:3333",
-  //   "http://localhost:3000",
-  //   process.env.FRONTEND_URL || "http://localhost:3000",
-  // ],
+  trustedOrigins: buildTrustedOrigins(),
   appName: "Vitrine Lojas Online",
   plugins: [],
 })

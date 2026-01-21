@@ -4,7 +4,7 @@ import type { AuthenticatedRequest } from "~/http/middleware/authenticate";
 import { makeFindSubscriptionByUserIdUseCase } from "~/use-cases/@factories/subscriptions/make-find-subscription-by-user-id-use-case";
 
 const findSubscriptionByUserParamsSchema = z.object({
-	userId: z.string().uuid("User ID must be a valid UUID"),
+	userId: z.string().min(1, "User ID is required"), // Better Auth usa text como ID, não UUID
 });
 
 /**
@@ -22,8 +22,7 @@ const findSubscriptionByUserParamsSchema = z.object({
  *         required: true
  *         schema:
  *           type: string
- *           format: uuid
- *         description: ID do usuário
+ *         description: ID do usuário (text, compatível com Better Auth)
  *     responses:
  *       200:
  *         description: Assinatura encontrada
@@ -41,7 +40,6 @@ const findSubscriptionByUserParamsSchema = z.object({
  *                       format: uuid
  *                     userId:
  *                       type: string
- *                       format: uuid
  *                     planName:
  *                       type: string
  *                     planId:

@@ -141,7 +141,16 @@ export default function PlansPage() {
       });
     },
     onSuccess: (data) => {
+      console.log("Checkout session created successfully:", data);
+      
+      if (!data?.checkoutUrl) {
+        console.error("Checkout URL missing in response:", data);
+        showError("URL de checkout não recebida");
+        return;
+      }
+      
       // Redirecionar para o checkout do Stripe
+      console.log("Redirecting to Stripe checkout:", data.checkoutUrl);
       window.location.href = data.checkoutUrl;
     },
     onError: (error: Error) => {

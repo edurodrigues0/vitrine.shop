@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
-import z, { ZodError } from "zod";
-import { CategoryNotFoundError } from "~/use-cases/@errors/categories/category-not-found-error";
+import z from "zod";
 import { makeFindCategoryBySlugUseCase } from "~/use-cases/@factories/categories/make-find-category-by-slug-use-case";
 
 const findCategoryBySlugParamsSchema = z.object({
@@ -66,34 +65,13 @@ export async function findCategoryBySlugController(
 	request: Request,
 	response: Response,
 ) {
-	try {
-		const { slug } = findCategoryBySlugParamsSchema.parse(request.params);
+	const { slug } = findCategoryBySlugParamsSchema.parse(request.params);
 
-		const findCategoryBySlugUseCase = makeFindCategoryBySlugUseCase();
+	const findCategoryBySlugUseCase = makeFindCategoryBySlugUseCase();
 
-		const { category } = await findCategoryBySlugUseCase.execute({ slug });
+	const { category } = await findCategoryBySlugUseCase.execute({ slug });
 
-		return response.status(200).json({
-			category,
-		});
-	} catch (error) {
-		console.error("Error finding category by slug:", error);
-
-		if (error instanceof ZodError) {
-			return response.status(400).json({
-				message: "Validation error",
-				issues: error.issues,
-			});
-		}
-
-		if (error instanceof CategoryNotFoundError) {
-			return response.status(404).json({
-				message: error.message,
-			});
-		}
-
-		return response.status(500).json({
-			message: "Internal server error",
-		});
-	}
+	return response.status(200).json({
+		category,
+	});
 }

@@ -56,8 +56,18 @@ export class CreateCheckoutSessionUseCase {
 			cancelUrl,
 		});
 
+		console.log("Stripe session created:", {
+			sessionId: session.id,
+			url: session.url,
+			mode: session.mode,
+		});
+
 		if (!session.url) {
-			throw new Error("Failed to create checkout session");
+			console.error("Stripe session created but URL is missing:", {
+				sessionId: session.id,
+				session: JSON.stringify(session, null, 2),
+			});
+			throw new Error("Failed to create checkout session: URL is missing");
 		}
 
 		return { checkoutUrl: session.url };

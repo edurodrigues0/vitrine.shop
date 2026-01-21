@@ -75,6 +75,8 @@ export async function createCheckoutSessionController(
 		const { storeId, priceId, successUrl, cancelUrl } =
 			createCheckoutSessionBodySchema.parse(request.body);
 
+		console.log("Creating checkout session:", { storeId, priceId, successUrl, cancelUrl });
+
 		const createCheckoutSessionUseCase = makeCreateCheckoutSessionUseCase();
 
 		const { checkoutUrl } = await createCheckoutSessionUseCase.execute({
@@ -83,6 +85,8 @@ export async function createCheckoutSessionController(
 			successUrl,
 			cancelUrl,
 		});
+
+		console.log("Checkout session created successfully:", { checkoutUrl });
 
 		return response.status(200).json({
 			checkoutUrl,
@@ -109,8 +113,27 @@ export async function createCheckoutSessionController(
 			});
 		}
 
+		// Retornar mensagem de erro mais detalhada para depuração
+		let errorMessage = error instanceof Error ? error.message : "Internal server error";
+		const errorStack = error instanceof Error ? error.stack : undefined;
+
+		// Detectar erros específicos do Stripe e melhorar mensagens
+		if (error instanceof Error) {
+			if (error.message.includes("No such price")) {
+				// Mensagem já foi melhorada no StripeService
+				errorMessage = error.message;
+			} else if (error.message.includes("resource_missing")) {
+				errorMessage = "Recurso do Stripe não encontrado. Verifique se os IDs de preços estão corretos nas variáveis de ambiente.";
+			}
+		}
+
+		console.error("Unexpected error creating checkout session:", {
+			message: errorMessage,
+			stack: errorStack,
+		});
+
 		return response.status(500).json({
-			message: "Internal server error",
+			message: errorMessage || "Internal server error",
 		});
 	}
 }

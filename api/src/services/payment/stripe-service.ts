@@ -32,28 +32,60 @@ export class StripeService {
     successUrl,
     cancelUrl,
   }: CreateCheckoutSessionParams) {
-    const session = await this.stripe.checkout.sessions.create({
-      mode: "subscription",
-      payment_method_types: ["card"],
-      customer_email: ownerEmail,
-      line_items: [{
-        price: priceId,
-        quantity: 1,
-      }],
-      metadata: {
+    try {
+      console.log("Creating Stripe checkout session with params:", {
         storeId,
         storeName,
-      },
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      subscription_data: {
+        ownerEmail,
+        priceId,
+        successUrl,
+        cancelUrl,
+      });
+
+      const session = await this.stripe.checkout.sessions.create({
+        mode: "subscription",
+        payment_method_types: ["card"],
+        customer_email: ownerEmail,
+        line_items: [{
+          price: priceId,
+          quantity: 1,
+        }],
         metadata: {
           storeId,
+          storeName,
         },
-      },
-    });
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        subscription_data: {
+          metadata: {
+            storeId,
+          },
+        },
+      });
 
-    return session;
+      console.log("Stripe checkout session created successfully:", {
+        sessionId: session.id,
+        url: session.url,
+      });
+
+      return session;
+    } catch (error) {
+      console.error("Stripe API error creating checkout session:", error);
+      
+      // Detectar erro comum: uso de Product ID ao invés de Price ID
+      if (error instanceof Error && error.message.includes("No such price")) {
+        const isProductId = priceId.startsWith("prod_");
+        if (isProductId) {
+          throw new Error(
+            `Erro: Você está usando um Product ID (${priceId}) ao invés de um Price ID. ` +
+            `Product IDs começam com "prod_" mas para criar sessões de checkout você precisa de Price IDs que começam com "price_". ` +
+            `Acesse o Stripe Dashboard → Products → Selecione o produto → Copie o Price ID (não o Product ID) e atualize a variável de ambiente.`
+          );
+        }
+      }
+      
+      throw error;
+    }
   }
 
   async createCustomer({
@@ -76,7 +108,15 @@ export class StripeService {
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
 
     return subscription;
-  };
+  }
+
+  async getPrice(priceId: string): Promise<Stripe.Price> {
+    const price = await this.stripe.prices.retrieve(priceId, {
+      expand: ["product"],
+    });
+
+    return price;
+  }
 
   async cancelSubscription(
     subscriptionId: string,

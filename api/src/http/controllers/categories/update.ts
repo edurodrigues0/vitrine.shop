@@ -1,7 +1,5 @@
 import type { Request, Response } from "express";
-import z, { ZodError } from "zod";
-import { CategoryNotFoundError } from "~/use-cases/@errors/categories/category-not-found-error";
-import { FailedToUpdateCategoryError } from "~/use-cases/@errors/categories/failed-to-update-category-error";
+import z from "zod";
 import { makeUpdateCategoryUseCase } from "~/use-cases/@factories/categories/make-update-category-use-case";
 
 const updateCategoryParamsSchema = z.object({
@@ -104,54 +102,27 @@ export async function updateCategoryController(
 	request: Request,
 	response: Response,
 ) {
-	try {
-		const { id } = updateCategoryParamsSchema.parse(request.params);
-		const body = updateCategoryBodySchema.parse(request.body);
+	const { id } = updateCategoryParamsSchema.parse(request.params);
+	const body = updateCategoryBodySchema.parse(request.body);
 
-		const updateData = Object.fromEntries(
-			Object.entries(body).filter(([_, value]) => value !== undefined),
-		);
+	const updateData = Object.fromEntries(
+		Object.entries(body).filter(([_, value]) => value !== undefined),
+	);
 
-		if (Object.keys(updateData).length === 0) {
-			return response.status(400).json({
-				message: "Pelo menos um campo deve ser fornecido para atualização",
-			});
-		}
-
-		const updateCategoryUseCase = makeUpdateCategoryUseCase();
-
-		const { category } = await updateCategoryUseCase.execute({
-			id,
-			data: updateData,
-		});
-
-		return response.status(200).json({
-			category,
-		});
-	} catch (error) {
-		console.error("Error updating category:", error);
-
-		if (error instanceof ZodError) {
-			return response.status(400).json({
-				message: "Validation error",
-				issues: error.issues,
-			});
-		}
-
-		if (error instanceof CategoryNotFoundError) {
-			return response.status(404).json({
-				message: error.message,
-			});
-		}
-
-		if (error instanceof FailedToUpdateCategoryError) {
-			return response.status(500).json({
-				message: error.message,
-			});
-		}
-
-		return response.status(500).json({
-			message: "Internal server error",
+	if (Object.keys(updateData).length === 0) {
+		return response.status(400).json({
+			message: "Pelo menos um campo deve ser fornecido para atualização",
 		});
 	}
+
+	const updateCategoryUseCase = makeUpdateCategoryUseCase();
+
+	const { category } = await updateCategoryUseCase.execute({
+		id,
+		data: updateData,
+	});
+
+	return response.status(200).json({
+		category,
+	});
 }

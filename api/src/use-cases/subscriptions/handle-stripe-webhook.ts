@@ -60,10 +60,41 @@ export class HandleStripeWebhookUseCase {
 							});
 
 						if (!existingSubscription) {
-							// Criar subscription
-							const price = stripeSubscription.items.data[0]?.price;
-							const planName = price?.nickname || "Basic Plan";
-							const planId = price?.id || "";
+							// Buscar informações do price do Stripe
+							const priceItem = stripeSubscription.items.data[0]?.price;
+							
+							if (!priceItem?.id) {
+								throw new Error("Price ID not found in subscription");
+							}
+
+							// Buscar informações detalhadas do price (incluindo nome do produto)
+							const price = await this.stripeService.getPrice(priceItem.id);
+							
+							// Obter nome do plano: usar nickname do price, ou nome do produto, ou fallback
+							let planName = price.nickname || "Basic Plan";
+							
+							if (price.product && typeof price.product !== "string") {
+								const product = price.product as Stripe.Product;
+								planName = product.name || planName;
+							}
+
+							const planId = price.id;
+
+							// Obter valor em centavos (unit_amount) ou calcular a partir do decimal
+							const unitAmount = price.unit_amount || 0;
+							const priceValue = (unitAmount / 100).toFixed(2);
+
+							console.log("Creating subscription in database:", {
+								userId: store.ownerId,
+								planName,
+								planId,
+								priceValue,
+								stripeSubscriptionId: stripeSubscription.id,
+								stripeCustomerId:
+									typeof stripeSubscription.customer === "string"
+										? stripeSubscription.customer
+										: stripeSubscription.customer?.id || null,
+							});
 
 							await this.createSubscriptionUseCase.execute({
 								userId: store.ownerId,
@@ -76,9 +107,7 @@ export class HandleStripeWebhookUseCase {
 								currentPeriodEnd: new Date(
 									stripeSubscription.current_period_end * 1000,
 								),
-								price: (
-									(price?.unit_amount || 0) / 100
-								).toString(),
+								price: priceValue,
 								status: "PAID",
 								nextPayment: stripeSubscription.current_period_end
 									? new Date(
@@ -91,6 +120,10 @@ export class HandleStripeWebhookUseCase {
 										? stripeSubscription.customer
 										: stripeSubscription.customer?.id || null,
 							});
+
+							console.log("Subscription created successfully in database");
+						} else {
+							console.log("Subscription already exists in database:", existingSubscription.id);
 						}
 					}
 					break;

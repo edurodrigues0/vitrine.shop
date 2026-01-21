@@ -32,5 +32,8 @@ export function verifyToken(token: string): JwtPayload {
 	return jsonwebtoken.verify(
 		token,
 		process.env.JWT_SECRET as string,
+		{
+			algorithms: ["HS256"],
+		},
 	) as JwtPayload;
 }

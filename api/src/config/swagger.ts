@@ -13,10 +13,7 @@ function getControllerFiles(dir: string, fileList: string[] = []): string[] {
 		const stat = statSync(filePath);
 
 		if (stat.isDirectory()) {
-			// Ignora diretórios com extensão .ts (como product-variations.ts)
-			if (!file.endsWith(".ts")) {
-				getControllerFiles(filePath, fileList);
-			}
+			getControllerFiles(filePath, fileList);
 		} else if (file.endsWith(".ts") && !file.startsWith("_routes")) {
 			fileList.push(filePath);
 		}
