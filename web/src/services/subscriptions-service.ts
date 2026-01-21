@@ -34,7 +34,15 @@ export const subscriptionsService = {
   },
 
   async createCheckoutSession(params: CreateCheckoutSessionParams): Promise<CreateCheckoutSessionResponse> {
+    console.log("Creating checkout session with params:", params);
     const response = await api.post<CreateCheckoutSessionResponse>("/subscriptions/checkout", params);
+    console.log("Checkout session response:", response);
+    
+    if (!response.checkoutUrl) {
+      console.error("Checkout URL missing in response:", response);
+      throw new Error("URL de checkout não retornada pela API");
+    }
+    
     return response;
   },
 
